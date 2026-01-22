@@ -1,7 +1,5 @@
 package es.medac.skycollectorapp;
 
-import java.util.Random;
-
 public class AvionGenerator {
 
     private static final AvionData[] DATOS_AVIONES = {
@@ -9,7 +7,7 @@ public class AvionGenerator {
             // =================================================================
             // NIVEL 1: COMUNES (1-12)
             // =================================================================
-            /*new AvionData("Boeing 737-800", "Boeing", "COMMON", R.drawable.boeing_737, "842 km/h", "189 pax", "39m", "EE.UU.", "79t"),
+            new AvionData("Boeing 737-800", "Boeing", "COMMON", R.drawable.boeing_737, "842 km/h", "189 pax", "39m", "EE.UU.", "79t"),
             new AvionData("Airbus A320", "Airbus", "COMMON", R.drawable.airbus_a320, "828 km/h", "180 pax", "34m", "Europa", "78t"),
             new AvionData("Cessna 172 Skyhawk", "Cessna", "COMMON", R.drawable.cessna_172, "226 km/h", "4 pax", "11m", "EE.UU.", "1.1t"),
             new AvionData("Piper PA-28", "Piper", "COMMON", R.drawable.piper_pa28, "217 km/h", "4 pax", "10m", "EE.UU.", "1.1t"),
@@ -21,7 +19,7 @@ public class AvionGenerator {
             new AvionData("Diamond DA42", "Diamond", "COMMON", R.drawable.diamond_da42, "365 km/h", "4 pax", "13m", "Austria", "1.7t"),
             new AvionData("Bell 206 JetRanger", "Bell", "COMMON", R.drawable.bell_206, "224 km/h", "5 pax", "12m", "EE.UU.", "1.4t"),
             new AvionData("Cessna 152", "Cessna", "COMMON", R.drawable.cessna_152, "198 km/h", "2 pax", "10m", "EE.UU.", "757kg"),
-            */
+
             // =================================================================
             // NIVEL 2: RAROS (13-25)
             // =================================================================
@@ -45,10 +43,10 @@ public class AvionGenerator {
             new AvionData("Airbus A380", "Airbus", "EPIC", R.drawable.airbus_a380, "1020 km/h", "853 pax", "79m", "Europa", "575t"),
             new AvionData("Boeing 747-400", "Boeing", "EPIC", R.drawable.boeing_747, "988 km/h", "416 pax", "64m", "EE.UU.", "396t"),
             new AvionData("F-35 Lightning II", "Lockheed Martin", "EPIC", R.drawable.f35, "1960 km/h", "1 piloto", "10m", "EE.UU.", "31t"),
-           /*new AvionData("AH-64 Apache", "Boeing", "EPIC", R.drawable.apache_ah64, "293 km/h", "2 pilotos", "14m", "EE.UU.", "10t"),
+            new AvionData("AH-64 Apache", "Boeing", "EPIC", R.drawable.apache_ah64, "293 km/h", "2 pilotos", "14m", "EE.UU.", "10t"),
             new AvionData("V-22 Osprey", "Bell Boeing", "EPIC", R.drawable.v22_osprey, "509 km/h", "24 tropas", "17m", "EE.UU.", "27t"),
             new AvionData("F/A-18 Super Hornet", "Boeing", "EPIC", R.drawable.fa18_hornet, "1915 km/h", "1 piloto", "18m", "EE.UU.", "29t"),
-            new AvionData("Antonov An-124", "Antonov", "EPIC", R.drawable.an124, "865 km/h", "Carga", "69m", "URSS", "405t"),
+            new AvionData("Antonov An-124", "Antonov", "EPIC", R.drawable.a124, "865 km/h", "Carga", "69m", "URSS", "405t"),
             new AvionData("Airbus Beluga XL", "Airbus", "EPIC", R.drawable.beluga_xl, "737 km/h", "Carga Esp.", "63m", "Europa", "227t"),
             new AvionData("Boeing Dreamlifter", "Boeing", "EPIC", R.drawable.dreamlifter, "878 km/h", "Carga Esp.", "71m", "EE.UU.", "364t"),
             new AvionData("Mi-24 Hind", "Mil", "EPIC", R.drawable.mi24_hind, "335 km/h", "8 tropas", "17m", "URSS", "12t"),
@@ -65,13 +63,13 @@ public class AvionGenerator {
             new AvionData("Antonov An-225", "Antonov", "LEGENDARY", R.drawable.an225, "850 km/h", "Carga Max.", "84m", "URSS/Ucrania", "640t"),
             new AvionData("X-15", "North American", "LEGENDARY", R.drawable.x15, "7274 km/h", "1 piloto", "15m", "EE.UU.", "15t"),
             new AvionData("Fokker Dr.I (Barón Rojo)", "Fokker", "LEGENDARY", R.drawable.fokker_dr1, "185 km/h", "1 piloto", "5.7m", "Alemania", "586kg"),
-            new AvionData("Me 262", "Messerschmitt", "LEGENDARY", R.drawable.me262, "900 km/h", "1 piloto", "10m", "Alemania", "7t"),
+            new AvionData("Me 262", "Messerschmitt", "LEGENDARY", R.drawable.me_262, "900 km/h", "1 piloto", "10m", "Alemania", "7t"),
             new AvionData("Rutan Voyager", "Rutan", "       LEGENDARY", R.drawable.voyager, "196 km/h", "2 pilotos", "8.9m", "EE.UU.", "4t"),
             new AvionData("Spirit of St. Louis", "Ryan", "LEGENDARY", R.drawable.spirit_of_st_louis, "214 km/h", "1 piloto", "8m", "EE.UU.", "2t"),
-            new AvionData("Harrier Jump Jet", "Hawker Siddeley", "LEGENDARY", R.drawable.harrier, "1176 km/h", "1 piloto", "14m", "UK", "11t")
+            new AvionData("Harrier Jump Jet", "Hawker Siddeley", "LEGENDARY", R.drawable.harrier, "1176 km/h", "1 piloto", "14m", "UK", "11t"),
             new AvionData("Concorde", "BAC", "LEGENDARY", R.drawable.concorde, "2179 km/h", "100 pax", "25m", "UK/Francia", "185t"),
             new AvionData("Su-57 Felon", "Sukhoi", "LEGENDARY", R.drawable.su57, "2130 km/h", "1 piloto", "19m", "Rusia", "35t"),
-    */};
+    };
 
     // --- CLASE INTERNA PARA ORGANIZAR DATOS ---
     private static class AvionData {

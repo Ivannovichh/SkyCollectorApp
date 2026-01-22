@@ -18,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SKY COLLECTOR"
+        android:text="@string/sky_collector"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
         android:textStyle="bold"
@@ -28,7 +28,7 @@
         android:id="@+id/etEmail"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:hint="Correo electrónico"
+        android:hint="@string/correo_electr_nico"
         android:textColor="#FFFFFF"
         android:textColorHint="#90A4AE"
         android:inputType="textEmailAddress"

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SkyCollectorApp</string>
+    <string name="sky_collector">SKY COLLECTOR</string>
+    <string name="correo_electr_nico">Correo electrónico</string>
 </resources>
