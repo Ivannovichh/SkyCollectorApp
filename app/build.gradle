@@ -25,6 +25,8 @@ dependencies {
     // Componentes de diseño Material (Cards, FAB, etc.)
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "androidx.datastore:datastore-preferences:1.1.1"
+
 
     // Librería Glide para cargar fotos eficientemente
     implementation 'com.github.bumptech.glide:glide:4.16.0'

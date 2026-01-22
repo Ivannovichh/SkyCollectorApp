@@ -16,10 +16,10 @@
             android:id="@+id/imgDetalleGrande"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_launcher_foreground"
             android:background="#151E32"
-            android:padding="10dp"/>
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_launcher_foreground" />
 
         <EditText
             android:id="@+id/etNombreAvion"
