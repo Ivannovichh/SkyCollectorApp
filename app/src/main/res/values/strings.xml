@@ -3,4 +3,7 @@
     <string name="sky_collector">SKY COLLECTOR</string>
     <string name="correo_electr_nico">Correo electrónico</string>
     <string name="legendary">LEGENDARY</string>
+    <string name="mi_perfil">Mi Perfil</string>
+    <string name="skycollector">SkyCollector</string>
+    <string name="a_adir_avi_n_manualmente">AÑADIR AVIÓN MANUALMENTE</string>
 </resources>

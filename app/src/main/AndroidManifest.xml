@@ -28,6 +28,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".PerfilActivity" />
+
         <activity android:name=".AddAvionActivity" android:exported="false" />
 
         <activity android:name=".MainActivity" android:exported="false" />

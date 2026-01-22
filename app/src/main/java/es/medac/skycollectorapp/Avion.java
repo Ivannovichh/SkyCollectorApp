@@ -112,12 +112,16 @@ public class Avion implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Avion avion = (Avion) o;
-        if (documentId != null && avion.documentId != null) return Objects.equals(documentId, avion.documentId);
-        return Objects.equals(modelo, avion.modelo);
+        // Dos aviones son iguales si tienen el mismo MODELO (ignorando mayúsculas)
+        return modelo != null && modelo.equalsIgnoreCase(avion.modelo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(documentId, modelo);
+        return Objects.hash(modelo);
     }
+    private boolean seleccionado = false;
+
+    public boolean isSeleccionado() { return seleccionado; }
+    public void setSeleccionado(boolean seleccionado) { this.seleccionado = seleccionado; }
 }
