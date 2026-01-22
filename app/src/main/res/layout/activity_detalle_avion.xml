@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B1021"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="30dp">
+
+        <ImageView
+            android:id="@+id/imgDetalleGrande"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_launcher_foreground"
+            android:background="#151E32"
+            android:padding="10dp"/>
+
+        <EditText
+            android:id="@+id/etNombreAvion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MODELO AVIÓN"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:background="@android:color/transparent"
+            android:inputType="textCapSentences"
+            android:padding="16dp"
+            android:hint="Escribe un apodo..."/>
+
+        <LinearLayout
+            android:id="@+id/layoutFotoUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="20dp"
+            android:background="#1A2538"
+            android:padding="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📸 FOTO DEL AVISTAMIENTO:"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"/>
+
+                <ImageButton
+                    android:id="@+id/btnEditarFoto"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:src="@android:drawable/ic_menu_camera"
+                    android:backgroundTint="#2979FF"
+                    android:tint="#FFFFFF"
+                    android:padding="5dp"/>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/imgFotoUsuario"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:scaleType="centerCrop"
+                android:background="#000000" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:background="#151E32"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FICHA TÉCNICA"
+                android:textColor="#00E5FF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"
+                android:paddingTop="10dp"/>
+
+            <TextView android:id="@+id/txtDetalleFabricante" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/txtDetallePais" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/txtDetalleVelocidad" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/txtDetalleCapacidad" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/txtDetallePeso" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/txtDetalleDimensiones" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnVolver"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GUARDAR Y VOLVER"
+            android:backgroundTint="#00C853"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_margin="20dp"/>
+    </LinearLayout>
+</ScrollView>

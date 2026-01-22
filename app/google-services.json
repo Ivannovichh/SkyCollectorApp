@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "122299812994",
+    "project_id": "skycollectorapp",
+    "storage_bucket": "skycollectorapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:122299812994:android:7f81c5eac25cde8836789b",
+        "android_client_info": {
+          "package_name": "es.medac.skycollectorapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAhv2T3JUUQRDk74SyT_73Iob9vPOTGhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

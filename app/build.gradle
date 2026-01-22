@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
+
+android {
+    namespace 'es.medac.skycollectorapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "es.medac.skycollectorapp"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Habilitar ViewBinding para no usar tantos findViewById
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    // Componentes de diseño Material (Cards, FAB, etc.)
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Librería Glide para cargar fotos eficientemente
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // Retrofit (Para conectar con FlightRadar API en el futuro)
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation libs.monitor
+    implementation libs.ext.junit
+
+    // PhotoView para zoom en fotos
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    implementation libs.firebase.auth
+}
