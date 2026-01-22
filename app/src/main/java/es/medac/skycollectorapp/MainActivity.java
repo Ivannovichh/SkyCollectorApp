@@ -5,10 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtVacio;
     private int posicionEditando = -1;
 
-    // Lanza la pantalla de detalle para editar
+    // --- 1. LANZADOR PARA EDITAR UN AVIÓN ---
     private final ActivityResultLauncher<Intent> lanzadorDetalle = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -39,24 +36,24 @@ public class MainActivity extends AppCompatActivity {
                     if (posicionEditando != -1 && avionModificado != null) {
                         listaAviones.set(posicionEditando, avionModificado);
                         adapter.notifyItemChanged(posicionEditando);
-                        guardarDatosEnMovil(); // <--- GUARDA AUTOMÁTICAMENTE
+                        guardarDatosEnMovil(); // Guardar cambios
                     }
                 }
             }
     );
 
-    // Lanza la pantalla para añadir uno nuevo
+    // --- 2. LANZADOR PARA AÑADIR UNO NUEVO ---
     private final ActivityResultLauncher<Intent> lanzadorAddAvion = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Avion nuevoAvion = (Avion) result.getData().getSerializableExtra("nuevo_avion");
                     if (nuevoAvion != null) {
-                        listaAviones.add(0, nuevoAvion);
+                        listaAviones.add(0, nuevoAvion); // Añadir al principio
                         adapter.notifyItemInserted(0);
                         recyclerView.scrollToPosition(0);
                         actualizarVistaVacia();
-                        guardarDatosEnMovil(); // <--- GUARDA AUTOMÁTICAMENTE
+                        guardarDatosEnMovil(); // Guardar cambios
                     }
                 }
             }
@@ -70,9 +67,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         txtVacio = findViewById(R.id.txtVacio);
 
-        // 1. CARGAMOS LOS DATOS GUARDADOS
+        // A. CARGAMOS LOS DATOS GUARDADOS (Si no hay nada, lista vacía)
         listaAviones = cargarDatosDelMovil();
 
+        // B. CONFIGURAMOS EL RECYCLERVIEW
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new AvionAdapter(listaAviones, (avion, position) -> {
             posicionEditando = position;
@@ -81,27 +79,18 @@ public class MainActivity extends AppCompatActivity {
             lanzadorDetalle.launch(intent);
         });
         recyclerView.setAdapter(adapter);
+
+        // C. COMPROBAR SI ESTÁ VACÍA (Para mostrar el texto de fondo)
         actualizarVistaVacia();
 
-        // Botón Escanear/Añadir
+        // D. BOTÓN DE ESCANEAR / AÑADIR
         findViewById(R.id.btnEscanear).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddAvionActivity.class);
             lanzadorAddAvion.launch(intent);
         });
-
-        // =======================================================
-        // BOTÓN ROJO DE EMERGENCIA (PARA CARGAR DATOS LA 1ª VEZ)
-        // =======================================================
-        Button btnReset = new Button(this);
-        btnReset.setText("REINICIAR COLECCIÓN (CARGA INICIAL)");
-        btnReset.setBackgroundColor(android.graphics.Color.RED);
-        btnReset.setTextColor(android.graphics.Color.WHITE);
-        addContentView(btnReset, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        btnReset.setOnClickListener(v -> cargarDatosInicialesPorDefecto());
     }
 
-    // --- MÉTODOS DE GUARDADO LOCAL (SIN FIREBASE) ---
+    // --- MÉTODOS DE GUARDADO LOCAL (SharedPreferences) ---
 
     private void guardarDatosEnMovil() {
         SharedPreferences sharedPreferences = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
@@ -118,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         String json = sharedPreferences.getString("lista_aviones", null);
 
         if (json == null) {
-            return new ArrayList<>(); // Si no hay nada, lista vacía
+            return new ArrayList<>(); // ¡IMPORTANTE! Si no hay datos, devolvemos lista vacía (0 aviones)
         }
 
         Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
@@ -133,18 +122,5 @@ public class MainActivity extends AppCompatActivity {
             txtVacio.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void cargarDatosInicialesPorDefecto() {
-        // Borramos lo que haya y ponemos los 3 básicos
-        listaAviones.clear();
-        listaAviones.add(new Avion("Boeing 737", "Boeing", "COMMON", android.R.drawable.ic_menu_camera, "842 km/h", "189 pax", "39m", "EE.UU.", "79t"));
-        listaAviones.add(new Avion("Airbus A320", "Airbus", "COMMON", android.R.drawable.ic_menu_camera, "828 km/h", "180 pax", "34m", "Europa", "78t"));
-        listaAviones.add(new Avion("F-22 Raptor", "Lockheed", "LEGENDARY", android.R.drawable.ic_menu_camera, "2414 km/h", "1 piloto", "13m", "EE.UU.", "38t"));
-
-        adapter.notifyDataSetChanged();
-        guardarDatosEnMovil(); // Guardar cambios
-        actualizarVistaVacia();
-        Toast.makeText(this, "¡Colección Reiniciada!", Toast.LENGTH_SHORT).show();
     }
 }

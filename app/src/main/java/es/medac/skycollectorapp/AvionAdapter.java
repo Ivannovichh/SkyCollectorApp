@@ -29,26 +29,22 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
         Avion avion = listaAviones.get(position);
 
-        // Datos básicos
-        holder.txtModelo.setText(avion.getApodo()); // Muestra el apodo
+        holder.txtModelo.setText(avion.getApodo());
         holder.txtFabricante.setText(avion.getFabricante());
         holder.txtRareza.setText(avion.getRareza());
 
-        // --- AQUÍ ESTÁN TUS BORDES DE COLORES ---
-        // Recuperamos el color según la rareza y lo aplicamos al borde y al fondo de la etiqueta
+        // COLORES Y BORDES
         int color = avion.getColorRareza();
+        holder.cardView.setStrokeColor(color);
+        holder.cardView.setStrokeWidth(5);
+        holder.txtRareza.setBackgroundColor(color);
 
-        holder.cardView.setStrokeColor(color); // Borde de la tarjeta
-        holder.cardView.setStrokeWidth(5);     // Grosor del borde (para que se vea bien)
-        holder.txtRareza.setBackgroundColor(color); // Fondo de la etiqueta pequeña
-
-        // Cargar imagen con Glide
+        // IMAGEN (Prioridad a la cámara del usuario, si no hay, usa el recurso)
         Glide.with(holder.itemView.getContext())
-                .load(avion.getImagenResId()) // Carga la imagen oficial
-                .placeholder(android.R.drawable.ic_menu_camera) // Si falla, pone una cámara
+                .load(avion.getImagenResId())
+                .placeholder(android.R.drawable.ic_menu_camera)
                 .into(holder.imgAvion);
 
-        // Si el usuario tiene foto propia, intentamos cargarla (Opcional, si quieres usarlo)
         if (avion.getUriFotoUsuario() != null) {
             holder.imgAvion.setImageURI(android.net.Uri.parse(avion.getUriFotoUsuario()));
         }
@@ -56,22 +52,18 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         holder.itemView.setOnClickListener(v -> listener.onItemClick(avion, position));
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
         return new AvionViewHolder(view);
     }
 
-    @Override
-    public int getItemCount() {
-        return listaAviones.size();
-    }
+    @Override public int getItemCount() { return listaAviones.size(); }
 
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
         TextView txtModelo, txtFabricante, txtRareza;
         ImageView imgAvion;
-        MaterialCardView cardView; // Usamos MaterialCardView para los bordes
+        MaterialCardView cardView;
 
         public AvionViewHolder(@NonNull View v) {
             super(v);
@@ -79,7 +71,6 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
             txtFabricante = v.findViewById(R.id.txtFabricante);
             txtRareza = v.findViewById(R.id.txtRareza);
             imgAvion = v.findViewById(R.id.imgAvion);
-            // El casting necesario para poder cambiar el color del borde
             cardView = v.findViewById(R.id.cardContainer);
         }
     }
