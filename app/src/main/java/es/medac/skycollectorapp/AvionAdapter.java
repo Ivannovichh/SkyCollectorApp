@@ -14,14 +14,12 @@ import java.util.List;
 public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHolder> {
 
     private List<Avion> listaAviones;
-    private final OnItemClickListener listener; // El "micrófono" para avisar a MainActivity
+    private final OnItemClickListener listener;
 
-    // Interfaz para comunicarse
     public interface OnItemClickListener {
         void onItemClick(Avion avion, int position);
     }
 
-    // Constructor que OBLIGA a pasar el listener
     public AvionAdapter(List<Avion> listaAviones, OnItemClickListener listener) {
         this.listaAviones = listaAviones;
         this.listener = listener;
@@ -31,43 +29,58 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
         Avion avion = listaAviones.get(position);
 
-        // IMPORTANTE: Mostramos el APODO, no el modelo
-        // Si no lo has editado, saldrá el modelo igual.
-        holder.txtModelo.setText(avion.getApodo());
-
+        // Datos básicos
+        holder.txtModelo.setText(avion.getApodo()); // Muestra el apodo
         holder.txtFabricante.setText(avion.getFabricante());
         holder.txtRareza.setText(avion.getRareza());
-        holder.cardView.setStrokeColor(avion.getColorRareza());
-        holder.txtRareza.setBackgroundColor(avion.getColorRareza());
 
+        // --- AQUÍ ESTÁN TUS BORDES DE COLORES ---
+        // Recuperamos el color según la rareza y lo aplicamos al borde y al fondo de la etiqueta
+        int color = avion.getColorRareza();
+
+        holder.cardView.setStrokeColor(color); // Borde de la tarjeta
+        holder.cardView.setStrokeWidth(5);     // Grosor del borde (para que se vea bien)
+        holder.txtRareza.setBackgroundColor(color); // Fondo de la etiqueta pequeña
+
+        // Cargar imagen con Glide
         Glide.with(holder.itemView.getContext())
-                .load(avion.getImagenResId())
-                .fitCenter()
+                .load(avion.getImagenResId()) // Carga la imagen oficial
+                .placeholder(android.R.drawable.ic_menu_camera) // Si falla, pone una cámara
                 .into(holder.imgAvion);
 
-        // AQUÍ ESTÁ LA CLAVE:
-        // Al hacer clic, NO abrimos la actividad.
-        // Llamamos al listener. MainActivity decidirá qué hacer.
+        // Si el usuario tiene foto propia, intentamos cargarla (Opcional, si quieres usarlo)
+        if (avion.getUriFotoUsuario() != null) {
+            holder.imgAvion.setImageURI(android.net.Uri.parse(avion.getUriFotoUsuario()));
+        }
+
         holder.itemView.setOnClickListener(v -> listener.onItemClick(avion, position));
     }
 
-    // ... Resto del código igual ...
-    @NonNull @Override public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
-        return new AvionViewHolder(LayoutInflater.from(p.getContext()).inflate(R.layout.item_avion, p, false));
+    @NonNull
+    @Override
+    public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
+        return new AvionViewHolder(view);
     }
-    @Override public int getItemCount() { return listaAviones.size(); }
+
+    @Override
+    public int getItemCount() {
+        return listaAviones.size();
+    }
 
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
         TextView txtModelo, txtFabricante, txtRareza;
         ImageView imgAvion;
-        MaterialCardView cardView;
+        MaterialCardView cardView; // Usamos MaterialCardView para los bordes
+
         public AvionViewHolder(@NonNull View v) {
             super(v);
             txtModelo = v.findViewById(R.id.txtModelo);
             txtFabricante = v.findViewById(R.id.txtFabricante);
             txtRareza = v.findViewById(R.id.txtRareza);
             imgAvion = v.findViewById(R.id.imgAvion);
-            cardView = (MaterialCardView) v;
+            // El casting necesario para poder cambiar el color del borde
+            cardView = v.findViewById(R.id.cardContainer);
         }
     }
 }

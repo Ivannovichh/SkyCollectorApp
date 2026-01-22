@@ -1,27 +1,24 @@
 package es.medac.skycollectorapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;import android.widget.Button;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,64 +28,35 @@ public class MainActivity extends AppCompatActivity {
     private AvionAdapter adapter;
     private List<Avion> listaAviones;
     private TextView txtVacio;
-
     private int posicionEditando = -1;
 
-    // --> NUEVO: Referencias a Firebase
-    private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
-    private FirebaseUser currentUser;
-
-
-    // 1. LANZADOR PARA RECIBIR CAMBIOS DEL DETALLE (ACTUALIZADO PARA FIRESTORE)
+    // Lanza la pantalla de detalle para editar
     private final ActivityResultLauncher<Intent> lanzadorDetalle = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Avion avionModificado = (Avion) result.getData().getSerializableExtra("avion_modificado");
-                    String documentId = result.getData().getStringExtra("avion_document_id"); // --> NUEVO: Recuperar el ID
-
-                    if (posicionEditando != -1 && avionModificado != null && documentId != null && !documentId.isEmpty()) {
-                        // --> NUEVO: Actualizar en Firestore
-                        db.collection("usuarios").document(currentUser.getUid()).collection("aviones")
-                                .document(documentId)
-                                .set(avionModificado) // set() sobrescribe el objeto completo
-                                .addOnSuccessListener(aVoid -> {
-                                    // Éxito en DB, ahora actualiza la UI
-                                    listaAviones.set(posicionEditando, avionModificado);
-                                    adapter.notifyItemChanged(posicionEditando);
-                                    Toast.makeText(this, "Avión actualizado", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Error al actualizar el avión.", Toast.LENGTH_SHORT).show();
-                                });
+                    if (posicionEditando != -1 && avionModificado != null) {
+                        listaAviones.set(posicionEditando, avionModificado);
+                        adapter.notifyItemChanged(posicionEditando);
+                        guardarDatosEnMovil(); // <--- GUARDA AUTOMÁTICAMENTE
                     }
                 }
             }
     );
 
-    // 2. LANZADOR PARA AÑADIR NUEVOS (ACTUALIZADO PARA FIRESTORE)
+    // Lanza la pantalla para añadir uno nuevo
     private final ActivityResultLauncher<Intent> lanzadorAddAvion = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Avion nuevoAvion = (Avion) result.getData().getSerializableExtra("nuevo_avion");
                     if (nuevoAvion != null) {
-                        // --> NUEVO: Guardar en Firestore
-                        db.collection("usuarios").document(currentUser.getUid()).collection("aviones")
-                                .add(nuevoAvion) // add() crea un ID automático
-                                .addOnSuccessListener(documentReference -> {
-                                    // Éxito: El avión se guardó. Ahora lo añadimos a la lista local y actualizamos la UI.
-                                    nuevoAvion.setDocumentId(documentReference.getId()); // Guardamos el ID en el objeto
-                                    listaAviones.add(0, nuevoAvion);
-                                    adapter.notifyItemInserted(0);
-                                    recyclerView.scrollToPosition(0);
-                                    actualizarVistaVacia();
-                                    Toast.makeText(this, "Avión añadido a tu colección", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Error al guardar el avión.", Toast.LENGTH_SHORT).show();
-                                });
+                        listaAviones.add(0, nuevoAvion);
+                        adapter.notifyItemInserted(0);
+                        recyclerView.scrollToPosition(0);
+                        actualizarVistaVacia();
+                        guardarDatosEnMovil(); // <--- GUARDA AUTOMÁTICAMENTE
                     }
                 }
             }
@@ -99,69 +67,62 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --> NUEVO: Inicializar Firebase
-        db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-
-        // --> NUEVO: Comprobación de seguridad
-        if (currentUser == null) {
-            Toast.makeText(this, "Error: Usuario no autenticado. Vuelva a iniciar sesión.", Toast.LENGTH_LONG).show();
-            // Aquí podrías redirigir a la pantalla de Login
-            // Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            // startActivity(intent);
-            finish(); // Cierra esta actividad si no hay usuario
-            return;
-        }
-
         recyclerView = findViewById(R.id.recyclerView);
         txtVacio = findViewById(R.id.txtVacio);
-        listaAviones = new ArrayList<>();
+
+        // 1. CARGAMOS LOS DATOS GUARDADOS
+        listaAviones = cargarDatosDelMovil();
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-
         adapter = new AvionAdapter(listaAviones, (avion, position) -> {
             posicionEditando = position;
-
             Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
             intent.putExtra("avion_extra", avion);
-            // --> NUEVO: Pasamos el ID del documento para poder editarlo/borrarlo
-            intent.putExtra("avion_document_id", avion.getDocumentId());
             lanzadorDetalle.launch(intent);
         });
-
         recyclerView.setAdapter(adapter);
+        actualizarVistaVacia();
 
-        // --> NUEVO: Cargar datos desde Firestore en lugar de empezar con la lista vacía
-        cargarAvionesDesdeFirestore();
-
-        Button btnEscanear = findViewById(R.id.btnEscanear);
-        btnEscanear.setOnClickListener(v -> {
+        // Botón Escanear/Añadir
+        findViewById(R.id.btnEscanear).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddAvionActivity.class);
             lanzadorAddAvion.launch(intent);
         });
+
+        // =======================================================
+        // BOTÓN ROJO DE EMERGENCIA (PARA CARGAR DATOS LA 1ª VEZ)
+        // =======================================================
+        Button btnReset = new Button(this);
+        btnReset.setText("REINICIAR COLECCIÓN (CARGA INICIAL)");
+        btnReset.setBackgroundColor(android.graphics.Color.RED);
+        btnReset.setTextColor(android.graphics.Color.WHITE);
+        addContentView(btnReset, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        btnReset.setOnClickListener(v -> cargarDatosInicialesPorDefecto());
     }
 
-    // --> NUEVO: Método para cargar los datos desde Firestore
-    private void cargarAvionesDesdeFirestore() {
-        // La ruta será /usuarios/{ID_DEL_USUARIO}/aviones/{ID_DEL_AVION}
-        db.collection("usuarios").document(currentUser.getUid()).collection("aviones")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        listaAviones.clear(); // Limpiamos la lista local antes de llenarla
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Avion avion = document.toObject(Avion.class);
-                            avion.setDocumentId(document.getId()); // Guardamos el ID del documento en el objeto
-                            listaAviones.add(avion);
-                        }
-                        adapter.notifyDataSetChanged(); // Notificamos al adaptador que los datos han cambiado
-                        actualizarVistaVacia(); // Comprobamos si la lista está vacía
-                    } else {
-                        Log.w("Firestore", "Error al cargar documentos.", task.getException());
-                        Toast.makeText(MainActivity.this, "Error al cargar los aviones.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+    // --- MÉTODOS DE GUARDADO LOCAL (SIN FIREBASE) ---
+
+    private void guardarDatosEnMovil() {
+        SharedPreferences sharedPreferences = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(listaAviones); // Convertimos la lista a texto
+        editor.putString("lista_aviones", json);
+        editor.apply();
+    }
+
+    private List<Avion> cargarDatosDelMovil() {
+        SharedPreferences sharedPreferences = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("lista_aviones", null);
+
+        if (json == null) {
+            return new ArrayList<>(); // Si no hay nada, lista vacía
+        }
+
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
+        return gson.fromJson(json, type);
     }
 
     private void actualizarVistaVacia() {
@@ -172,5 +133,18 @@ public class MainActivity extends AppCompatActivity {
             txtVacio.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void cargarDatosInicialesPorDefecto() {
+        // Borramos lo que haya y ponemos los 3 básicos
+        listaAviones.clear();
+        listaAviones.add(new Avion("Boeing 737", "Boeing", "COMMON", android.R.drawable.ic_menu_camera, "842 km/h", "189 pax", "39m", "EE.UU.", "79t"));
+        listaAviones.add(new Avion("Airbus A320", "Airbus", "COMMON", android.R.drawable.ic_menu_camera, "828 km/h", "180 pax", "34m", "Europa", "78t"));
+        listaAviones.add(new Avion("F-22 Raptor", "Lockheed", "LEGENDARY", android.R.drawable.ic_menu_camera, "2414 km/h", "1 piloto", "13m", "EE.UU.", "38t"));
+
+        adapter.notifyDataSetChanged();
+        guardarDatosEnMovil(); // Guardar cambios
+        actualizarVistaVacia();
+        Toast.makeText(this, "¡Colección Reiniciada!", Toast.LENGTH_SHORT).show();
     }
 }
