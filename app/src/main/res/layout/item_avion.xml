@@ -34,7 +34,7 @@
             android:background="@drawable/bg_rarity_badge"
             android:paddingHorizontal="6dp"
             android:paddingVertical="2dp"
-            android:text="LEGENDARY"
+            android:text="@string/legendary"
             android:textColor="#000"
             android:textSize="10sp"
             android:textStyle="bold"

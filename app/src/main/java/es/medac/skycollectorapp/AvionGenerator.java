@@ -34,7 +34,7 @@ public class AvionGenerator {
             new AvionData("Gulfstream G650", "Gulfstream", "RARE", R.drawable.gulfstream_g650, "956 km/h", "19 pax", "30m", "EE.UU.", "45t"),
             new AvionData("Dassault Falcon 7X", "Dassault", "RARE", R.drawable.falcon_7x, "900 km/h", "12 pax", "23m", "Francia", "31t"),
             new AvionData("Mirage 2000", "Dassault", "RARE", R.drawable.mirage_2000, "2336 km/h", "1 piloto", "14m", "Francia", "17t"),
-                new AvionData("Saab 39 Gripen", "Saab", "RARE", R.drawable.saab_gripen, "2204 km/h", "1 piloto", "14m", "Suecia", "14t"),
+            new AvionData("Saab 39 Gripen", "Saab", "RARE", R.drawable.saab_gripen, "2204 km/h", "1 piloto", "14m", "Suecia", "14t"),
             new AvionData("CH-47 Chinook", "Boeing", "RARE", R.drawable.ch47_chinook, "315 km/h", "55 tropas", "30m", "EE.UU.", "22t"),
 
             // =================================================================
@@ -64,7 +64,7 @@ public class AvionGenerator {
             new AvionData("X-15", "North American", "LEGENDARY", R.drawable.x15, "7274 km/h", "1 piloto", "15m", "EE.UU.", "15t"),
             new AvionData("Fokker Dr.I (Barón Rojo)", "Fokker", "LEGENDARY", R.drawable.fokker_dr1, "185 km/h", "1 piloto", "5.7m", "Alemania", "586kg"),
             new AvionData("Me 262", "Messerschmitt", "LEGENDARY", R.drawable.me_262, "900 km/h", "1 piloto", "10m", "Alemania", "7t"),
-            new AvionData("Rutan Voyager", "Rutan", "       LEGENDARY", R.drawable.voyager, "196 km/h", "2 pilotos", "8.9m", "EE.UU.", "4t"),
+            new AvionData("Rutan Voyager", "Rutan", "LEGENDARY", R.drawable.voyager, "196 km/h", "2 pilotos", "8.9m", "EE.UU.", "4t"),
             new AvionData("Spirit of St. Louis", "Ryan", "LEGENDARY", R.drawable.spirit_of_st_louis, "214 km/h", "1 piloto", "8m", "EE.UU.", "2t"),
             new AvionData("Harrier Jump Jet", "Hawker Siddeley", "LEGENDARY", R.drawable.harrier, "1176 km/h", "1 piloto", "14m", "UK", "11t"),
             new AvionData("Concorde", "BAC", "LEGENDARY", R.drawable.concorde, "2179 km/h", "100 pax", "25m", "UK/Francia", "185t"),

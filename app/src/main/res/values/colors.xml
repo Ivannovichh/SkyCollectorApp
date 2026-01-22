@@ -3,7 +3,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="sc_background">#0B1021</color> <color name="sc_card_bg">#151E32</color>     <color name="sc_accent">#00E5FF</color>      <color name="sc_text_primary">#E0E0E0</color>
+    <color name="sc_background">#0B1021</color>
+    <color name="sc_card_bg">#151E32</color>
+    <color name="sc_accent">#00E5FF</color>
+    <color name="sc_text_primary">#E0E0E0</color>
     <color name="sc_text_secondary">#90A4AE</color>
 
     <color name="rarity_common">#B0BEC5</color>

@@ -38,4 +38,6 @@ dependencies {
     // PhotoView para zoom en fotos
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation libs.firebase.auth
+    implementation("com.google.firebase:firebase-firestore")
+    implementation libs.firebase.firestore
 }

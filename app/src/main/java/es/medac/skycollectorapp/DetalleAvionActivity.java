@@ -109,6 +109,8 @@ public class DetalleAvionActivity extends AppCompatActivity {
         // IMPORTANTE: La clave "avion_modificado" debe coincidir con la de MainActivity
         resultIntent.putExtra("avion_modificado", avionActual);
 
+        resultIntent.putExtra("avion_document_id", getIntent().getStringExtra("avion_document_id"));
+
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
