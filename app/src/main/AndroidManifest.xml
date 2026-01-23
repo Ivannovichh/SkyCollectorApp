@@ -29,12 +29,10 @@
         </activity>
 
         <activity android:name=".PerfilActivity" />
-
         <activity android:name=".AddAvionActivity" android:exported="false" />
-
         <activity android:name=".MainActivity" android:exported="false" />
-
         <activity android:name=".DetalleAvionActivity" android:exported="false" />
+        <activity android:name=".ChatbotActivity" />
 
     </application>
 

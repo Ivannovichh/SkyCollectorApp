@@ -99,9 +99,10 @@ public class MainActivity extends AppCompatActivity {
         // --- NUEVA LÓGICA DE BOTONES INFERIORES ---
 
         // 1. CHATBOT (Izquierda)
-        findViewById(R.id.btnChat).setOnClickListener(v -> {
-            Toast.makeText(this, "🤖 Chatbot en construcción...", Toast.LENGTH_SHORT).show();
-            // Aquí abriremos la actividad del Chatbot en el futuro
+            findViewById(R.id.btnChat).setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, ChatbotActivity.class);
+                startActivity(intent);
+
         });
 
         // 2. AÑADIR AVIÓN (Centro - El botón +)
