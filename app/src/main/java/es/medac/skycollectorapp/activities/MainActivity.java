@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +21,10 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+
+import es.medac.skycollectorapp.models.Avion;
+import es.medac.skycollectorapp.adapters.AvionAdapter;
+import es.medac.skycollectorapp.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -113,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 3. MAPA FLIGHTRADAR (Derecha)
         findViewById(R.id.btnMap).setOnClickListener(v -> {
-            Toast.makeText(this, "🗺️ Mapa Flightradar próximamente", Toast.LENGTH_SHORT).show();
-            // Aquí abriremos la actividad del Mapa en el futuro
+            Intent intent = new Intent(MainActivity.this, MapaActivity.class); // Cambiado a MapaActivity
+            startActivity(intent);
         });
 
         // PERFIL (Arriba)

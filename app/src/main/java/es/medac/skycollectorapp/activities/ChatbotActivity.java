@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.activities;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,6 +20,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import es.medac.skycollectorapp.adapters.ChatAdapter;
+import es.medac.skycollectorapp.models.Mensaje;
+import es.medac.skycollectorapp.R;
 
 public class ChatbotActivity extends AppCompatActivity {
 

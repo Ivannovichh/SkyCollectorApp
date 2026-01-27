@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.models;
 
 import java.io.Serializable;
 import java.util.Objects;

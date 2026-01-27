@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +12,9 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
+
+import es.medac.skycollectorapp.models.Avion;
+import es.medac.skycollectorapp.R;
 
 public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHolder> {
 

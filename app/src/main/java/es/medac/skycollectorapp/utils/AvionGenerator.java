@@ -1,4 +1,7 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.utils;
+
+import es.medac.skycollectorapp.R;
+import es.medac.skycollectorapp.models.Avion;
 
 public class AvionGenerator {
 

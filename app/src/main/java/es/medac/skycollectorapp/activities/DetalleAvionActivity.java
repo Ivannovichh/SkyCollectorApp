@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,6 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import es.medac.skycollectorapp.models.Avion;
 import es.medac.skycollectorapp.databinding.ActivityDetalleAvionBinding;
 
 public class DetalleAvionActivity extends AppCompatActivity {

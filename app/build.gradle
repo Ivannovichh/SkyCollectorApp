@@ -29,10 +29,12 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.android.volley:volley:1.2.1'
 
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+
     // Librería Glide para cargar fotos eficientemente
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
-    // Retrofit (Para conectar con FlightRadar API en el futuro)
+    // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation libs.monitor
@@ -43,4 +45,5 @@ dependencies {
     implementation libs.firebase.auth
     implementation("com.google.firebase:firebase-firestore")
     implementation libs.firebase.firestore
+
 }

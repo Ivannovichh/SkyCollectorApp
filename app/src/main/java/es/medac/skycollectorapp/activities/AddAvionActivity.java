@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -21,6 +21,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.medac.skycollectorapp.models.Avion;
+import es.medac.skycollectorapp.utils.AvionGenerator;
 import es.medac.skycollectorapp.databinding.ActivityAddAvionBinding;
 
 public class AddAvionActivity extends AppCompatActivity {

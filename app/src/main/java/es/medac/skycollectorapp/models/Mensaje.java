@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp;
+package es.medac.skycollectorapp.models;
 
 public class Mensaje {
     private String texto;
