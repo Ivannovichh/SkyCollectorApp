@@ -302,7 +302,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     vuelosProcesados.add(vuelo);
                                     encontrados++;
                                 }
-                            } catch (Exception e) {}
+                            } catch (Exception e) {
+                            }
                         }
 
                         runOnUiThread(() -> {
@@ -310,7 +311,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                             try {
                                 for (FlightResponse.OpenSkyAvion v : vuelosProcesados) {
                                     LatLng pos = new LatLng(v.latitude, v.longitude);
-                                    if (!historialLocal.containsKey(v.icao24)) historialLocal.put(v.icao24, new ArrayList<>());
+                                    if (!historialLocal.containsKey(v.icao24))
+                                        historialLocal.put(v.icao24, new ArrayList<>());
                                     historialLocal.get(v.icao24).add(pos);
                                 }
 
@@ -323,7 +325,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     if (rareza == null) rareza = "comun";
 
                                     BitmapDescriptor icono = cacheIconos.get(rareza.toLowerCase());
-                                    if (icono == null) icono = BitmapDescriptorFactory.defaultMarker();
+                                    if (icono == null)
+                                        icono = BitmapDescriptorFactory.defaultMarker();
 
                                     Marker m = mMap.addMarker(new MarkerOptions()
                                             .position(new LatLng(v.latitude, v.longitude))
@@ -335,19 +338,23 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                     // Si hay un avión seleccionado, actualizamos su info en el panel si sigue existiendo
                                     if (v.icao24.equals(idAvionSeleccionado) && cardInfoPanel.getVisibility() == View.VISIBLE) {
-                                        int kph = (v.velocity != null) ? (int)(v.velocity * 3.6) : 0;
+                                        int kph = (v.velocity != null) ? (int) (v.velocity * 3.6) : 0;
                                         txtDatosPanel.setText("Matrícula: " + v.icao24 + "\nPaís: " + v.originCountry + "\nAltitud: " + v.altitude + " m  |  Velocidad: " + kph + " km/h");
                                     }
                                 }
-                            } catch (Exception e) {}
+                            } catch (Exception e) {
+                            }
                         });
                     }).start();
                 }
             }
-            @Override public void onFailure(Call<FlightResponse> call, Throwable t) { isActualizando = false; }
+
+            @Override
+            public void onFailure(Call<FlightResponse> call, Throwable t) {
+                isActualizando = false;
+            }
         });
     }
-
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         try {
             Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
