@@ -107,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         actualizarPapelera();
     }
-
     private void borrarSeleccionados() {
         adapter.borrarSeleccionados();
 
