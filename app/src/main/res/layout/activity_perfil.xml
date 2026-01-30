@@ -99,4 +99,16 @@
         android:padding="14dp"
         android:layout_marginTop="40dp"/>
 
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CERRAR SESIÓN"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:backgroundTint="#D32F2F"
+        android:textColor="#FFFFFF"
+        android:padding="14dp"
+        android:layout_marginTop="16dp"/>
+
 </LinearLayout>

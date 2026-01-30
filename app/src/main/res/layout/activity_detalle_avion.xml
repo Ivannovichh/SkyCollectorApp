@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#0B1021"
     android:fillViewport="true">
 
@@ -10,113 +11,168 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="30dp">
+        android:paddingBottom="40dp">
 
         <ImageView
             android:id="@+id/imgDetalleGrande"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:background="#151E32"
-            android:padding="10dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_launcher_foreground" />
-
-        <EditText
-            android:id="@+id/etNombreAvion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="MODELO AVIÓN"
-            android:textColor="#FFFFFF"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:background="@android:color/transparent"
-            android:inputType="textCapSentences"
-            android:padding="16dp"
-            android:hint="Escribe un apodo..."/>
-
-        <LinearLayout
-            android:id="@+id/layoutFotoUsuario"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="20dp"
-            android:background="#1A2538"
-            android:padding="10dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="10dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="📸 FOTO DEL AVISTAMIENTO:"
-                    android:textColor="#FFD700"
-                    android:textStyle="bold"/>
-
-                <ImageButton
-                    android:id="@+id/btnEditarFoto"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
-                    android:padding="12dp"
-                    android:src="@android:drawable/ic_menu_camera"
-                    android:backgroundTint="#2979FF"
-                    app:tint="#FFFFFF"
-                    android:contentDescription="Editar foto" />
-
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/imgFotoUsuario"
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:scaleType="centerCrop"
-                android:background="#000000" />
-        </LinearLayout>
+            android:padding="15dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:background="#1F2937" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:background="#151E32"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="20dp">
+            android:padding="20dp">
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre / Apodo"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/etNombreAvion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="FICHA TÉCNICA"
-                android:textColor="#00E5FF"
+                android:text="Boeing 747"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#03DAC6"
+                android:inputType="textCapWords"
+                android:layout_marginBottom="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DATOS TÉCNICOS"
+                android:textColor="#03DAC6"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#1F2937"
+                app:strokeWidth="0dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="15dp">
+
+                    <TextView
+                        android:id="@+id/txtDetalleFabricante"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Fabricante: Boeing"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+
+                    <TextView
+                        android:id="@+id/txtDetallePais"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="País: USA"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+
+                    <TextView
+                        android:id="@+id/txtDetalleVelocidad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Velocidad: 900 km/h"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+
+                    <TextView
+                        android:id="@+id/txtDetalleCapacidad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Capacidad: 400 pax"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+
+                    <TextView
+                        android:id="@+id/txtDetallePeso"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Peso: 180T"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+
+                    <TextView
+                        android:id="@+id/txtDetalleDimensiones"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Dimensiones: 70m"
+                        android:textColor="#E0E0E0"
+                        android:padding="4dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TU AVISTAMIENTO"
+                android:textColor="#03DAC6"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp"/>
+
+            <Button
+                android:id="@+id/btnEditarFoto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📷 CÁMARA O GALERÍA"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#FFFFFF"
+                android:layout_marginBottom="10dp"/>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/layoutFotoUsuario"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="#1F2937"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/imgFotoUsuario"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_camera" />
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_search"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="10dp"
+                    app:tint="#FFFFFF"/>
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btnVolver"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="GUARDAR CAMBIOS"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="10dp"
-                android:paddingTop="10dp"/>
-
-            <TextView android:id="@+id/txtDetalleFabricante" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/txtDetallePais" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/txtDetalleVelocidad" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/txtDetalleCapacidad" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/txtDetallePeso" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/txtDetalleDimensiones" android:textColor="#B0BEC5" android:textSize="16sp" android:padding="8dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                android:backgroundTint="#00C853"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="10dp"/>
 
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btnVolver"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="GUARDAR Y VOLVER"
-            android:backgroundTint="#00C853"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:layout_margin="20dp"/>
     </LinearLayout>
 </ScrollView>

@@ -1,5 +1,7 @@
 package es.medac.skycollectorapp.adapters;
 
+import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,26 +10,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.card.MaterialCardView;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import es.medac.skycollectorapp.models.Avion;
 import es.medac.skycollectorapp.R;
+import es.medac.skycollectorapp.models.Avion;
 
 public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHolder> {
 
     private List<Avion> listaAviones;
     private final OnItemClickListener listener;
-    private final OnSelectionChangedListener selectionListener; // Nuevo oyente
+    private final OnSelectionChangedListener selectionListener;
 
-    // Interfaz para clic normal (abrir detalle)
     public interface OnItemClickListener {
         void onItemClick(Avion avion, int position);
     }
 
-    // Interfaz para avisar al Main que hemos marcado/desmarcado algo
     public interface OnSelectionChangedListener {
         void onSelectionChanged();
     }
@@ -38,53 +41,75 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         this.selectionListener = selectionListener;
     }
 
+    @NonNull
+    @Override
+    public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
+        return new AvionViewHolder(view);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
         Avion avion = listaAviones.get(position);
 
-        // Datos visuales
-        holder.txtModelo.setText(avion.getApodo());
+        // 1. DATOS DE TEXTO
+        holder.txtModelo.setText(avion.getApodo()); // O avion.getModelo()
         holder.txtFabricante.setText(avion.getFabricante());
         holder.txtRareza.setText(avion.getRareza());
 
+        // 2. COLORES (Borde y etiqueta)
         int color = avion.getColorRareza();
+        if (color == 0) color = Color.GRAY; // Protección por si viene 0
+
         holder.cardView.setStrokeColor(color);
-        holder.cardView.setStrokeWidth(5);
+        holder.cardView.setStrokeWidth(4);
         holder.txtRareza.setBackgroundColor(color);
 
+        // 3. IMAGEN (Lógica restaurada y segura)
+        Object imagenCarga;
+
+        // ¿Tiene foto de usuario (cámara/galería)?
+        if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
+            imagenCarga = Uri.parse(avion.getUriFotoUsuario());
+        }
+        // ¿Tiene foto oficial (base de datos)?
+        else if (avion.getImagenResId() != 0) {
+            imagenCarga = avion.getImagenResId();
+        }
+        // Si no tiene nada, icono por defecto
+        else {
+            imagenCarga = android.R.drawable.ic_menu_gallery;
+        }
+        // Cargar imagen
         Glide.with(holder.itemView.getContext())
-                .load(avion.getImagenResId())
+                .load(imagenCarga)
+                .fitCenter()
+                .override(600, 400)
                 .placeholder(android.R.drawable.ic_menu_camera)
+                .error(android.R.drawable.ic_delete)
                 .into(holder.imgAvion);
 
-        if (avion.getUriFotoUsuario() != null) {
-            holder.imgAvion.setImageURI(android.net.Uri.parse(avion.getUriFotoUsuario()));
-        }
-
-        // --- LÓGICA DEL CHECKBOX (SÚPER PRECISA) ---
-
-        // 1. Quitamos el listener anterior para evitar bugs al hacer scroll
+        // 4. CHECKBOX (Sin bugs de scroll)
         holder.chkSeleccion.setOnCheckedChangeListener(null);
-
-        // 2. Ponemos el estado real del avión
         holder.chkSeleccion.setChecked(avion.isSeleccionado());
 
-        // 3. Detectamos el clic directamente en el CheckBox
         holder.chkSeleccion.setOnClickListener(v -> {
-            boolean estaMarcado = holder.chkSeleccion.isChecked();
-            avion.setSeleccionado(estaMarcado);
-            // Avisamos al Main para que muestre u oculte la papelera
+            boolean isChecked = holder.chkSeleccion.isChecked();
+            avion.setSeleccionado(isChecked);
             selectionListener.onSelectionChanged();
         });
 
-        // --- CLIC EN LA TARJETA (ABRIR DETALLE) ---
-        holder.itemView.setOnClickListener(v -> {
-            listener.onItemClick(avion, position);
-        });
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(avion, position));
     }
 
-    // Método para borrar visualmente los seleccionados
+    @Override
+    public int getItemCount() {
+        return listaAviones.size();
+    }
+
+    // --- MÉTODO PARA BORRAR (Necesario para el Main) ---
     public void borrarSeleccionados() {
+        if (listaAviones == null) return;
         List<Avion> aConservar = new ArrayList<>();
         for (Avion a : listaAviones) {
             if (!a.isSeleccionado()) {
@@ -95,14 +120,6 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         listaAviones.addAll(aConservar);
         notifyDataSetChanged();
     }
-
-    @NonNull @Override
-    public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
-        return new AvionViewHolder(view);
-    }
-
-    @Override public int getItemCount() { return listaAviones.size(); }
 
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
         TextView txtModelo, txtFabricante, txtRareza;

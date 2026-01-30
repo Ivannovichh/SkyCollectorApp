@@ -22,6 +22,7 @@
             android:layout_marginBottom="30dp"/>
 
         <TextView
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="1. Selecciona el modelo:"
@@ -45,19 +46,19 @@
             android:layout_marginBottom="5dp"/>
 
         <ImageView
-            android:id="@+id/imgPreview"
+            android:id="@+id/imgPreviewAvion"
             android:layout_width="match_parent"
             android:layout_height="250dp"
             android:background="#151E32"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_launcher_foreground"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_camera"
             android:layout_marginBottom="10dp"/>
 
         <Button
-            android:id="@+id/btnCargarFoto"
-            android:layout_width="wrap_content"
+            android:id="@+id/btnSubirFoto"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SUBIR FOTO DE GALERÍA"
+            android:text="AÑADIR FOTO"
             android:backgroundTint="#2979FF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="40dp"/>

@@ -1,14 +1,14 @@
 package es.medac.skycollectorapp.models;
 
 public class Mensaje {
-    private String texto;
+    private String contenido;
     private boolean esMio;
 
-    public Mensaje(String texto, boolean esMio) {
-        this.texto = texto;
+    public Mensaje(String contenido, boolean esMio) {
+        this.contenido = contenido;
         this.esMio = esMio;
     }
 
-    public String getTexto() { return texto; }
+    public String getContenido() { return contenido; }
     public boolean isEsMio() { return esMio; }
 }
