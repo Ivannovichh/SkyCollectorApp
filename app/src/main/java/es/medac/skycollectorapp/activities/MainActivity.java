@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager; // <--- IMPORTANTE: Importar esto
+import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -33,45 +33,38 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1. INICIALIZAR LISTA Y ADAPTADOR
         listaAviones = new ArrayList<>();
 
         adapter = new AvionAdapter(listaAviones,
-                // A) Clic Normal: Ver detalles
                 (avion, position) -> {
+                    // ✅ ABRIR DETALLE PASANDO SOLO EL ID
                     Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
-                    intent.putExtra("avion_extra", avion);
+                    intent.putExtra("avion_id", avion.getId());
                     startActivity(intent);
                 },
-                // B) Selección cambiada: Mostrar/Ocultar papelera
-                () -> {
-                    actualizarPapelera();
-                }
+                this::actualizarPapelera
         );
 
-        // --- CAMBIO CLAVE AQUÍ ---
-        // Usamos GridLayoutManager con '2' columnas en lugar de LinearLayoutManager
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         binding.recyclerView.setAdapter(adapter);
 
-        // 2. CONFIGURACIÓN DE BOTONES
-        binding.btnAddAvion.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, AddAvionActivity.class));
-        });
+        binding.btnAddAvion.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AddAvionActivity.class))
+        );
 
         binding.btnPapelera.setOnClickListener(v -> borrarSeleccionados());
 
-        binding.cardPerfil.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, PerfilActivity.class));
-        });
+        binding.cardPerfil.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, PerfilActivity.class))
+        );
 
-        binding.btnChat.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, ChatbotActivity.class));
-        });
+        binding.btnChat.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, ChatbotActivity.class))
+        );
 
-        binding.btnMap.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, MapaActivity.class));
-        });
+        binding.btnMap.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, MapaActivity.class))
+        );
     }
 
     @Override
@@ -80,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         cargarListaDeAviones();
     }
 
-    // --- MÉTODOS DE CARGA Y BORRADO ---
     private void cargarListaDeAviones() {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         String json = prefs.getString("lista_aviones", null);
@@ -91,9 +83,7 @@ public class MainActivity extends AppCompatActivity {
             Gson gson = new Gson();
             Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
             List<Avion> avionesGuardados = gson.fromJson(json, type);
-            if (avionesGuardados != null) {
-                listaAviones.addAll(avionesGuardados);
-            }
+            if (avionesGuardados != null) listaAviones.addAll(avionesGuardados);
         }
 
         if (listaAviones.isEmpty()) {
@@ -107,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         actualizarPapelera();
     }
+
     private void borrarSeleccionados() {
         adapter.borrarSeleccionados();
 
@@ -120,9 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         actualizarPapelera();
 
-        if (listaAviones.isEmpty()) {
-            binding.txtVacio.setVisibility(View.VISIBLE);
-        }
+        if (listaAviones.isEmpty()) binding.txtVacio.setVisibility(View.VISIBLE);
 
         Toast.makeText(this, "Aviones eliminados", Toast.LENGTH_SHORT).show();
     }
@@ -136,10 +125,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        if (haySeleccionados) {
-            binding.btnPapelera.setVisibility(View.VISIBLE);
-        } else {
-            binding.btnPapelera.setVisibility(View.GONE);
-        }
+        binding.btnPapelera.setVisibility(haySeleccionados ? View.VISIBLE : View.GONE);
     }
 }

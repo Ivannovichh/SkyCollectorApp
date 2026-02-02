@@ -2,6 +2,7 @@ package es.medac.skycollectorapp.activities;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -42,7 +43,7 @@ public class AddAvionActivity extends AppCompatActivity {
 
     private Spinner spinnerAviones;
     private ImageView imgPreviewAvion;
-    private Button btnSubirFoto, btnGuardar;
+    private Button btnSubirFoto, btnGuardar, btnCancelar;
 
     // Variables para la foto
     private Uri uriImagenFinal;
@@ -56,10 +57,14 @@ public class AddAvionActivity extends AppCompatActivity {
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    // Dar permiso persistente para leer la foto de la galería siempre
                     try {
-                        getContentResolver().takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    } catch (Exception e) { e.printStackTrace(); }
+                        getContentResolver().takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     cargarImagen(uri);
                 }
             }
@@ -74,7 +79,6 @@ public class AddAvionActivity extends AppCompatActivity {
             }
     );
 
-    // Lanzador para pedir permiso de cámara si no lo tenemos
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
@@ -88,18 +92,27 @@ public class AddAvionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_avion);
 
-        // 1. Vincular vistas
+        // 1) Vincular vistas
         spinnerAviones = findViewById(R.id.spinnerAviones);
         imgPreviewAvion = findViewById(R.id.imgPreviewAvion);
         btnSubirFoto = findViewById(R.id.btnSubirFoto);
         btnGuardar = findViewById(R.id.btnGuardar);
+        btnCancelar = findViewById(R.id.btnCancelar); // 👈 IMPORTANTE
 
-        // 2. Cargar datos del generador (Lista desplegable)
+        // 2) Cargar catálogo
         cargarDatosGenerator();
 
-        // 3. Listeners
+        // 3) Listeners
         btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion());
         btnGuardar.setOnClickListener(v -> guardarAvionAutomatico());
+
+        // CANCELAR -> volver a pantalla inicial (MainActivity)
+        btnCancelar.setOnClickListener(v -> {
+            Intent i = new Intent(AddAvionActivity.this, MainActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(i);
+            finish();
+        });
     }
 
     private void cargarDatosGenerator() {
@@ -107,22 +120,27 @@ public class AddAvionActivity extends AppCompatActivity {
         List<String> nombres = new ArrayList<>();
 
         for (Avion a : listaAvionesBase) {
-            // Mostramos "Modelo (Rareza)" en el desplegable
             nombres.add(a.getApodo() + " (" + a.getRareza() + ")");
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, nombres);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                nombres
+        );
+
         spinnerAviones.setAdapter(adapter);
     }
 
     private void mostrarDialogoSeleccion() {
         String[] opciones = {"Hacer Foto (Cámara)", "Elegir de Galería"};
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Añadir foto del avistamiento");
         builder.setItems(opciones, (d, which) -> {
             if (which == 0) {
-                // Comprobamos permiso antes de abrir cámara
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED) {
                     abrirCamara();
                 } else {
                     requestPermissionLauncher.launch(Manifest.permission.CAMERA);
@@ -137,11 +155,15 @@ public class AddAvionActivity extends AppCompatActivity {
     private void abrirCamara() {
         try {
             File archivo = crearArchivoImagen();
-            // IMPORTANTE: El authority debe coincidir con tu AndroidManifest
-            uriFotoCamaraTemporal = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", archivo);
+            uriFotoCamaraTemporal = FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".fileprovider",
+                    archivo
+            );
             launcherCamara.launch(uriFotoCamaraTemporal);
-        } catch (IOException e) {
-            Toast.makeText(this, "Error al crear archivo de imagen", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error cámara: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
@@ -154,6 +176,7 @@ public class AddAvionActivity extends AppCompatActivity {
     private void cargarImagen(Uri uri) {
         if (uri != null) {
             uriImagenFinal = uri;
+
             Glide.with(this)
                     .load(uri)
                     .centerCrop()
@@ -165,17 +188,15 @@ public class AddAvionActivity extends AppCompatActivity {
 
     private void guardarAvionAutomatico() {
         int pos = spinnerAviones.getSelectedItemPosition();
-        if (pos < 0 || listaAvionesBase.isEmpty()) return;
+        if (pos < 0 || listaAvionesBase == null || listaAvionesBase.isEmpty()) return;
 
         Avion base = listaAvionesBase.get(pos);
 
-        // CREAMOS EL NUEVO AVIÓN copiando los datos del catálogo.
-        // Usamos el constructor que definimos en Avion.java
         Avion nuevo = new Avion(
-                base.getApodo(),       // Modelo
+                base.getApodo(),
                 base.getFabricante(),
                 base.getRareza(),
-                base.getImagenResId(), // Foto oficial (icono)
+                base.getImagenResId(),
                 base.getVelocidad(),
                 base.getPasajeros(),
                 base.getDimensiones(),
@@ -183,21 +204,25 @@ public class AddAvionActivity extends AppCompatActivity {
                 base.getPeso()
         );
 
-        // Añadimos la foto del usuario si la hizo
         if (uriImagenFinal != null) {
             nuevo.setUriFotoUsuario(uriImagenFinal.toString());
         }
 
-        // GUARDAR EN SHAREDPREFERENCES
         guardarEnPreferencias(nuevo);
 
         Toast.makeText(this, "¡Avistamiento guardado!", Toast.LENGTH_SHORT).show();
-        finish(); // Volver atrás
+
+        // volver al main
+        Intent i = new Intent(AddAvionActivity.this, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(i);
+        finish();
     }
 
     private void guardarEnPreferencias(Avion nuevoAvion) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         Gson gson = new Gson();
+
         String json = prefs.getString("lista_aviones", null);
         List<Avion> lista;
 
@@ -206,6 +231,7 @@ public class AddAvionActivity extends AppCompatActivity {
         } else {
             Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
             lista = gson.fromJson(json, type);
+            if (lista == null) lista = new ArrayList<>();
         }
 
         lista.add(nuevoAvion);

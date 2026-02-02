@@ -1,10 +1,13 @@
 package es.medac.skycollectorapp.models;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Avion implements Serializable {
 
-    // Usamos 'apodo' como nombre principal del avión (Ej: "Boeing 747")
+    // ✅ ID único para poder actualizar el avión aunque cambie el orden
+    private String id;
+
     private String apodo;
     private String fabricante;
     private String rareza;
@@ -20,14 +23,20 @@ public class Avion implements Serializable {
 
     private boolean seleccionado;
 
-    // --- NUEVO CAMPO PARA LA FOTO DE USUARIO ---
+    // Foto usuario
     private String uriFotoUsuario;
 
-    // Constructor vacío (necesario para evitar errores de serialización)
-    public Avion() {}
+    // Constructor vacío
+    public Avion() {
+        this.id = UUID.randomUUID().toString();
+    }
 
     // Constructor completo
-    public Avion(String apodo, String fabricante, String rareza, int imagenResId, String velocidad, String pasajeros, String dimensiones, String pais, String peso) {
+    public Avion(String apodo, String fabricante, String rareza, int imagenResId,
+                 String velocidad, String pasajeros, String dimensiones,
+                 String pais, String peso) {
+
+        this.id = UUID.randomUUID().toString(); // ✅ importante
         this.apodo = apodo;
         this.fabricante = fabricante;
         this.rareza = rareza;
@@ -37,50 +46,39 @@ public class Avion implements Serializable {
         this.dimensiones = dimensiones;
         this.pais = pais;
         this.peso = peso;
+
         this.seleccionado = false;
         this.descripcion = "Sin descripción detallada.";
-        this.uriFotoUsuario = null; // Inicializamos a null por defecto
+        this.uriFotoUsuario = null;
     }
 
-    // ==========================================
-    //           GETTERS Y SETTERS
-    // ==========================================
+    // ======================
+    // GETTERS Y SETTERS
+    // ======================
 
-    // --- NOMBRE / APODO / MODELO ---
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
     public String getApodo() { return apodo; }
     public void setApodo(String apodo) { this.apodo = apodo; }
 
-    // ¡¡¡ AQUÍ ESTÁ EL ARREGLO !!!
-    // Creamos getModelo() como un "alias" de apodo.
-    // Así si llamas a getModelo() te devuelve el nombre del avión.
     public String getModelo() { return apodo; }
     public void setModelo(String modelo) { this.apodo = modelo; }
 
-    // --- FABRICANTE Y RAREZA ---
     public String getFabricante() { return fabricante; }
     public void setFabricante(String fabricante) { this.fabricante = fabricante; }
 
     public String getRareza() { return rareza; }
     public void setRareza(String rareza) { this.rareza = rareza; }
 
-    // --- FOTOS ---
     public int getImagenResId() { return imagenResId; }
     public void setImagenResId(int imagenResId) { this.imagenResId = imagenResId; }
 
-    // Getter y Setter para la FOTO DE USUARIO
-    public String getUriFotoUsuario() {
-        return uriFotoUsuario;
-    }
-    public void setUriFotoUsuario(String uriFotoUsuario) {
-        this.uriFotoUsuario = uriFotoUsuario;
-    }
+    public String getUriFotoUsuario() { return uriFotoUsuario; }
+    public void setUriFotoUsuario(String uriFotoUsuario) { this.uriFotoUsuario = uriFotoUsuario; }
 
-    // --- SELECCIÓN ---
     public boolean isSeleccionado() { return seleccionado; }
     public void setSeleccionado(boolean seleccionado) { this.seleccionado = seleccionado; }
-
-    // --- DATOS TÉCNICOS (Con protección anti-cierre) ---
-    // Si el valor es null, devolvemos un guión "-" para que no falle el texto
 
     public String getVelocidad() { return (velocidad != null) ? velocidad : "-"; }
     public void setVelocidad(String velocidad) { this.velocidad = velocidad; }
@@ -100,14 +98,13 @@ public class Avion implements Serializable {
     public String getDescripcion() { return (descripcion != null) ? descripcion : ""; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    // Método extra para obtener color según rareza (útil para el adaptador)
     public int getColorRareza() {
-        if (rareza == null) return 0xFF808080; // Gris
+        if (rareza == null) return 0xFF808080;
         switch (rareza.toUpperCase()) {
-            case "LEGENDARIO": return 0xFFFFD700; // Dorado
-            case "EPICO": return 0xFF9C27B0; // Morado
-            case "RARO": return 0xFF2196F3; // Azul
-            default: return 0xFF808080; // Gris
+            case "LEGENDARIO": return 0xFFFFD700;
+            case "EPICO": return 0xFF9C27B0;
+            case "RARO": return 0xFF2196F3;
+            default: return 0xFF808080;
         }
     }
 }

@@ -1,13 +1,13 @@
 package es.medac.skycollectorapp.adapters;
 
 import android.graphics.Color;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -54,63 +54,55 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
         Avion avion = listaAviones.get(position);
 
-        // 1. DATOS DE TEXTO
+        // 1) TEXTOS
         holder.txtModelo.setText(avion.getApodo());
         holder.txtFabricante.setText(avion.getFabricante());
         holder.txtRareza.setText(avion.getRareza());
 
-        // 2. COLORES (Borde y etiqueta)
+        // 2) COLORES (Borde y etiqueta)
         int color = avion.getColorRareza();
-        if (color == 0) color = Color.GRAY; // Protección por si viene 0
+        if (color == 0) color = Color.GRAY;
 
         holder.cardView.setStrokeColor(color);
         holder.cardView.setStrokeWidth(4);
+
+        // Si quieres que el fondo de rareza no se vea feo, puedes dejarlo así:
         holder.txtRareza.setBackgroundColor(color);
 
-        // 3. IMAGEN (CORREGIDO PARA DREAMLINER Y FOTOS DE USUARIO)
+        // 3) IMAGEN
+        // 🔥 CAMBIO CLAVE:
+        // En la LISTA PRINCIPAL SIEMPRE se muestra la imagen oficial (imagenResId)
         Object imagenCarga;
 
-        // ¿Tiene foto de usuario (cámara/galería)?
-        if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
-            imagenCarga = Uri.parse(avion.getUriFotoUsuario());
-        }
-        // ¿Tiene foto oficial (base de datos)?
-        else if (avion.getImagenResId() != 0) {
+        if (avion.getImagenResId() != 0) {
             imagenCarga = avion.getImagenResId();
-        }
-        // Si no tiene nada, icono por defecto
-        else {
+        } else {
+            // fallback si no hay imagen oficial
             imagenCarga = android.R.drawable.ic_menu_gallery;
         }
 
-        // Cargar imagen con Glide (Optimizada la caché)
-
         Glide.with(holder.itemView.getContext())
                 .load(imagenCarga)
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactiva caché temporalmente para probar
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // puedes cambiar a AUTOMATIC si quieres caché
                 .skipMemoryCache(true)
-                .fitCenter() // Asegura que la imagen quepa
-                .placeholder(android.R.drawable.ic_menu_camera)
-                .error(android.R.drawable.ic_delete) // Aquí es donde te salía la X
+                .fitCenter()
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
                 .into(holder.imgAvion);
 
-        // 4. CHECKBOX
-        // Quitamos el listener anterior para evitar que se dispare al reciclar la vista
+        // 4) CHECKBOX
         holder.chkSeleccion.setOnCheckedChangeListener(null);
         holder.chkSeleccion.setChecked(avion.isSeleccionado());
 
         holder.chkSeleccion.setOnClickListener(v -> {
             boolean isChecked = holder.chkSeleccion.isChecked();
             avion.setSeleccionado(isChecked);
-            if (selectionListener != null) {
-                selectionListener.onSelectionChanged();
-            }
+            if (selectionListener != null) selectionListener.onSelectionChanged();
         });
 
+        // 5) CLICK ITEM
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onItemClick(avion, position);
-            }
+            if (listener != null) listener.onItemClick(avion, position);
         });
     }
 
@@ -122,12 +114,14 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     // --- MÉTODO PARA BORRAR (Usado en MainActivity) ---
     public void borrarSeleccionados() {
         if (listaAviones == null) return;
+
         List<Avion> aConservar = new ArrayList<>();
         for (Avion a : listaAviones) {
             if (!a.isSeleccionado()) {
                 aConservar.add(a);
             }
         }
+
         listaAviones.clear();
         listaAviones.addAll(aConservar);
         notifyDataSetChanged();
@@ -135,6 +129,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
 
     // --- CLASE VIEWHOLDER ---
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
+
         TextView txtModelo, txtFabricante, txtRareza;
         ImageView imgAvion;
         MaterialCardView cardView;
