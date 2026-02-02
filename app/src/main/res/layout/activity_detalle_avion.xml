@@ -73,7 +73,7 @@
                         android:id="@+id/txtDetalleFabricante"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Fabricante: Boeing"
+                        android:text="Fabricante: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
@@ -81,7 +81,7 @@
                         android:id="@+id/txtDetallePais"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="País: USA"
+                        android:text="País: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
@@ -89,7 +89,7 @@
                         android:id="@+id/txtDetalleVelocidad"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Velocidad: 900 km/h"
+                        android:text="Velocidad: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
@@ -97,7 +97,7 @@
                         android:id="@+id/txtDetalleCapacidad"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Capacidad: 400 pax"
+                        android:text="Capacidad: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
@@ -105,7 +105,7 @@
                         android:id="@+id/txtDetallePeso"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Peso: 180T"
+                        android:text="Peso: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
@@ -113,7 +113,7 @@
                         android:id="@+id/txtDetalleDimensiones"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Dimensiones: 70m"
+                        android:text="Dimensiones: -"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
                 </LinearLayout>
@@ -127,15 +127,34 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="10dp"/>
 
-            <Button
-                android:id="@+id/btnEditarFoto"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📷 CÁMARA O GALERÍA"
-                android:backgroundTint="#3F51B5"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="10dp"/>
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="15dp">
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCamara"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:text="Cámara"
+                    android:backgroundTint="#D32F2F"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    app:cornerRadius="10dp"
+                    android:layout_marginEnd="10dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGaleria"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:text="Galería"
+                    android:backgroundTint="#1976D2"
+                    app:icon="@android:drawable/ic_menu_gallery"
+                    app:cornerRadius="10dp"/>
+            </LinearLayout>
             <androidx.cardview.widget.CardView
                 android:id="@+id/layoutFotoUsuario"
                 android:layout_width="match_parent"

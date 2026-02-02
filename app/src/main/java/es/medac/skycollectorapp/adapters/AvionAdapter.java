@@ -27,10 +27,12 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     private final OnItemClickListener listener;
     private final OnSelectionChangedListener selectionListener;
 
+    // Interfaz para clics normales
     public interface OnItemClickListener {
         void onItemClick(Avion avion, int position);
     }
 
+    // Interfaz para cambios en el CheckBox
     public interface OnSelectionChangedListener {
         void onSelectionChanged();
     }
@@ -53,7 +55,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         Avion avion = listaAviones.get(position);
 
         // 1. DATOS DE TEXTO
-        holder.txtModelo.setText(avion.getApodo()); // O avion.getModelo()
+        holder.txtModelo.setText(avion.getApodo());
         holder.txtFabricante.setText(avion.getFabricante());
         holder.txtRareza.setText(avion.getRareza());
 
@@ -65,7 +67,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         holder.cardView.setStrokeWidth(4);
         holder.txtRareza.setBackgroundColor(color);
 
-        // 3. IMAGEN (Lógica restaurada y segura)
+        // 3. IMAGEN (CORREGIDO PARA DREAMLINER Y FOTOS DE USUARIO)
         Object imagenCarga;
 
         // ¿Tiene foto de usuario (cámara/galería)?
@@ -80,34 +82,44 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         else {
             imagenCarga = android.R.drawable.ic_menu_gallery;
         }
-        // Cargar imagen
+
+        // Cargar imagen con Glide (Optimizada la caché)
+
         Glide.with(holder.itemView.getContext())
                 .load(imagenCarga)
-                .fitCenter()
-                .override(600, 400)
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactiva caché temporalmente para probar
+                .skipMemoryCache(true)
+                .fitCenter() // Asegura que la imagen quepa
                 .placeholder(android.R.drawable.ic_menu_camera)
-                .error(android.R.drawable.ic_delete)
+                .error(android.R.drawable.ic_delete) // Aquí es donde te salía la X
                 .into(holder.imgAvion);
 
-        // 4. CHECKBOX (Sin bugs de scroll)
+        // 4. CHECKBOX
+        // Quitamos el listener anterior para evitar que se dispare al reciclar la vista
         holder.chkSeleccion.setOnCheckedChangeListener(null);
         holder.chkSeleccion.setChecked(avion.isSeleccionado());
 
         holder.chkSeleccion.setOnClickListener(v -> {
             boolean isChecked = holder.chkSeleccion.isChecked();
             avion.setSeleccionado(isChecked);
-            selectionListener.onSelectionChanged();
+            if (selectionListener != null) {
+                selectionListener.onSelectionChanged();
+            }
         });
 
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(avion, position));
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(avion, position);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return listaAviones.size();
+        return listaAviones != null ? listaAviones.size() : 0;
     }
 
-    // --- MÉTODO PARA BORRAR (Necesario para el Main) ---
+    // --- MÉTODO PARA BORRAR (Usado en MainActivity) ---
     public void borrarSeleccionados() {
         if (listaAviones == null) return;
         List<Avion> aConservar = new ArrayList<>();
@@ -121,6 +133,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         notifyDataSetChanged();
     }
 
+    // --- CLASE VIEWHOLDER ---
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
         TextView txtModelo, txtFabricante, txtRareza;
         ImageView imgAvion;

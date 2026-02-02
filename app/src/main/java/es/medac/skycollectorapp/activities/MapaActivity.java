@@ -12,7 +12,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -51,25 +50,22 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
-    private static final String TAG = "EcoCityMap";
+    private static final String TAG = "MapaActivity";
     private GoogleMap mMap;
     private Handler handler;
     private Runnable runnableCode;
 
-    // --- ELEMENTOS DE LA INTERFAZ (NUEVO PANEL) ---
+    // Elementos del panel
     private CardView cardInfoPanel;
     private TextView txtModeloPanel, txtDatosPanel;
 
-    // --- VARIABLES DE DATOS ---
+    // Datos
     private List<String> misNombresDeModelos = new ArrayList<>();
     private Map<String, String> mapaRarezas = new HashMap<>();
-
-    // Variables de estado
     private Map<String, List<LatLng>> historialLocal = new HashMap<>();
     private Polyline trayectoriaActualPolyline;
     private String idAvionSeleccionado = null;
     private FlightRadarService service;
-
     private Map<String, BitmapDescriptor> cacheIconos = new HashMap<>();
     private boolean isActualizando = false;
     private static final int MAX_AVIONES_EN_MAPA = 50;
@@ -79,68 +75,43 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapa);
 
-        // 1. Enlazar los elementos del nuevo panel inferior
         cardInfoPanel = findViewById(R.id.card_info_vuelo);
         txtModeloPanel = findViewById(R.id.txt_modelo_panel);
         txtDatosPanel = findViewById(R.id.txt_datos_panel);
 
         cargarDatosDeUsuario();
 
+        // Configurar Retrofit para la API
         try {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl("https://opensky-network.org/api/")
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             service = retrofit.create(FlightRadarService.class);
-        } catch (Exception e) {
-            Log.e(TAG, "Error iniciando Retrofit: " + e.getMessage());
-        }
+        } catch (Exception e) { Log.e(TAG, "Error Retrofit: " + e.getMessage()); }
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        if (mapFragment != null) mapFragment.getMapAsync(this);
 
         handler = new Handler(Looper.getMainLooper());
     }
 
+    // Carga tus aviones para saber qué modelos pintar (simulación visual)
     private void cargarDatosDeUsuario() {
         try {
             SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
             String json = prefs.getString("lista_aviones", null);
-            misNombresDeModelos.clear();
-            mapaRarezas.clear();
-
             if (json != null) {
-                Gson gson = new Gson();
-                Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
-                List<Avion> lista = gson.fromJson(json, type);
+                List<Avion> lista = new Gson().fromJson(json, new TypeToken<ArrayList<Avion>>() {}.getType());
                 if (lista != null) {
                     for (Avion a : lista) {
                         if (a.getModelo() != null) {
                             misNombresDeModelos.add(a.getModelo());
-                            String rareza = (a.getRareza() != null) ? a.getRareza() : "Comun";
-                            mapaRarezas.put(a.getModelo().toLowerCase(), rareza);
+                            mapaRarezas.put(a.getModelo().toLowerCase(), (a.getRareza() != null ? a.getRareza() : "Comun"));
                         }
                     }
                 }
             }
-        } catch (Exception e) { Log.e(TAG, "Error datos: " + e.getMessage()); }
-    }
-
-    private void preCargarIconos() {
-        if (!cacheIconos.isEmpty()) return;
-        try {
-            cacheIconos.put("comun", bitmapDescriptorFromVector(this, R.drawable.avioncomun));
-            cacheIconos.put("raro", bitmapDescriptorFromVector(this, R.drawable.avionraro));
-            cacheIconos.put("epico", bitmapDescriptorFromVector(this, R.drawable.avionepico));
-            cacheIconos.put("legendario", bitmapDescriptorFromVector(this, R.drawable.avionlegendario));
-
-            cacheIconos.put("rare", cacheIconos.get("raro"));
-            cacheIconos.put("epic", cacheIconos.get("epico"));
-            cacheIconos.put("legendary", cacheIconos.get("legendario"));
-            cacheIconos.put("common", cacheIconos.get("comun"));
         } catch (Exception e) {}
     }
 
@@ -149,231 +120,164 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         if (mMap == null) return;
 
-        try {
-            mMap.getUiSettings().setZoomControlsEnabled(false); // Quitamos botones zoom para limpiar pantalla
-            mMap.getUiSettings().setRotateGesturesEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.setOnMarkerClickListener(this);
 
-            // YA NO USAMOS CustomInfoWindowAdapter PORQUE TAPABA EL AVIÓN
-            // mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
+        // Cerrar panel al tocar el mapa vacío
+        mMap.setOnMapClickListener(latLng -> {
+            if (cardInfoPanel != null) cardInfoPanel.setVisibility(View.GONE);
+            if (trayectoriaActualPolyline != null) {
+                trayectoriaActualPolyline.remove();
+                trayectoriaActualPolyline = null;
+            }
+            idAvionSeleccionado = null;
+        });
 
-            mMap.setOnMarkerClickListener(this);
+        preCargarIconos();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4167, -3.7037), 5)); // Madrid
 
-            // NUEVO: Si tocas el mapa (no un avión), se cierra el panel
-            mMap.setOnMapClickListener(latLng -> {
-                if (cardInfoPanel != null) {
-                    cardInfoPanel.setVisibility(View.GONE);
-                }
-                if (trayectoriaActualPolyline != null) {
-                    trayectoriaActualPolyline.remove();
-                    trayectoriaActualPolyline = null;
-                }
-                idAvionSeleccionado = null;
-            });
-
-            preCargarIconos();
-
-            LatLng centro = new LatLng(40.4167, -3.7037);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centro, 5));
-
-            iniciarCicloDeActualizacion();
-        } catch (Exception e) { Log.e(TAG, "Error mapa: " + e.getMessage()); }
+        iniciarCicloDeActualizacion();
     }
 
-    private String determinarModeloSimulado(String icao24) {
-        if (icao24 == null) return "Desconocido";
-        if (misNombresDeModelos.isEmpty()) return "Sin Colección";
-        int hash = Math.abs(icao24.hashCode());
-        int indice = hash % misNombresDeModelos.size();
-        return misNombresDeModelos.get(indice);
-    }
-
+    // --- AQUÍ ES DONDE MOSTRAMOS LOS DATOS REALES DE LA API ---
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        try {
-            FlightResponse.OpenSkyAvion vuelo = (FlightResponse.OpenSkyAvion) marker.getTag();
-            if (vuelo == null) return false;
+        FlightResponse.OpenSkyAvion vuelo = (FlightResponse.OpenSkyAvion) marker.getTag();
+        if (vuelo == null) return false;
 
-            idAvionSeleccionado = vuelo.icao24;
+        idAvionSeleccionado = vuelo.icao24;
 
-            // 1. ACTUALIZAR PANEL INFERIOR
-            if (cardInfoPanel != null) {
-                String modelo = determinarModeloSimulado(vuelo.icao24);
-                int kph = (vuelo.velocity != null) ? (int)(vuelo.velocity * 3.6) : 0;
+        // 1. Texto del Panel
+        // Usamos el ICAO24 real de la API y el Callsign real de la API.
+        // NO inventamos matrículas.
+        String modeloSimulado = determinarModeloSimulado(vuelo.icao24); // Solo el modelo se simula porque la API gratis no lo da.
 
-                txtModeloPanel.setText(modelo);
-                txtDatosPanel.setText(
-                        "Matrícula: " + vuelo.icao24 + "\n" +
-                                "País: " + vuelo.originCountry + "\n" +
-                                "Altitud: " + vuelo.altitude + " m  |  Velocidad: " + kph + " km/h"
-                );
+        txtModeloPanel.setText(modeloSimulado);
 
-                // Hacemos visible la tarjeta
-                cardInfoPanel.setVisibility(View.VISIBLE);
-            }
+        // DATOS REALES DIRECTOS DE LA API
+        int velocidadKmh = (vuelo.velocity != null) ? (int)(vuelo.velocity * 3.6) : 0;
 
-            // 2. DIBUJAR TRAYECTORIA
-            if (trayectoriaActualPolyline != null) trayectoriaActualPolyline.remove();
+        txtDatosPanel.setText(
+                "ID ICAO: " + vuelo.icao24 + "\n" +    // Matrícula técnica real
+                        "Vuelo: " + vuelo.callsign + "\n" +    // Código de vuelo real
+                        "País: " + vuelo.originCountry + "\n" +
+                        "Alt: " + vuelo.altitude + "m | Vel: " + velocidadKmh + " km/h"
+        );
 
-            // Llamada API Trayectoria
-            service.getTrayectoria(vuelo.icao24, 0).enqueue(new Callback<es.medac.skycollectorapp.TrackResponse>() {
-                @Override
-                public void onResponse(Call<es.medac.skycollectorapp.TrackResponse> call, Response<es.medac.skycollectorapp.TrackResponse> response) {
-                    if (isDestroyed() || isFinishing()) return;
+        cardInfoPanel.setVisibility(View.VISIBLE);
 
-                    if (response.isSuccessful() && response.body() != null && response.body().path != null) {
-                        List<LatLng> rutaAPI = new ArrayList<>();
-                        for (List<Object> punto : response.body().path) {
-                            try {
-                                double lat = ((Number) punto.get(1)).doubleValue();
-                                double lon = ((Number) punto.get(2)).doubleValue();
-                                rutaAPI.add(new LatLng(lat, lon));
-                            } catch (Exception e) {}
-                        }
+        // 2. Dibujar Trayectoria Real (API)
+        dibujarTrayectoria(vuelo.icao24);
 
-                        runOnUiThread(() -> {
-                            try {
-                                if (mMap != null && idAvionSeleccionado != null && idAvionSeleccionado.equals(vuelo.icao24)) {
-                                    PolylineOptions opt = new PolylineOptions().addAll(rutaAPI).color(Color.RED).width(8f);
-                                    trayectoriaActualPolyline = mMap.addPolyline(opt);
-                                }
-                            } catch (Exception e) {}
-                        });
-                    } else {
-                        usarHistorialLocal(vuelo.icao24);
-                    }
-                }
-                @Override public void onFailure(Call<es.medac.skycollectorapp.TrackResponse> call, Throwable t) {
-                    if (!isDestroyed() && !isFinishing()) usarHistorialLocal(vuelo.icao24);
-                }
-            });
-
-            // NO llamamos a showInfoWindow() para que no salga la burbuja
-            return true; // Devolvemos true para indicar que "ya hemos manejado el clic" (no centrar ni abrir burbuja)
-
-        } catch (Exception e) { Log.e(TAG, "Error click: " + e.getMessage()); }
-        return false;
+        return true;
     }
 
-    private void usarHistorialLocal(String icao24) {
-        if (mMap == null) return;
-        List<LatLng> puntos = historialLocal.get(icao24);
-        if (puntos != null && puntos.size() > 1) {
-            try {
-                PolylineOptions opt = new PolylineOptions().addAll(puntos).color(Color.BLUE).width(8f);
-                trayectoriaActualPolyline = mMap.addPolyline(opt);
-            } catch (Exception e) {}
-        }
+    private void dibujarTrayectoria(String icao24) {
+        if (trayectoriaActualPolyline != null) trayectoriaActualPolyline.remove();
+
+        service.getTrayectoria(icao24, 0).enqueue(new Callback<es.medac.skycollectorapp.TrackResponse>() {
+            @Override
+            public void onResponse(Call<es.medac.skycollectorapp.TrackResponse> call, Response<es.medac.skycollectorapp.TrackResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().path != null) {
+                    List<LatLng> ruta = new ArrayList<>();
+                    for (List<Object> p : response.body().path) {
+                        ruta.add(new LatLng(((Number)p.get(1)).doubleValue(), ((Number)p.get(2)).doubleValue()));
+                    }
+                    if (mMap != null) {
+                        PolylineOptions opt = new PolylineOptions().addAll(ruta).color(Color.RED).width(8f);
+                        trayectoriaActualPolyline = mMap.addPolyline(opt);
+                    }
+                }
+            }
+            @Override public void onFailure(Call<es.medac.skycollectorapp.TrackResponse> call, Throwable t) {}
+        });
+    }
+
+    // Simulación visual del modelo (necesaria porque OpenSky free no dice si es un Boeing o Airbus)
+    private String determinarModeloSimulado(String icao24) {
+        if (icao24 == null || misNombresDeModelos.isEmpty()) return "Avión Desconocido";
+        int index = Math.abs(icao24.hashCode()) % misNombresDeModelos.size();
+        return misNombresDeModelos.get(index);
     }
 
     private void iniciarCicloDeActualizacion() {
         runnableCode = new Runnable() {
             @Override public void run() {
-                if (!isFinishing() && !isDestroyed()) {
-                    descargarVuelosYFiltrar();
-                    handler.postDelayed(this, 10000);
+                if (!isFinishing()) {
+                    descargarVuelos();
+                    handler.postDelayed(this, 10000); // Cada 10s
                 }
             }
         };
         handler.post(runnableCode);
     }
 
-    private void descargarVuelosYFiltrar() {
+    private void descargarVuelos() {
         if (isActualizando) return;
         isActualizando = true;
 
+        // Zona geográfica (Europa/España aprox)
         service.getVuelosEnZona(35.0, -15.0, 58.0, 30.0).enqueue(new Callback<FlightResponse>() {
             @Override
             public void onResponse(Call<FlightResponse> call, Response<FlightResponse> response) {
                 isActualizando = false;
-                if (isFinishing() || isDestroyed()) return;
-
-                if (response.isSuccessful() && response.body() != null && response.body().getStates() != null) {
-                    List<List<Object>> rawStates = response.body().getStates();
-                    new Thread(() -> {
-                        List<FlightResponse.OpenSkyAvion> vuelosProcesados = new ArrayList<>();
-                        int encontrados = 0;
-                        if (misNombresDeModelos.isEmpty()) return;
-
-                        for (List<Object> state : rawStates) {
-                            if (encontrados >= MAX_AVIONES_EN_MAPA) break;
-                            try {
-                                FlightResponse.OpenSkyAvion vuelo = new FlightResponse.OpenSkyAvion(state);
-                                if (vuelo.latitude != 0.0 && vuelo.longitude != 0.0) {
-                                    vuelosProcesados.add(vuelo);
-                                    encontrados++;
-                                }
-                            } catch (Exception e) {
-                            }
-                        }
-
-                        runOnUiThread(() -> {
-                            if (mMap == null || isFinishing() || isDestroyed()) return;
-                            try {
-                                for (FlightResponse.OpenSkyAvion v : vuelosProcesados) {
-                                    LatLng pos = new LatLng(v.latitude, v.longitude);
-                                    if (!historialLocal.containsKey(v.icao24))
-                                        historialLocal.put(v.icao24, new ArrayList<>());
-                                    historialLocal.get(v.icao24).add(pos);
-                                }
-
-                                mMap.clear();
-                                if (idAvionSeleccionado != null) trayectoriaActualPolyline = null;
-
-                                for (FlightResponse.OpenSkyAvion v : vuelosProcesados) {
-                                    String modelo = determinarModeloSimulado(v.icao24);
-                                    String rareza = mapaRarezas.get(modelo.toLowerCase());
-                                    if (rareza == null) rareza = "comun";
-
-                                    BitmapDescriptor icono = cacheIconos.get(rareza.toLowerCase());
-                                    if (icono == null)
-                                        icono = BitmapDescriptorFactory.defaultMarker();
-
-                                    Marker m = mMap.addMarker(new MarkerOptions()
-                                            .position(new LatLng(v.latitude, v.longitude))
-                                            .icon(icono)
-                                            .rotation(v.trueTrack)
-                                            .anchor(0.5f, 0.5f)
-                                            .flat(true));
-                                    m.setTag(v);
-
-                                    // Si hay un avión seleccionado, actualizamos su info en el panel si sigue existiendo
-                                    if (v.icao24.equals(idAvionSeleccionado) && cardInfoPanel.getVisibility() == View.VISIBLE) {
-                                        int kph = (v.velocity != null) ? (int) (v.velocity * 3.6) : 0;
-                                        txtDatosPanel.setText("Matrícula: " + v.icao24 + "\nPaís: " + v.originCountry + "\nAltitud: " + v.altitude + " m  |  Velocidad: " + kph + " km/h");
-                                    }
-                                }
-                            } catch (Exception e) {
-                            }
-                        });
-                    }).start();
+                if (response.isSuccessful() && response.body() != null) {
+                    procesarVuelos(response.body().getStates());
                 }
             }
-
-            @Override
-            public void onFailure(Call<FlightResponse> call, Throwable t) {
-                isActualizando = false;
-            }
+            @Override public void onFailure(Call<FlightResponse> call, Throwable t) { isActualizando = false; }
         });
     }
+
+    private void procesarVuelos(List<List<Object>> rawStates) {
+        if (rawStates == null) return;
+        mMap.clear(); // Limpiamos mapa para repintar
+
+        int cont = 0;
+        for (List<Object> state : rawStates) {
+            if (cont >= MAX_AVIONES_EN_MAPA) break;
+            try {
+                FlightResponse.OpenSkyAvion avionAPI = new FlightResponse.OpenSkyAvion(state);
+
+                if (avionAPI.latitude != 0.0 && avionAPI.longitude != 0.0) {
+                    // Elegir icono según el modelo simulado
+                    String modelo = determinarModeloSimulado(avionAPI.icao24);
+                    String rareza = mapaRarezas.get(modelo.toLowerCase());
+                    BitmapDescriptor icono = cacheIconos.get(rareza != null ? rareza.toLowerCase() : "comun");
+
+                    Marker m = mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(avionAPI.latitude, avionAPI.longitude))
+                            .icon(icono != null ? icono : BitmapDescriptorFactory.defaultMarker())
+                            .rotation(avionAPI.trueTrack)
+                            .anchor(0.5f, 0.5f)
+                            .flat(true));
+                    m.setTag(avionAPI); // Guardamos el objeto real dentro del marcador
+                    cont++;
+                }
+            } catch (Exception e) {}
+        }
+
+        // Si teníamos un avión seleccionado, intentamos redibujar su línea si sigue en el mapa
+        // (Lógica simplificada para no complicar el código)
+    }
+
+    private void preCargarIconos() {
+        if (!cacheIconos.isEmpty()) return;
+        cacheIconos.put("comun", bitmapDescriptorFromVector(this, R.drawable.avioncomun));
+        cacheIconos.put("raro", bitmapDescriptorFromVector(this, R.drawable.avionraro));
+        cacheIconos.put("epico", bitmapDescriptorFromVector(this, R.drawable.avionepico));
+        cacheIconos.put("legendario", bitmapDescriptorFromVector(this, R.drawable.avionlegendario));
+    }
+
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
         try {
             Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
             if (vectorDrawable == null) return BitmapDescriptorFactory.defaultMarker();
-            int w = vectorDrawable.getIntrinsicWidth();
-            int h = vectorDrawable.getIntrinsicHeight();
-            if (w > 100) { w = w/2; h = h/2; } // Reducción de tamaño
-            vectorDrawable.setBounds(0, 0, w, h);
-            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth()/2, vectorDrawable.getIntrinsicHeight()/2);
+            Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getBounds().width(), vectorDrawable.getBounds().height(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             vectorDrawable.draw(canvas);
             return BitmapDescriptorFactory.fromBitmap(bitmap);
         } catch (Exception e) { return BitmapDescriptorFactory.defaultMarker(); }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (handler != null && runnableCode != null) handler.removeCallbacks(runnableCode);
-        mMap = null;
     }
 }
