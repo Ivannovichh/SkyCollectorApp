@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         cargarListaDeAviones();
         cargarFotoPerfilMini();
+        cargarNombreUsuario();
     }
 
     private void cargarFotoPerfilMini() {
@@ -204,4 +205,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("FIRESTORE", "Error al borrar avión", e);
                 });
     }
+    private void cargarNombreUsuario() {
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String userId = user.getUid();
+        // Aquí usamos la misma clave que PerfilActivity
+        String nombreUsuario = prefs.getString("nombre_" + userId, "usuario");
+        binding.txtNombreUsuario.setText(nombreUsuario);
+    }
+
+
 }

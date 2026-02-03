@@ -8,6 +8,7 @@
     android:background="#0B1021"
     tools:context=".activities.MainActivity">
 
+    <!-- CABECERA -->
     <LinearLayout
         android:id="@+id/layoutCabecera"
         android:layout_width="match_parent"
@@ -19,6 +20,7 @@
         android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Título SkyCollector -->
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -28,6 +30,7 @@
             android:textStyle="bold"
             android:textColor="#FFFFFF"/>
 
+        <!-- Botón papelera -->
         <ImageButton
             android:id="@+id/btnPapelera"
             android:layout_width="40dp"
@@ -38,6 +41,17 @@
             android:layout_marginEnd="12dp"
             app:tint="#FF5252" />
 
+        <!-- Nombre de usuario -->
+        <TextView
+            android:id="@+id/txtNombreUsuario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="usuario"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- CardView con foto de perfil -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardPerfil"
             android:layout_width="45dp"
@@ -53,8 +67,10 @@
                 android:scaleType="centerCrop"
                 android:src="@android:drawable/ic_menu_myplaces" />
         </androidx.cardview.widget.CardView>
+
     </LinearLayout>
 
+    <!-- Texto cuando no hay aviones -->
     <TextView
         android:id="@+id/txtVacio"
         android:layout_width="wrap_content"
@@ -68,6 +84,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- RecyclerView con lista de aviones -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
@@ -77,9 +94,10 @@
         app:layout_constraintTop_toBottomOf="@id/layoutCabecera"
         app:layout_constraintBottom_toTopOf="@id/barraInferior"
         app:layout_constraintStart_toStartOf="parent"
-        android:background="#0B1021"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="#0B1021"/>
 
+    <!-- Barra inferior -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/barraInferior"
         android:layout_width="match_parent"

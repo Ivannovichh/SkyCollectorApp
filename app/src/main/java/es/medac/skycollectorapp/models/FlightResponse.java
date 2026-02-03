@@ -12,39 +12,77 @@ public class FlightResponse {
         return states;
     }
 
-    // Clase interna para procesar los datos crudos de la API
     public static class OpenSkyAvion {
-        public String icao24;       // MATRÍCULA TÉCNICA (REAL)
-        public String callsign;     // CÓDIGO DE VUELO (REAL)
-        public String originCountry;
-        public Double longitude;
-        public Double latitude;
-        public Double velocity;
-        public Double altitude;
-        public Float trueTrack;     // Rumbo
+
+        // Identificadores
+        public String icao24;           // ID único del transpondedor
+        public String callsign;         // Código de vuelo (puede ser null)
+        public String originCountry;    // País de origen
+
+        // Posición y movimiento
+        public Double longitude;        // null si no disponible
+        public Double latitude;         // null si no disponible
+        public Double altitude;         // metros (geo si existe)
+        public Double velocity;         // m/s
+        public Float trueTrack;          // grados (rumbo)
 
         public OpenSkyAvion(List<Object> rawData) {
+
+            // Seguridad básica
+            if (rawData == null || rawData.size() < 7) return;
+
             try {
-                // Posición 0: ICAO24 (El ID único del transpondedor del avión)
-                this.icao24 = (String) rawData.get(0);
+                // 0 → ICAO24
+                this.icao24 = rawData.get(0) != null ? (String) rawData.get(0) : null;
 
-                // Posición 1: Callsign (El número de vuelo, ej: IBE32S)
-                // Usamos trim() porque la API a veces mete espacios en blanco al final
-                this.callsign = rawData.get(1) != null ? ((String) rawData.get(1)).trim() : "N/A";
+                // 1 → Callsign (a veces con espacios)
+                this.callsign = rawData.get(1) != null
+                        ? ((String) rawData.get(1)).trim()
+                        : "N/A";
 
-                // Posición 2: País de origen
-                this.originCountry = (String) rawData.get(2);
+                // 2 → País de origen
+                this.originCountry = rawData.get(2) != null
+                        ? (String) rawData.get(2)
+                        : "N/A";
 
-                // Posiciones numéricas (seguridad para evitar errores si vienen nulos)
-                this.longitude = rawData.get(5) != null ? ((Number) rawData.get(5)).doubleValue() : 0.0;
-                this.latitude = rawData.get(6) != null ? ((Number) rawData.get(6)).doubleValue() : 0.0;
-                this.altitude = rawData.get(7) != null ? ((Number) rawData.get(7)).doubleValue() : 0.0;
-                this.velocity = rawData.get(9) != null ? ((Number) rawData.get(9)).doubleValue() : 0.0;
-                this.trueTrack = rawData.get(10) != null ? ((Number) rawData.get(10)).floatValue() : 0.0f;
+                // 5 → Longitud
+                this.longitude = rawData.get(5) != null
+                        ? ((Number) rawData.get(5)).doubleValue()
+                        : null;
+
+                // 6 → Latitud
+                this.latitude = rawData.get(6) != null
+                        ? ((Number) rawData.get(6)).doubleValue()
+                        : null;
+
+                // 13 → Altitud geométrica (preferida)
+                Double geoAlt = (rawData.size() > 13 && rawData.get(13) != null)
+                        ? ((Number) rawData.get(13)).doubleValue()
+                        : null;
+
+                // 7 → Altitud barométrica (fallback)
+                Double baroAlt = rawData.get(7) != null
+                        ? ((Number) rawData.get(7)).doubleValue()
+                        : null;
+
+                this.altitude = geoAlt != null ? geoAlt : baroAlt;
+
+                // 9 → Velocidad (m/s)
+                this.velocity = rawData.get(9) != null
+                        ? ((Number) rawData.get(9)).doubleValue()
+                        : 0.0;
+
+                // 10 → Rumbo real
+                this.trueTrack = rawData.get(10) != null
+                        ? ((Number) rawData.get(10)).floatValue()
+                        : 0.0f;
 
             } catch (Exception e) {
-                this.callsign = "ErrorDatos";
+                // Si algo falla, dejamos el avión inválido (no se pintará)
+                this.latitude = null;
+                this.longitude = null;
             }
         }
     }
+
 }
