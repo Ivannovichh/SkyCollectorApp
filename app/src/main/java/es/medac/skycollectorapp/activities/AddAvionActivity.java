@@ -41,6 +41,7 @@ import java.util.Locale;
 import es.medac.skycollectorapp.R;
 import es.medac.skycollectorapp.models.Avion;
 import es.medac.skycollectorapp.utils.AvionGenerator;
+import retrofit2.http.POST;
 
 public class AddAvionActivity extends AppCompatActivity {
 
@@ -244,6 +245,7 @@ public class AddAvionActivity extends AppCompatActivity {
         lista.add(nuevoAvion);
         prefs.edit().putString("lista_aviones", gson.toJson(lista)).apply();
     }
+
     public void guardarAvionEnFirestore(Avion avion) {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -265,5 +267,4 @@ public class AddAvionActivity extends AppCompatActivity {
                     Log.e("FIRESTORE", "Error al guardar avión", e);
                 });
     }
-
 }

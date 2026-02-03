@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -24,6 +26,7 @@ import java.util.List;
 import es.medac.skycollectorapp.adapters.AvionAdapter;
 import es.medac.skycollectorapp.databinding.ActivityMainBinding;
 import es.medac.skycollectorapp.models.Avion;
+import es.medac.skycollectorapp.activities.AddAvionActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -119,22 +122,55 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void borrarSeleccionados() {
-        adapter.borrarSeleccionados();
+        if (listaAviones.isEmpty()) return;
 
+        // 1️⃣ Guardar los aviones seleccionados antes de borrarlos
+        List<Avion> avionesABorrar = new ArrayList<>();
+        for (Avion a : listaAviones) {
+            if (a.isSeleccionado()) {
+                avionesABorrar.add(a);
+            }
+        }
+
+        if (avionesABorrar.isEmpty()) return; // No hay aviones seleccionados
+
+        // 2️⃣ Borrar los aviones de Firestore en segundo plano
+        for (Avion a : avionesABorrar) {
+            borrarAvionEnFirestore(a);
+        }
+
+        // 3️⃣ Borrar los aviones de la lista local y notificar al adaptador (animación)
+        for (int i = listaAviones.size() - 1; i >= 0; i--) { // recorrer al revés para evitar problemas de índices
+            Avion a = listaAviones.get(i);
+            if (a.isSeleccionado()) {
+                listaAviones.remove(i);
+                adapter.notifyItemRemoved(i); // animación de borrado
+            }
+        }
+
+        // 4️⃣ Actualizar SharedPreferences
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
-
-        String json = gson.toJson(listaAviones);
-        editor.putString("lista_aviones", json);
+        editor.putString("lista_aviones", gson.toJson(listaAviones));
         editor.apply();
 
+        // 5️⃣ Actualizar botón de papelera
         actualizarPapelera();
 
-        if (listaAviones.isEmpty()) binding.txtVacio.setVisibility(View.VISIBLE);
+        // 6️⃣ Mostrar mensaje si la lista quedó vacía
+        if (listaAviones.isEmpty()) {
+            binding.txtVacio.setVisibility(View.VISIBLE);
+        }
 
+        // 7️⃣ Feedback al usuario
         Toast.makeText(this, "Aviones eliminados", Toast.LENGTH_SHORT).show();
     }
+
+
+
+
+
 
     private void actualizarPapelera() {
         boolean haySeleccionados = false;
@@ -146,5 +182,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.btnPapelera.setVisibility(haySeleccionados ? View.VISIBLE : View.GONE);
+    }
+    public void borrarAvionEnFirestore(Avion avion) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+
+        if (auth.getCurrentUser() == null) return;
+
+        String uid = auth.getCurrentUser().getUid();
+
+        db.collection("usuarios")
+                .document(uid)
+                .collection("aviones")
+                .document(avion.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("FIRESTORE", "Avión eliminado: " + avion.getApodo());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FIRESTORE", "Error al borrar avión", e);
+                });
     }
 }

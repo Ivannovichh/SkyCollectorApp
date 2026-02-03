@@ -23,7 +23,7 @@ import es.medac.skycollectorapp.models.Avion;
 
 public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHolder> {
 
-    private List<Avion> listaAviones;
+    private  List<Avion> listaAviones;
     private final OnItemClickListener listener;
     private final OnSelectionChangedListener selectionListener;
 
@@ -145,4 +145,17 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
             chkSeleccion = v.findViewById(R.id.chkSeleccion);
         }
     }
+    // Borra todos los aviones seleccionados con animación
+    public  void borrarSeleccionadosConAnimacion() {
+        if (listaAviones == null) return;
+
+        // Recorrer la lista al revés para evitar problemas de índices al eliminar
+        for (int i = listaAviones.size() - 1; i >= 0; i--) {
+            if (listaAviones.get(i).isSeleccionado()) {
+                listaAviones.remove(i);
+                notifyItemRemoved(i);  // Esto hace la animación
+            }
+        }
+    }
+
 }
