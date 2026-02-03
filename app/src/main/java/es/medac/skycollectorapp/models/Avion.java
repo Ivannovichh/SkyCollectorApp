@@ -100,11 +100,27 @@ public class Avion implements Serializable {
 
     public int getColorRareza() {
         if (rareza == null) return 0xFF808080;
+
         switch (rareza.toUpperCase()) {
-            case "LEGENDARIO": return 0xFFFFD700;
-            case "EPICO": return 0xFF9C27B0;
-            case "RARO": return 0xFF2196F3;
-            default: return 0xFF808080;
+            case "COMMON":
+            case "COMUN":
+                return 0xFF9E9E9E; // Gris
+
+            case "RARE":
+            case "RARO":
+                return 0xFF2196F3; // Azul
+
+            case "EPIC":
+            case "EPICO":
+                return 0xFF9C27B0; // Morado
+
+            case "LEGENDARY":
+            case "LEGENDARIO":
+                return 0xFFFFD700; // Dorado
+
+            default:
+                return 0xFF808080; // Gris fallback
         }
     }
+
 }

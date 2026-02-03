@@ -194,19 +194,24 @@
 
                 <Button
                     android:id="@+id/btnCancelar"
-                    android:layout_width="198dp"
+                    android:layout_width="0dp"
                     android:layout_height="60dp"
+                    android:layout_weight="1"
                     android:backgroundTint="#F42020"
                     android:text="CANCELAR"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
+
+                <Space
+                    android:layout_width="16dp"
+                    android:layout_height="1dp" />
 
                 <Button
                     android:id="@+id/btnGuardar"
-                    android:layout_width="198dp"
+                    android:layout_width="0dp"
                     android:layout_height="60dp"
-                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
                     android:backgroundTint="#00C853"
                     android:text="GUARDAR"
                     android:textColor="#FFFFFF"
