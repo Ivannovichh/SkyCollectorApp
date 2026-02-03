@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,6 +24,8 @@ import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -208,16 +211,20 @@ public class AddAvionActivity extends AppCompatActivity {
             nuevo.setUriFotoUsuario(uriImagenFinal.toString());
         }
 
+        // 💾 LOCAL
         guardarEnPreferencias(nuevo);
+
+        // ☁️ FIRESTORE
+        guardarAvionEnFirestore(nuevo);
 
         Toast.makeText(this, "¡Avistamiento guardado!", Toast.LENGTH_SHORT).show();
 
-        // volver al main
         Intent i = new Intent(AddAvionActivity.this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(i);
         finish();
     }
+
 
     private void guardarEnPreferencias(Avion nuevoAvion) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
@@ -237,4 +244,26 @@ public class AddAvionActivity extends AppCompatActivity {
         lista.add(nuevoAvion);
         prefs.edit().putString("lista_aviones", gson.toJson(lista)).apply();
     }
+    public void guardarAvionEnFirestore(Avion avion) {
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+
+        if (auth.getCurrentUser() == null) return;
+
+        String uid = auth.getCurrentUser().getUid();
+
+        db.collection("usuarios")
+                .document(uid)
+                .collection("aviones")
+                .document(avion.getId()) // 🔑 ID estable
+                .set(avion)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("FIRESTORE", "Avión guardado: " + avion.getApodo());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FIRESTORE", "Error al guardar avión", e);
+                });
+    }
+
 }

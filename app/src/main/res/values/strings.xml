@@ -8,4 +8,5 @@
     <string name="a_adir_avi_n_manualmente">AÑADIR AVIÓN MANUALMENTE</string>
     <string name="asistente_skycollector">Asistente SkyCollector</string>
     <string name="pregunta_sobre_tus_aviones">Pregunta sobre tus aviones...</string>
+    <string name="modelo_avi_n">Modelo Avión</string>
 </resources>

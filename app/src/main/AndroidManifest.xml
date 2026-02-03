@@ -28,6 +28,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAqFuJEgJghaeTj9v6y1WodAFl149eHk00" />
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAqFuJEgJghaeTj9v6y1WodAFl149eHk00" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -5,12 +5,12 @@
     android:id="@+id/cardContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:layout_margin="6dp"
     app:cardBackgroundColor="#151E32"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="#00E5FF">
+    app:strokeWidth="2dp"
+    app:strokeColor="#808080">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,8 +20,8 @@
             android:id="@+id/imgAvion"
             android:layout_width="0dp"
             android:layout_height="110dp"
-            android:scaleType="fitCenter"
             android:background="#000000"
+            android:scaleType="fitCenter"
             android:src="@android:drawable/ic_menu_gallery"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +31,7 @@
             android:id="@+id/txtRareza"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="EPIC"
+            android:text=""
             android:textColor="#FFFFFF"
             android:textSize="9sp"
             android:textStyle="bold"
@@ -44,12 +44,12 @@
 
         <CheckBox
             android:id="@+id/chkSeleccion"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:buttonTint="#FF5252"
             android:background="#40000000"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -66,22 +66,22 @@
                 android:id="@+id/txtModelo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Modelo Avión"
+                android:text=""
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"/>
 
             <TextView
                 android:id="@+id/txtFabricante"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Fabricante"
+                android:text=""
                 android:textColor="#90A4AE"
                 android:textSize="11sp"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
