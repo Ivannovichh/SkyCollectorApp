@@ -3,6 +3,7 @@ package es.medac.skycollectorapp.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -10,6 +11,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -37,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new AvionAdapter(listaAviones,
                 (avion, position) -> {
-                    // ✅ ABRIR DETALLE PASANDO SOLO EL ID
                     Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
                     intent.putExtra("avion_id", avion.getId());
                     startActivity(intent);
@@ -71,6 +74,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         cargarListaDeAviones();
+        cargarFotoPerfilMini();
+    }
+
+    private void cargarFotoPerfilMini() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        String userId = user.getUid();
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE);
+        String fotoGuardada = prefs.getString("foto_" + userId, null);
+
+        if (fotoGuardada != null) {
+            Glide.with(this)
+                    .load(Uri.parse(fotoGuardada))
+                    .circleCrop()
+                    .into(binding.imgPerfilMini);
+        }
     }
 
     private void cargarListaDeAviones() {
