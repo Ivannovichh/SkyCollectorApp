@@ -205,7 +205,8 @@ public class AddAvionActivity extends AppCompatActivity {
                 base.getPasajeros(),
                 base.getDimensiones(),
                 base.getPais(),
-                base.getPeso()
+                base.getPeso(),
+                base.getIcao24()
         );
 
         if (uriImagenFinal != null) {
