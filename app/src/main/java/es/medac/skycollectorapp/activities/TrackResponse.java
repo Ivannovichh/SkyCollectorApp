@@ -1,4 +1,4 @@
-package es.medac.skycollectorapp; // O es.medac.skycollectorapp.models;
+package es.medac.skycollectorapp.activities; // O es.medac.skycollectorapp.models;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

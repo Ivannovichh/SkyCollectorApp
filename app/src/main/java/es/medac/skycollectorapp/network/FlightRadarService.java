@@ -19,7 +19,7 @@ public interface FlightRadarService {
     // 2. NUEVO: Obtener la ruta completa de un avión específico
     // time=0 le dice a la API: "Dame la trayectoria del vuelo actual/último"
     @GET("tracks/")
-    Call<es.medac.skycollectorapp.TrackResponse> getTrayectoria(
+    Call<es.medac.skycollectorapp.activities.TrackResponse> getTrayectoria(
             @Query("icao24") String icao24,
             @Query("time") int time
     );

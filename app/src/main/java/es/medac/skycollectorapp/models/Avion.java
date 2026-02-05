@@ -6,7 +6,13 @@ import java.util.UUID;
 public class Avion implements Serializable {
 
     private String id;
+
+    // NUEVO: modelo real (para no depender de apodo)
+    private String modelo;
+
+    // Tu campo original (lo mantengo)
     private String apodo;
+
     private String fabricante;
     private String rareza;
     private int imagenResId;
@@ -19,12 +25,13 @@ public class Avion implements Serializable {
     private String peso;
     private String descripcion;
 
+    // Tu campo original (lo mantengo)
     private boolean seleccionado;
 
     // Foto del usuario
     private String uriFotoUsuario;
 
-    // GOD MODE: ICAO24
+    // Tu campo original (lo mantengo)
     private String icao24;
 
     // -------------------------------
@@ -34,15 +41,19 @@ public class Avion implements Serializable {
     // Constructor vacío
     public Avion() {
         this.id = UUID.randomUUID().toString();
+        this.seleccionado = false;
     }
 
-    // Constructor antiguo (compatibilidad)
+    // Constructor antiguo (compatibilidad) -> aquí "apodo" es el nombre/modelo mostrado
     public Avion(String apodo, String fabricante, String rareza, int imagenResId,
                  String velocidad, String pasajeros, String dimensiones,
                  String pais, String peso) {
 
         this.id = UUID.randomUUID().toString();
+
         this.apodo = apodo;
+        this.modelo = apodo; // por defecto, modelo = apodo (compatibilidad)
+
         this.fabricante = fabricante;
         this.rareza = rareza;
         this.imagenResId = imagenResId;
@@ -59,28 +70,15 @@ public class Avion implements Serializable {
         this.uriFotoUsuario = null;
     }
 
-    // Constructor GOD MODE completo
+    // Constructor completo (con ICAO24)
     public Avion(String apodo, String fabricante, String rareza, int imagenResId,
                  String velocidad, String pasajeros, String dimensiones,
                  String pais, String peso, String icao24) {
 
-        this.id = UUID.randomUUID().toString();
-        this.apodo = apodo;
-        this.fabricante = fabricante;
-        this.rareza = rareza;
-        this.imagenResId = imagenResId;
-
-        this.velocidad = velocidad;
-        this.pasajeros = pasajeros;
-        this.dimensiones = dimensiones;
-        this.pais = pais;
-        this.peso = peso;
+        this(apodo, fabricante, rareza, imagenResId,
+                velocidad, pasajeros, dimensiones, pais, peso);
 
         this.icao24 = icao24 != null ? icao24.toUpperCase() : null;
-
-        this.seleccionado = false;
-        this.descripcion = "Sin descripción detallada.";
-        this.uriFotoUsuario = null;
     }
 
     // -------------------------------
@@ -91,10 +89,21 @@ public class Avion implements Serializable {
     public void setId(String id) { this.id = id; }
 
     public String getApodo() { return apodo; }
-    public void setApodo(String apodo) { this.apodo = apodo; }
+    public void setApodo(String apodo) {
+        this.apodo = apodo;
+        // si modelo no estaba definido, lo alineamos
+        if (this.modelo == null) this.modelo = apodo;
+    }
 
-    public String getModelo() { return apodo; }
-    public void setModelo(String modelo) { this.apodo = modelo; }
+    // Compatibilidad con tu app: getModelo() seguía existiendo y devolvía apodo
+    // Ahora devuelve "modelo" si existe, si no, apodo
+    public String getModelo() { return (modelo != null && !modelo.isEmpty()) ? modelo : apodo; }
+
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
+        // Si no hay apodo, por defecto igual al modelo
+        if (this.apodo == null) this.apodo = modelo;
+    }
 
     public String getFabricante() { return fabricante; }
     public void setFabricante(String fabricante) { this.fabricante = fabricante; }
@@ -130,7 +139,17 @@ public class Avion implements Serializable {
     public void setUriFotoUsuario(String uriFotoUsuario) { this.uriFotoUsuario = uriFotoUsuario; }
 
     public String getIcao24() { return icao24; }
-    public void setIcao24(String icao24) { this.icao24 = icao24 != null ? icao24.toUpperCase() : null; }
+    public void setIcao24(String icao24) {
+        this.icao24 = icao24 != null ? icao24.toUpperCase() : null;
+    }
+
+    // -------------------------------
+    // UTILIDAD
+    // -------------------------------
+
+    public boolean tieneIcao() {
+        return icao24 != null && !icao24.isEmpty();
+    }
 
     public int getColorRareza() {
         if (rareza == null) return 0xFF808080;

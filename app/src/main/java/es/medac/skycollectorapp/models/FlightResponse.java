@@ -15,74 +15,74 @@ public class FlightResponse {
     public static class OpenSkyAvion {
 
         // Identificadores
-        public String icao24;           // ID único del transpondedor
-        public String callsign;         // Código de vuelo (puede ser null)
-        public String originCountry;    // País de origen
+        public String icao24;
+        public String callsign;
+        public String originCountry;
 
-        // Posición y movimiento
-        public Double longitude;        // null si no disponible
-        public Double latitude;         // null si no disponible
-        public Double altitude;         // metros (geo si existe)
-        public Double velocity;         // m/s
-        public Float trueTrack;          // grados (rumbo)
+        // Posición
+        public Double longitude;
+        public Double latitude;
+        public Double altitude;
 
-        public OpenSkyAvion(List<Object> rawData) {
+        // Movimiento
+        public Double velocity;
+        public Float trueTrack;
 
-            // Seguridad básica
-            if (rawData == null || rawData.size() < 7) return;
+        public boolean valido = false;
+
+        public OpenSkyAvion(List<Object> raw) {
+            if (raw == null || raw.size() < 11) return;
 
             try {
-                // 0 → ICAO24
-                this.icao24 = rawData.get(0) != null ? (String) rawData.get(0) : null;
+                icao24 = raw.get(0) != null ? raw.get(0).toString() : null;
 
-                // 1 → Callsign (a veces con espacios)
-                this.callsign = rawData.get(1) != null
-                        ? ((String) rawData.get(1)).trim()
-                        : "N/A";
-
-                // 2 → País de origen
-                this.originCountry = rawData.get(2) != null
-                        ? (String) rawData.get(2)
-                        : "N/A";
-
-                // 5 → Longitud
-                this.longitude = rawData.get(5) != null
-                        ? ((Number) rawData.get(5)).doubleValue()
+                callsign = raw.get(1) != null
+                        ? raw.get(1).toString().trim()
                         : null;
 
-                // 6 → Latitud
-                this.latitude = rawData.get(6) != null
-                        ? ((Number) rawData.get(6)).doubleValue()
+                originCountry = raw.get(2) != null
+                        ? raw.get(2).toString()
                         : null;
 
-                // 13 → Altitud geométrica (preferida)
-                Double geoAlt = (rawData.size() > 13 && rawData.get(13) != null)
-                        ? ((Number) rawData.get(13)).doubleValue()
+                longitude = raw.get(5) instanceof Number
+                        ? ((Number) raw.get(5)).doubleValue()
                         : null;
 
-                // 7 → Altitud barométrica (fallback)
-                Double baroAlt = rawData.get(7) != null
-                        ? ((Number) rawData.get(7)).doubleValue()
+                latitude = raw.get(6) instanceof Number
+                        ? ((Number) raw.get(6)).doubleValue()
                         : null;
 
-                this.altitude = geoAlt != null ? geoAlt : baroAlt;
+                Double baroAlt = raw.get(7) instanceof Number
+                        ? ((Number) raw.get(7)).doubleValue()
+                        : null;
 
-                // 9 → Velocidad (m/s)
-                this.velocity = rawData.get(9) != null
-                        ? ((Number) rawData.get(9)).doubleValue()
+                Double geoAlt = raw.size() > 13 && raw.get(13) instanceof Number
+                        ? ((Number) raw.get(13)).doubleValue()
+                        : null;
+
+                altitude = geoAlt != null ? geoAlt : baroAlt;
+
+                velocity = raw.get(9) instanceof Number
+                        ? ((Number) raw.get(9)).doubleValue()
                         : 0.0;
 
-                // 10 → Rumbo real
-                this.trueTrack = rawData.get(10) != null
-                        ? ((Number) rawData.get(10)).floatValue()
-                        : 0.0f;
+                trueTrack = raw.get(10) instanceof Number
+                        ? ((Number) raw.get(10)).floatValue()
+                        : 0f;
+
+                valido = latitude != null && longitude != null && icao24 != null;
 
             } catch (Exception e) {
-                // Si algo falla, dejamos el avión inválido (no se pintará)
-                this.latitude = null;
-                this.longitude = null;
+                valido = false;
             }
         }
-    }
 
+        public boolean esValido() {
+            return valido;
+        }
+
+        public String getCallsignSeguro() {
+            return callsign != null ? callsign : "";
+        }
+    }
 }
