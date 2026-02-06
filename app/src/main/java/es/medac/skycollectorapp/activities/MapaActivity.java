@@ -20,9 +20,6 @@ import java.util.List;
 import es.medac.skycollectorapp.R;
 import es.medac.skycollectorapp.models.FlightResponse;
 import es.medac.skycollectorapp.network.FlightRadarService;
-import okhttp3.Credentials;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import retrofit2.*;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -31,31 +28,14 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private FlightRadarService service;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean yaPintado = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapa);
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(chain -> {
-                    Request request = chain.request().newBuilder()
-                            .header(
-                                    "Authorization",
-                                    Credentials.basic(
-                                            "jotamynds",
-                                            "aPIPUTERA1"
-                                    )
-                            )
-                            .build();
-                    return chain.proceed(request);
-                })
-                .build();
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://opensky-network.org/api/")
-                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -72,14 +52,16 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Cámara en Europa
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(48.0, 10.0), 5));
 
-        iniciarLoop();
-    }
+        // Marcador de prueba (debe verse)
+        mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(40.4168, -3.7038))
+                .title("MAPA OK"));
 
-    private void iniciarLoop() {
-        handler.postDelayed(() -> descargar(), 1000);
+        handler.postDelayed(this::descargar, 1000);
     }
 
     private void descargar() {
@@ -89,24 +71,28 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                     public void onResponse(Call<FlightResponse> call,
                                            Response<FlightResponse> response) {
 
-                        if (response.body() == null ||
-                                response.body().getStates() == null) return;
+                        Log.d("MAPA", "HTTP: " + response.code());
 
-                        if (yaPintado) return;
+                        if (response.body() == null ||
+                                response.body().getStates() == null) {
+                            Log.d("MAPA", "STATES = NULL");
+                            return;
+                        }
+
+                        Log.d("MAPA", "AVIONES: " +
+                                response.body().getStates().size());
 
                         pintar(response.body().getStates());
-                        yaPintado = true;
                     }
 
                     @Override
                     public void onFailure(Call<FlightResponse> call, Throwable t) {
-                        Log.e("OPENSKY", "ERROR", t);
+                        Log.e("MAPA", "ERROR", t);
                     }
                 });
     }
 
     private void pintar(List<List<Object>> raw) {
-
         int max = Math.min(raw.size(), 100);
 
         for (int i = 0; i < max; i++) {
@@ -127,14 +113,17 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    // 🔴 ICONO CORREGIDO (funciona con vector drawables)
     private BitmapDescriptor iconoAvion() {
         Drawable d = ContextCompat.getDrawable(this, R.drawable.avioncomun);
-        Bitmap b = Bitmap.createBitmap(
-                d.getIntrinsicWidth(),
-                d.getIntrinsicHeight(),
-                Bitmap.Config.ARGB_8888);
+
+        int size = 64; // tamaño fijo en píxeles
+        Bitmap b = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
+
+        d.setBounds(0, 0, size, size);
         d.draw(c);
+
         return BitmapDescriptorFactory.fromBitmap(b);
     }
 }
