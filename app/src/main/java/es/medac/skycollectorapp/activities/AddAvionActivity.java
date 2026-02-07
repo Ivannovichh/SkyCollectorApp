@@ -2,7 +2,6 @@ package es.medac.skycollectorapp.activities;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -53,6 +52,9 @@ public class AddAvionActivity extends AppCompatActivity {
 
     private List<Avion> listaAvionesBase;
 
+    // 🔴 NUEVO
+    private String icaoSeleccionado;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,11 +66,21 @@ public class AddAvionActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btnGuardar);
         btnCancelar = findViewById(R.id.btnCancelar);
 
+        // 🔴 LEER ICAO DESDE MAPA
+        SharedPreferences prefs =
+                getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
+        icaoSeleccionado = prefs.getString("icao_seleccionado", null);
+
+        if (icaoSeleccionado == null) {
+            Toast.makeText(this,
+                    "No has seleccionado ningún avión en el mapa",
+                    Toast.LENGTH_LONG).show();
+        }
+
         cargarDatosGenerator();
 
         btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion());
         btnGuardar.setOnClickListener(v -> guardarAvionCatalogo());
-
         btnCancelar.setOnClickListener(v -> finish());
     }
 
@@ -90,11 +102,20 @@ public class AddAvionActivity extends AppCompatActivity {
     }
 
     private void guardarAvionCatalogo() {
+
+        if (icaoSeleccionado == null) {
+            Toast.makeText(this,
+                    "Primero selecciona un avión en el mapa",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int pos = spinnerAviones.getSelectedItemPosition();
         if (pos < 0) return;
 
         Avion base = listaAvionesBase.get(pos);
 
+        // 🔴 ASOCIAMOS EL ICAO24 REAL
         Avion nuevo = new Avion(
                 base.getModelo(),
                 base.getFabricante(),
@@ -104,7 +125,8 @@ public class AddAvionActivity extends AppCompatActivity {
                 base.getPasajeros(),
                 base.getDimensiones(),
                 base.getPais(),
-                base.getPeso()
+                base.getPeso(),
+                icaoSeleccionado
         );
 
         if (uriImagenFinal != null) {
@@ -114,18 +136,31 @@ public class AddAvionActivity extends AppCompatActivity {
         guardarEnPreferencias(nuevo);
         guardarEnFirestore(nuevo);
 
-        Toast.makeText(this, "Avión añadido a tu colección", Toast.LENGTH_SHORT).show();
+        // 🔴 LIMPIAR ICAO USADO
+        getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
+                .edit()
+                .remove("icao_seleccionado")
+                .apply();
+
+        Toast.makeText(this,
+                "Avistamiento guardado correctamente",
+                Toast.LENGTH_SHORT).show();
+
         finish();
     }
 
     private void guardarEnPreferencias(Avion nuevo) {
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
+        SharedPreferences prefs =
+                getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         Gson gson = new Gson();
 
         String json = prefs.getString("lista_aviones", null);
         Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
 
-        List<Avion> lista = json != null ? gson.fromJson(json, type) : new ArrayList<>();
+        List<Avion> lista = json != null
+                ? gson.fromJson(json, type)
+                : new ArrayList<>();
+
         if (lista == null) lista = new ArrayList<>();
 
         lista.add(nuevo);
@@ -148,7 +183,9 @@ public class AddAvionActivity extends AppCompatActivity {
                         Log.e("FIRESTORE", "Error", e));
     }
 
-    // --- cámara / galería (sin cambios de lógica) ---
+    // -------------------------------
+    // CÁMARA / GALERÍA (SIN CAMBIOS)
+    // -------------------------------
 
     private void mostrarDialogoSeleccion() {
         String[] opciones = {"Cámara", "Galería"};
@@ -163,19 +200,24 @@ public class AddAvionActivity extends AppCompatActivity {
     }
 
     private final ActivityResultLauncher<String> launcherGaleria =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-                if (uri != null) cargarImagen(uri);
-            });
+            registerForActivityResult(
+                    new ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri != null) cargarImagen(uri);
+                    });
 
     private final ActivityResultLauncher<Uri> launcherCamara =
-            registerForActivityResult(new ActivityResultContracts.TakePicture(), ok -> {
-                if (ok && uriFotoCamaraTemporal != null) {
-                    cargarImagen(uriFotoCamaraTemporal);
-                }
-            });
+            registerForActivityResult(
+                    new ActivityResultContracts.TakePicture(),
+                    ok -> {
+                        if (ok && uriFotoCamaraTemporal != null) {
+                            cargarImagen(uriFotoCamaraTemporal);
+                        }
+                    });
 
     private void abrirCamara() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) return;
 
         try {
@@ -189,8 +231,13 @@ public class AddAvionActivity extends AppCompatActivity {
     }
 
     private File crearArchivoImagen() throws IOException {
-        String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        String ts = new SimpleDateFormat(
+                "yyyyMMdd_HHmmss", Locale.getDefault())
+                .format(new Date());
+
+        File dir = getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES);
+
         return File.createTempFile("IMG_" + ts, ".jpg", dir);
     }
 

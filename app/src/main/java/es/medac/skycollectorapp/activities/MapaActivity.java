@@ -1,12 +1,17 @@
 package es.medac.skycollectorapp.activities;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,9 +22,6 @@ import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import android.view.View;
-import android.widget.TextView;
 
 import java.util.*;
 
@@ -33,19 +35,32 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MapaActivity extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
+    // -------------------------------
+    // MODOS
+    // -------------------------------
+    private enum ModoMapa { TODOS, AVISTADOS }
+    private ModoMapa modoActual = ModoMapa.TODOS;
+
+    // -------------------------------
+    // MAPA / API
+    // -------------------------------
     private GoogleMap mMap;
     private FlightRadarService service;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    // Panel inferior
+    // -------------------------------
+    // UI
+    // -------------------------------
     private CardView panel;
     private TextView txtModelo, txtDatos;
+    private Button btnAvistar, btnTodos, btnAvistados;
 
-    // Colección del usuario
+    // -------------------------------
+    // DATOS
+    // -------------------------------
     private final List<Avion> miColeccion = new ArrayList<>();
-
-    // Marcadores activos (icao24 → marker)
     private final Map<String, Marker> marcadores = new HashMap<>();
+    private String icaoSeleccionado = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +70,11 @@ public class MapaActivity extends AppCompatActivity
         panel = findViewById(R.id.card_info_vuelo);
         txtModelo = findViewById(R.id.txt_modelo_panel);
         txtDatos = findViewById(R.id.txt_datos_panel);
+        btnAvistar = findViewById(R.id.btn_avistar);
+
+        // 🔴 BOTONES DE MODO (deben existir en el XML)
+        btnTodos = findViewById(R.id.btn_todos);
+        btnAvistados = findViewById(R.id.btn_avistados);
 
         cargarColeccion();
 
@@ -70,6 +90,42 @@ public class MapaActivity extends AppCompatActivity
                         .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
+
+        // -------------------------------
+        // BOTONES
+        // -------------------------------
+
+        btnTodos.setOnClickListener(v -> {
+            modoActual = ModoMapa.TODOS;
+            refrescarMapa();
+            btnAvistar.setVisibility(View.VISIBLE);
+        });
+
+        btnAvistados.setOnClickListener(v -> {
+            modoActual = ModoMapa.AVISTADOS;
+            refrescarMapa();
+            btnAvistar.setVisibility(View.GONE);
+        });
+
+        btnAvistar.setOnClickListener(v -> {
+            if (icaoSeleccionado == null) {
+                Toast.makeText(this,
+                        "Selecciona un avión primero",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            SharedPreferences prefs =
+                    getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
+
+            prefs.edit()
+                    .putString("icao_seleccionado", icaoSeleccionado)
+                    .apply();
+
+            Toast.makeText(this,
+                    "Avión seleccionado. Pulsa + para añadirlo",
+                    Toast.LENGTH_LONG).show();
+        });
     }
 
     // -------------------------------
@@ -85,6 +141,13 @@ public class MapaActivity extends AppCompatActivity
                 new LatLng(48.0, 10.0), 5));
 
         handler.postDelayed(this::descargar, 1000);
+    }
+
+    private void refrescarMapa() {
+        for (Marker m : marcadores.values()) m.remove();
+        marcadores.clear();
+        panel.setVisibility(View.GONE);
+        descargar();
     }
 
     // -------------------------------
@@ -107,6 +170,13 @@ public class MapaActivity extends AppCompatActivity
         );
 
         if (lista != null) miColeccion.addAll(lista);
+    }
+
+    private Avion buscarPorIcao(String icao) {
+        for (Avion a : miColeccion) {
+            if (icao.equalsIgnoreCase(a.getIcao24())) return a;
+        }
+        return null;
     }
 
     // -------------------------------
@@ -138,35 +208,39 @@ public class MapaActivity extends AppCompatActivity
             FlightResponse.OpenSkyAvion api =
                     new FlightResponse.OpenSkyAvion(r);
 
-            if (api.latitude == null || api.longitude == null ||
-                    api.callsign == null) continue;
+            if (api.latitude == null || api.longitude == null) continue;
 
-            Avion match = buscarEnColeccion(api.callsign);
-            if (match == null) continue; // ⛔ no es de tu colección
+            Avion avistado = buscarPorIcao(api.icao24);
+
+            // 🔴 FILTRO POR MODO
+            if (modoActual == ModoMapa.AVISTADOS && avistado == null) continue;
 
             visibles.add(api.icao24);
-
             LatLng pos = new LatLng(api.latitude, api.longitude);
 
             Marker m = marcadores.get(api.icao24);
             if (m == null) {
+                BitmapDescriptor icono =
+                        avistado != null
+                                ? iconoSegunRareza(avistado.getRareza())
+                                : iconoGenerico();
+
                 m = mMap.addMarker(new MarkerOptions()
                         .position(pos)
-                        .icon(iconoSegunRareza(match.getRareza()))
-                        .anchor(0.5f, 0.5f)
-                        .flat(true)
+                        .icon(icono)
                         .rotation(api.trueTrack)
-                );
+                        .flat(true)
+                        .anchor(0.5f, 0.5f));
+
                 marcadores.put(api.icao24, m);
             } else {
                 m.setPosition(pos);
                 m.setRotation(api.trueTrack);
             }
 
-            m.setTag(new Object[]{match, api});
+            m.setTag(new Object[]{api, avistado});
         }
 
-        // Eliminar los que ya no están
         Iterator<Map.Entry<String, Marker>> it =
                 marcadores.entrySet().iterator();
 
@@ -180,57 +254,52 @@ public class MapaActivity extends AppCompatActivity
     }
 
     // -------------------------------
-    // FILTRO
-    // -------------------------------
-
-    private Avion buscarEnColeccion(String callsign) {
-        String cs = callsign.toUpperCase();
-
-        for (Avion a : miColeccion) {
-            String modelo = a.getModelo().toUpperCase();
-
-            // Coincidencia simple y realista
-            if (modelo.contains("737") && cs.startsWith("RYR")) return a;
-            if (modelo.contains("A320") && cs.startsWith("VLG")) return a;
-            if (modelo.contains("A320") && cs.startsWith("IBE")) return a;
-            if (modelo.contains("A320") && cs.startsWith("EZY")) return a;
-        }
-        return null;
-    }
-
-    // -------------------------------
-    // CLICK EN AVIÓN
+    // CLICK
     // -------------------------------
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         Object[] data = (Object[]) marker.getTag();
-        Avion a = (Avion) data[0];
         FlightResponse.OpenSkyAvion api =
-                (FlightResponse.OpenSkyAvion) data[1];
+                (FlightResponse.OpenSkyAvion) data[0];
+        Avion a = (Avion) data[1];
+
+        icaoSeleccionado = api.icao24;
 
         int vel = api.velocity != null
                 ? (int) (api.velocity * 3.6)
                 : 0;
 
-        txtModelo.setText(a.getModelo() + " | " + a.getFabricante());
+        if (a != null) {
+            txtModelo.setText(a.getModelo() + " | " + a.getFabricante());
+        } else {
+            txtModelo.setText("Vuelo " + api.callsign);
+        }
 
         txtDatos.setText(
                 "ICAO: " + api.icao24 + "\n" +
-                        "Vuelo: " + api.callsign + "\n" +
                         "País: " + api.originCountry + "\n" +
                         "Velocidad: " + vel + " km/h\n" +
-                        "Altitud: " + api.altitude + " m\n" +
-                        "Rareza: " + a.getRareza()
+                        "Altitud: " + api.altitude + " m"
         );
 
         panel.setVisibility(View.VISIBLE);
+        btnAvistar.setVisibility(
+                a == null && modoActual == ModoMapa.TODOS
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+
         return true;
     }
 
     // -------------------------------
     // ICONOS
     // -------------------------------
+
+    private BitmapDescriptor iconoGenerico() {
+        return iconoDesdeDrawable(R.drawable.avioncomun);
+    }
 
     private BitmapDescriptor iconoSegunRareza(String rareza) {
         int res;
@@ -240,7 +309,10 @@ public class MapaActivity extends AppCompatActivity
             case "LEGENDARY": res = R.drawable.avionlegendario; break;
             default: res = R.drawable.avioncomun;
         }
+        return iconoDesdeDrawable(res);
+    }
 
+    private BitmapDescriptor iconoDesdeDrawable(int res) {
         Drawable d = ContextCompat.getDrawable(this, res);
         int size = 64;
 
