@@ -72,7 +72,7 @@ public class MapaActivity extends AppCompatActivity
         txtDatos = findViewById(R.id.txt_datos_panel);
         btnAvistar = findViewById(R.id.btn_avistar);
 
-        // 🔴 BOTONES DE MODO (deben existir en el XML)
+        //BOTONES DE MODO (deben existir en el XML)
         btnTodos = findViewById(R.id.btn_todos);
         btnAvistados = findViewById(R.id.btn_avistados);
 
