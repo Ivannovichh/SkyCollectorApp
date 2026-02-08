@@ -60,7 +60,8 @@
             android:text="AÑADIR FOTO"
             android:backgroundTint="#2979FF"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="40dp"/>
+            android:layout_marginBottom="40dp"
+            android:layout_marginTop="20dp"/>
 
         <!-- BOTONES EN LA MISMA FILA -->
         <LinearLayout
