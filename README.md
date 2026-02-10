@@ -133,7 +133,7 @@ app/
 
 ### 📸 Registro de Aviones
 
-![Registro foto](capturas/RegistroConFoto.png) ![Registro aviones](capturas/RegistroConAviones.png)
+![Registro foto](capturas/RegistrarConFoto.png) ![Registro aviones](capturas/RegistroConAviones.png)
 
 ---
 
