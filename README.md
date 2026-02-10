@@ -17,20 +17,20 @@ SkyCollectorApp combina:
 * Chat interno
 * Perfil de usuario
 
-La aplicación integra datos externos de aviación con una interfaz móvil Android estructurada por paquetes.
+La aplicación integra datos reales de tráfico aéreo con una interfaz Android organizada por paquetes.
 
 ---
 
 ## 🌍 API utilizada
 
-Para la funcionalidad del mapa se utiliza la **API de OpenSky Network**, que proporciona datos reales de tráfico aéreo:
+Para la funcionalidad del mapa se utiliza la **API de OpenSky Network**, que proporciona:
 
 * Posición de aviones en tiempo real
-* Identificación de vuelos
 * Coordenadas geográficas
+* Identificación de vuelos
 * Información de seguimiento
 
-Estos datos se consumen desde la app y se representan en el mapa dentro de **MapaActivity**, permitiendo visualizar aeronaves activas.
+Estos datos se consumen desde la app y se representan en el mapa dentro de **MapaActivity**.
 
 ---
 
@@ -51,12 +51,10 @@ Estos datos se consumen desde la app y se representan en el mapa dentro de **Map
 
 ```
 app/
-│
 ├── manifests/
 │   └── AndroidManifest.xml
 │
 ├── java/es.medac.skycollectorapp/
-│   │
 │   ├── activities/
 │   │   ├── AddAvionActivity.java
 │   │   ├── ChatbotActivity.java
@@ -84,17 +82,6 @@ app/
 │
 ├── res/
 │   ├── layout/
-│   │   ├── activity_add_avion.xml
-│   │   ├── activity_chatbot.xml
-│   │   ├── activity_detalle_avion.xml
-│   │   ├── activity_login.xml
-│   │   ├── activity_main.xml
-│   │   ├── activity_mapa.xml
-│   │   ├── activity_perfil.xml
-│   │   ├── item_avion.xml
-│   │   ├── item_chat.xml
-│   │   └── ventana_info_avion.xml
-│   │
 │   ├── drawable/
 │   ├── menu/
 │   ├── mipmap/
@@ -104,32 +91,54 @@ app/
 
 ---
 
-## 🧩 Actividades principales
+## 🧩 Funcionalidades principales
 
-**MainActivity** → Pantalla principal
-**LoginActivity** → Acceso de usuario
-**MapaActivity** → Mapa con datos de OpenSky
-**AddAvionActivity** → Añadir aviones
-**DetalleAvionActivity** → Información detallada
-**ChatbotActivity** → Chat interno
-**PerfilActivity** → Perfil usuario
+* Login de usuario
+* Registro de aviones
+* Colección personal
+* Visualización en mapa
+* Datos reales de OpenSky
+* Chatbot interno
+* Perfil de usuario
+* Detalle de aviones
 
 ---
 
-## 🌐 Consumo de API
+## 🖼️ Capturas de la aplicación
 
-La clase:
+### 🔐 Inicio de sesión
 
-**FlightRadarService.java**
+![Inicio de sesión](capturas/InicioDeSesion.png)
 
-se encarga de:
+### 🛩️ Colección de aviones
 
-* Conectar con la API OpenSky
-* Obtener datos de vuelos
-* Procesar respuestas
-* Enviar datos al mapa
+![Colección](capturas/ColeccionDeAviones.png)
 
-Los modelos **FlightResponse** y **TrackResponse** representan las respuestas de la API.
+### 🤖 Chatbot
+
+![Chatbot](capturas/ChatBot.png)
+
+### 👤 Perfil
+
+![Perfil](capturas/Perfil.png)
+
+### 🗺️ Mapa Generico y Avistados filtrados (OpenSky API)
+
+![Mapa](capturas/Mapa.png)
+
+![Aviones avistados](capturas/AvionesAvistados.png)
+
+### ✈️ Detalle de los Aviones
+
+![Detalle 1](capturas/Detalle1.png)
+
+![Detalle 2](capturas/Detalle2.png)
+
+### 📸 Registro de Aviones
+
+![Registro foto](capturas/RegistroConFoto.png)
+
+![Registro aviones](capturas/RegistroConAviones.png)
 
 ---
 
@@ -139,18 +148,7 @@ Los modelos **FlightResponse** y **TrackResponse** representan las respuestas de
 git clone https://github.com/Ivannovichh/SkyCollectorApp.git
 ```
 
-Abrir en Android Studio → Sync Gradle → Ejecutar.
-
----
-
-## 🚀 Funcionalidades
-
-* Colección de aviones
-* Visualización en mapa en tiempo real
-* Datos reales de OpenSky
-* Chat interno
-* Perfil de usuario
-* RecyclerViews personalizados
+Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o móvil.
 
 ---
 
@@ -165,11 +163,12 @@ Abrir en Android Studio → Sync Gradle → Ejecutar.
 
 ## 🎓 Proyecto académico
 
-Aplicación desarrollada como práctica de Android integrando:
+Aplicación desarrollada como proyecto de DAM integrando:
 
-* API externa real
-* Visualización en mapa
-* Arquitectura por paquetes
+* Consumo de API real (OpenSky)
+* Mapa con vuelos en directo
+* Arquitectura Android modular
+* RecyclerViews
 * Navegación entre activities
 * GitHub
 
@@ -177,4 +176,4 @@ Aplicación desarrollada como práctica de Android integrando:
 
 ## ✈️ SkyCollectorApp
 
-App Android de colección y visualización de tráfico aéreo en tiempo real mediante OpenSky API.
+Aplicación Android de colección y visualización de tráfico aéreo en tiempo real.
