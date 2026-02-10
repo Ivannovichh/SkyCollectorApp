@@ -124,21 +124,16 @@ app/
 
 ### 🗺️ Mapa Generico y Avistados filtrados (OpenSky API)
 
-![Mapa](capturas/Mapa.png)
+![Mapa](capturas/Mapa.png) ![Aviones avistados](capturas/AvionesAvistados.png)
 
-![Aviones avistados](capturas/AvionesAvistados.png)
 
 ### ✈️ Detalle de los Aviones
 
-![Detalle 1](capturas/Detalle1.png)
-
-![Detalle 2](capturas/Detalle2.png)
+![Detalle 1](capturas/Detalle1.png) ![Detalle 2](capturas/Detalle2.png)
 
 ### 📸 Registro de Aviones
 
-![Registro foto](capturas/RegistroConFoto.png)
-
-![Registro aviones](capturas/RegistroConAviones.png)
+![Registro foto](capturas/RegistroConFoto.png) ![Registro aviones](capturas/RegistroConAviones.png)
 
 ---
 
