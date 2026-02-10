@@ -161,9 +161,9 @@ Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o móvil.
 - Enlace a Google Forms sobre la encuesta: https://forms.gle/a42kbaB4RF5ejABD9
 
 - Enlace a Figma v1: https://attic-froze-16880795.figma.site
-- 
+  
 - Enlace a Figma v2: https://malt-easy-43617739.figma.site
-- 
+  
 - Enlace a Presentación Canva: https://www.canva.com/design/DAHAz2c4FQA/Qzy9MLAS-Lw6a1nU65PRug/edit?utm_content=DAHAz2c4FQA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 ---
