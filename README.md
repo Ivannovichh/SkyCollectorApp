@@ -1,23 +1,36 @@
 # ✈️ SkyCollectorApp
 
 **SkyCollectorApp** es una aplicación Android desarrollada en **Java** como proyecto de 2º DAM.
-La app permite gestionar una colección de aviones, consultar información de vuelos mediante API externa, visualizar aviones en mapa y usar un sistema de chat interno.
+Permite gestionar una colección de aviones, visualizar vuelos reales en un mapa y consultar información aeronáutica mediante una API externa.
 
-Proyecto académico completo orientado a demostrar desarrollo Android real: interfaz, consumo de API, modelos de datos y arquitectura modular.
+Proyecto académico orientado a demostrar desarrollo Android completo: interfaz, consumo de API, arquitectura modular y visualización de datos en tiempo real.
 
 ---
 
 ## 📱 Descripción
 
-SkyCollectorApp combina tres ideas principales:
+SkyCollectorApp combina:
 
 * Colección personal de aviones
-* Consulta de datos de vuelos en tiempo real
-* Visualización en mapa
-* Chat interno dentro de la app
-* Gestión básica de usuario
+* Visualización de vuelos reales en mapa
+* Consulta de datos aeronáuticos
+* Chat interno
+* Perfil de usuario
 
-El usuario puede añadir aviones, ver sus detalles, consultar información externa de vuelos y navegar por distintas pantallas dentro de una app Android estructurada por capas.
+La aplicación integra datos externos de aviación con una interfaz móvil Android estructurada por paquetes.
+
+---
+
+## 🌍 API utilizada
+
+Para la funcionalidad del mapa se utiliza la **API de OpenSky Network**, que proporciona datos reales de tráfico aéreo:
+
+* Posición de aviones en tiempo real
+* Identificación de vuelos
+* Coordenadas geográficas
+* Información de seguimiento
+
+Estos datos se consumen desde la app y se representan en el mapa dentro de **MapaActivity**, permitiendo visualizar aeronaves activas.
 
 ---
 
@@ -26,15 +39,15 @@ El usuario puede añadir aviones, ver sus detalles, consultar información exter
 * Java
 * Android Studio
 * Android SDK
-* XML (layouts)
+* XML layouts
 * RecyclerView
-* Consumo de API REST
+* API REST (OpenSky)
 * Gradle
 * Git / GitHub
 
 ---
 
-## 🏗️ Estructura real del proyecto
+## 🏗️ Estructura del proyecto
 
 ```
 app/
@@ -42,36 +55,34 @@ app/
 ├── manifests/
 │   └── AndroidManifest.xml
 │
-├── java/
-│   └── es.medac.skycollectorapp/
-│       │
-│       ├── activities/
-│       │   ├── AddAvionActivity.java
-│       │   ├── ChatbotActivity.java
-│       │   ├── DetalleAvionActivity.java
-│       │   ├── LoginActivity.java
-│       │   ├── MainActivity.java
-│       │   ├── MapaActivity.java
-│       │   ├── PerfilActivity.java
-│       │   └── TrackResponse.java
-│       │
-│       ├── adapters/
-│       │   ├── AvionAdapter.java
-│       │   └── ChatAdapter.java
-│       │
-│       ├── models/
-│       │   ├── Avion.java
-│       │   ├── FlightResponse.java
-│       │   └── Mensaje.java
-│       │
-│       ├── network/
-│       │   └── FlightRadarService.java
-│       │
-│       └── utils/
-│           └── AvionGenerator.java
+├── java/es.medac.skycollectorapp/
+│   │
+│   ├── activities/
+│   │   ├── AddAvionActivity.java
+│   │   ├── ChatbotActivity.java
+│   │   ├── DetalleAvionActivity.java
+│   │   ├── LoginActivity.java
+│   │   ├── MainActivity.java
+│   │   ├── MapaActivity.java
+│   │   ├── PerfilActivity.java
+│   │   └── TrackResponse.java
+│   │
+│   ├── adapters/
+│   │   ├── AvionAdapter.java
+│   │   └── ChatAdapter.java
+│   │
+│   ├── models/
+│   │   ├── Avion.java
+│   │   ├── FlightResponse.java
+│   │   └── Mensaje.java
+│   │
+│   ├── network/
+│   │   └── FlightRadarService.java
+│   │
+│   └── utils/
+│       └── AvionGenerator.java
 │
 ├── res/
-│   ├── drawable/
 │   ├── layout/
 │   │   ├── activity_add_avion.xml
 │   │   ├── activity_chatbot.xml
@@ -84,100 +95,41 @@ app/
 │   │   ├── item_chat.xml
 │   │   └── ventana_info_avion.xml
 │   │
+│   ├── drawable/
 │   ├── menu/
 │   ├── mipmap/
 │   ├── values/
-│   │   ├── colors.xml
-│   │   ├── strings.xml
-│   │   ├── style.xml
-│   │   └── themes/
-│   │
 │   └── xml/
-│
-└── Gradle Scripts
 ```
 
 ---
 
 ## 🧩 Actividades principales
 
-**MainActivity**
-Pantalla principal de la aplicación y punto de entrada tras login.
-
-**LoginActivity**
-Gestión de acceso del usuario.
-
-**AddAvionActivity**
-Permite añadir aviones a la colección.
-
-**DetalleAvionActivity**
-Muestra información detallada de un avión.
-
-**MapaActivity**
-Visualiza aviones en un mapa interactivo.
-
-**ChatbotActivity**
-Sistema de chat dentro de la aplicación.
-
-**PerfilActivity**
-Gestión de datos del usuario.
-
-**TrackResponse**
-Clase usada para manejar respuestas relacionadas con seguimiento de vuelos.
+**MainActivity** → Pantalla principal
+**LoginActivity** → Acceso de usuario
+**MapaActivity** → Mapa con datos de OpenSky
+**AddAvionActivity** → Añadir aviones
+**DetalleAvionActivity** → Información detallada
+**ChatbotActivity** → Chat interno
+**PerfilActivity** → Perfil usuario
 
 ---
 
-## 🧱 Modelos
+## 🌐 Consumo de API
 
-**Avion.java**
-Representa un avión dentro de la colección.
-
-**FlightResponse.java**
-Modelo de respuesta de la API de vuelos.
-
-**Mensaje.java**
-Modelo de mensajes del chat.
-
----
-
-## 🔌 Adaptadores
-
-**AvionAdapter.java**
-Adapter para mostrar aviones en RecyclerView.
-
-**ChatAdapter.java**
-Adapter del sistema de chat.
-
----
-
-## 🌐 Red / API
+La clase:
 
 **FlightRadarService.java**
-Servicio encargado de conectarse a la API externa de vuelos y obtener información en tiempo real.
 
----
+se encarga de:
 
-## 🛠️ Utils
+* Conectar con la API OpenSky
+* Obtener datos de vuelos
+* Procesar respuestas
+* Enviar datos al mapa
 
-**AvionGenerator.java**
-Generador de datos de aviones para pruebas o carga inicial.
-
----
-
-## 🎨 Layouts principales
-
-| Layout                     | Función                   |
-| -------------------------- | ------------------------- |
-| activity_main.xml          | Pantalla principal        |
-| activity_login.xml         | Login                     |
-| activity_add_avion.xml     | Añadir avión              |
-| activity_detalle_avion.xml | Detalle avión             |
-| activity_mapa.xml          | Mapa                      |
-| activity_chatbot.xml       | Chat                      |
-| activity_perfil.xml        | Perfil                    |
-| item_avion.xml             | Item RecyclerView aviones |
-| item_chat.xml              | Mensajes chat             |
-| ventana_info_avion.xml     | Info en mapa              |
+Los modelos **FlightResponse** y **TrackResponse** representan las respuestas de la API.
 
 ---
 
@@ -187,19 +139,18 @@ Generador de datos de aviones para pruebas o carga inicial.
 git clone https://github.com/Ivannovichh/SkyCollectorApp.git
 ```
 
-Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o dispositivo.
+Abrir en Android Studio → Sync Gradle → Ejecutar.
 
 ---
 
 ## 🚀 Funcionalidades
 
-* Gestión de colección de aviones
-* Visualización en mapa
-* Consulta de vuelos mediante API
-* Chat integrado
+* Colección de aviones
+* Visualización en mapa en tiempo real
+* Datos reales de OpenSky
+* Chat interno
 * Perfil de usuario
 * RecyclerViews personalizados
-* Arquitectura por paquetes
 
 ---
 
@@ -214,17 +165,16 @@ Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o dispositivo.
 
 ## 🎓 Proyecto académico
 
-Aplicación desarrollada como práctica completa de Android integrando:
+Aplicación desarrollada como práctica de Android integrando:
 
+* API externa real
+* Visualización en mapa
+* Arquitectura por paquetes
 * Navegación entre activities
-* Consumo de API
-* Modelos de datos
-* Adaptadores RecyclerView
-* Organización por paquetes
-* Uso de GitHub
+* GitHub
 
 ---
 
 ## ✈️ SkyCollectorApp
 
-Proyecto Android de colección y seguimiento de aviones.
+App Android de colección y visualización de tráfico aéreo en tiempo real mediante OpenSky API.
