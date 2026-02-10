@@ -1,5 +1,11 @@
 # ✈️ SkyCollectorApp
 
+![Prototype](https://img.shields.io/badge/Prototype-Java-brown?style=for-the-badge&logo=java)
+![Prototype](https://img.shields.io/badge/Prototype-Android-green?style=for-the-badge&logo=android)
+![Status](https://img.shields.io/badge/Status-Mejorando-yellowgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)
+
+
 **SkyCollectorApp** es una aplicación Android desarrollada en **Java** como proyecto de 2º DAM.
 Permite gestionar una colección de aviones, visualizar vuelos reales en un mapa y consultar información aeronáutica mediante una API externa.
 
