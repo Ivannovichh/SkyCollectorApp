@@ -174,7 +174,7 @@ Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o móvil.
   https://malt-easy-43617739.figma.site
   
 - Enlace a Presentación Canva:
-  https://www.canva.com/design/DAHAz2c4FQA/Qzy9MLAS-Lw6a1nU65PRug/edit?utm_content=DAHAz2c4FQA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+  https://www.canva.com/design/DAHA662muww/UUBLTHJHiU7Lalhx1Sw4bQ/edit?utm_content=DAHA662muww&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 ---
 
