@@ -3,7 +3,7 @@
     <!-- Nombre de la aplicación -->
     <string name="app_name">SkyCollectorApp</string>
 
-    <!-- Textos generales de la interfaz -->
+    <!-- Textos generales de la interfaz y títulos de secciones -->
     <string name="sky_collector">SKY COLLECTOR</string>
     <string name="correo_electr_nico">Correo electrónico</string>
     <string name="legendary">LEGENDARY</string>
@@ -22,25 +22,25 @@
     <string name="guardar_cambios">GUARDAR CAMBIOS</string>
     <string name="cerrar_sesi_n">CERRAR SESIÓN</string>
 
-    <!-- Información de aviones -->
+    <!-- Nombres y referencias de aviones -->
     <string name="boeing_737">Boeing 737</string>
     <string name="cargando_datos">Cargando datos...</string>
     <string name="no_tienes_aviones_n_a_ade_el_primero">No tienes aviones.\n¡Añade el primero!</string>
     <string name="usuario">usuario</string>
 
-    <!-- Registro de usuario -->
+    <!-- Registro e inicio de sesión de usuario -->
     <string name="crear_cuenta_nueva">CREAR CUENTA NUEVA</string>
     <string name="no_tienes_cuenta">¿No tienes cuenta?</string>
     <string name="iniciar_sesi_n">INICIAR SESIÓN</string>
     <string name="contrase_a">Contraseña</string>
 
-    <!-- Botones generales -->
+    <!-- Botones generales de la aplicación -->
     <string name="cancelar">CANCELAR</string>
     <string name="guardar">GUARDAR</string>
     <string name="galer_a">Galería</string>
     <string name="c_mara">Cámara</string>
 
-    <!-- Secciones y títulos -->
+    <!-- Secciones y títulos de avistamientos -->
     <string name="tu_avistamiento">TU AVISTAMIENTO</string>
     <string name="dimensiones">Dimensiones: -</string>
     <string name="peso">Peso: -</string>
@@ -52,11 +52,11 @@
     <string name="boeing_747">Boeing 747</string>
     <string name="nombre_apodo">Nombre / Apodo</string>
 
-    <!-- Ejemplos y hints -->
+    <!-- Ejemplos y sugerencias para campos de texto -->
     <string name="ej_f_16_falcon">Ej: F-16 Falcon</string>
     <string name="enviar">Enviar</string>
 
-    <!-- Cabecera y títulos de secciones -->
+    <!-- Cabeceras y pasos de registro de avistamientos -->
     <string name="wiki_avi_n_online">Wiki-Avión Online 🌐</string>
     <string name="a_adir_foto">AÑADIR FOTO</string>
     <string name="_2_a_ade_tu_foto_opcional">2. Añade tu foto (Opcional):</string>
@@ -66,5 +66,10 @@
     <!-- Información combinada de modelo y fabricante -->
     <string name="boeing_737_boeing">Boeing 737 | Boeing</string>
     <string name="callsign_ibe324_pa_s_spain">Callsign: IBE324 | País: Spain</string>
+    <string name="datos_del_vuelo">Datos del vuelo</string>
+    <string name="avistar_este_avi_n">AVISTAR ESTE AVIÓN</string>
+    <string name="modelo">Modelo</string>
+    <string name="avistados">AVISTADOS</string>
+    <string name="todos">TODOS</string>
 
 </resources>

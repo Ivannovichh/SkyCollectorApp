@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?> <!-- Declaración estándar XML -->
+
+<!-- Layout principal: RelativeLayout permite posicionar elementos relativos entre sí -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- ========================= -->
-    <!-- BARRA SUPERIOR (MODOS)   -->
-    <!-- ========================= -->
-
+    <!-- Barra superior que contiene los botones de cambio de modo -->
     <LinearLayout
         android:id="@+id/layout_modos"
         android:layout_width="match_parent"
@@ -17,26 +16,25 @@
         android:background="#FFFFFF"
         android:elevation="6dp">
 
+        <!-- Botón para mostrar todos los aviones -->
         <Button
             android:id="@+id/btn_todos"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="TODOS" />
+            android:text="@string/todos" />
 
+        <!-- Botón para mostrar solo los avistados -->
         <Button
             android:id="@+id/btn_avistados"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="AVISTADOS" />
+            android:text="@string/avistados" />
     </LinearLayout>
 
-    <!-- ========================= -->
-    <!-- MAPA                     -->
-    <!-- ========================= -->
-
+    <!-- Fragmento para el mapa de Google Maps -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -44,10 +42,7 @@
         android:layout_height="match_parent"
         android:layout_below="@id/layout_modos" />
 
-    <!-- ========================= -->
-    <!-- PANEL INFERIOR            -->
-    <!-- ========================= -->
-
+    <!-- Panel inferior tipo CardView para mostrar información del avión seleccionado -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_info_vuelo"
         android:layout_width="match_parent"
@@ -59,21 +54,24 @@
         app:cardElevation="8dp"
         app:cardBackgroundColor="@android:color/white">
 
+        <!-- Contenedor vertical para organizar los elementos dentro del CardView -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- TextView que muestra el modelo y fabricante del avión -->
             <TextView
                 android:id="@+id/txt_modelo_panel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Modelo"
+                android:text="@string/modelo"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
 
+            <!-- Línea divisoria horizontal entre modelo y datos -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -81,20 +79,22 @@
                 android:layout_marginBottom="8dp"
                 android:background="#E0E0E0" />
 
+            <!-- TextView que muestra datos del vuelo como ICAO, país, velocidad y altitud -->
             <TextView
                 android:id="@+id/txt_datos_panel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Datos del vuelo"
+                android:text="@string/datos_del_vuelo"
                 android:textSize="14sp"
                 android:lineSpacingExtra="4dp"
                 android:textColor="#555555" />
 
+            <!-- Botón para marcar como avistado el avión seleccionado -->
             <Button
                 android:id="@+id/btn_avistar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="AVISTAR ESTE AVIÓN"
+                android:text="@string/avistar_este_avi_n"
                 android:layout_marginTop="12dp" />
 
         </LinearLayout>
