@@ -69,7 +69,8 @@
             android:text="@string/a_adir_foto"
             android:backgroundTint="#2979FF"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="40dp"/>
+            android:layout_marginBottom="40dp"
+            android:layout_marginTop="20dp"/>
 
         <!-- Contenedor horizontal que agrupa los botones finales -->
         <LinearLayout
