@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor principal vertical que ocupa toda la pantalla -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#0B1021">
 
+    <!-- Barra superior con el título de la pantalla -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wiki-Avión Online 🌐"
+        android:text="@string/wiki_avi_n_online"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -16,6 +19,7 @@
         android:padding="16dp"
         android:background="#1F2937"/>
 
+    <!-- Lista que muestra los mensajes del chat -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerChat"
         android:layout_width="match_parent"
@@ -23,6 +27,7 @@
         android:layout_weight="1"
         android:padding="10dp"/>
 
+    <!-- Contenedor inferior para escribir y enviar mensajes -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,23 +36,25 @@
         android:background="#1F2937"
         android:gravity="center_vertical">
 
+        <!-- Campo de texto donde el usuario escribe la consulta -->
         <EditText
             android:id="@+id/etMensaje"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Ej: F-16 Falcon"
+            android:hint="@string/ej_f_16_falcon"
             android:textColor="#FFFFFF"
             android:textColorHint="#90A4AE"
             android:background="@android:color/transparent"
             android:padding="12dp"/>
 
+        <!-- Botón con icono para enviar el mensaje -->
         <ImageButton
             android:id="@+id/btnEnviar"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_send"
             android:backgroundTint="#03DAC6"
-            android:contentDescription="Enviar" />
+            android:contentDescription="@string/enviar" />
     </LinearLayout>
 </LinearLayout>

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Tarjeta que representa un avión en la lista con estilo MaterialCardView -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -12,10 +14,12 @@
     app:strokeWidth="2dp"
     app:strokeColor="#808080">
 
+    <!-- Contenedor interno para posicionar elementos relativos dentro de la tarjeta -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Imagen principal del avión centrada en la tarjeta -->
         <ImageView
             android:id="@+id/imgAvion"
             android:layout_width="0dp"
@@ -27,6 +31,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Texto que indica la rareza del avión sobre la imagen -->
         <TextView
             android:id="@+id/txtRareza"
             android:layout_width="wrap_content"
@@ -42,6 +47,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/imgAvion"/>
 
+        <!-- CheckBox para seleccionar la tarjeta o marcarla -->
         <CheckBox
             android:id="@+id/chkSeleccion"
             android:layout_width="28dp"
@@ -51,6 +57,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Contenedor vertical para mostrar información textual del avión -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -61,8 +68,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-
-        <TextView
+            <!-- Texto que muestra el modelo del avión -->
+            <TextView
                 android:id="@+id/txtModelo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,6 +80,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
+            <!-- Texto que muestra el fabricante del avión -->
             <TextView
                 android:id="@+id/txtFabricante"
                 android:layout_width="match_parent"

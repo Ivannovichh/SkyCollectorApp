@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor principal vertical que ocupa toda la pantalla -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -8,6 +10,7 @@
     android:background="#0B1021"
     android:padding="30dp">
 
+    <!-- Imagen decorativa superior que representa la temática de mapas o ubicación -->
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -15,6 +18,7 @@
         android:layout_marginBottom="20dp"
         app:tint="#00E5FF" />
 
+    <!-- Texto principal con el nombre de la aplicación -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -24,6 +28,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="50dp"/>
 
+    <!-- Campo de texto para introducir el correo electrónico -->
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="match_parent"
@@ -35,40 +40,44 @@
         android:backgroundTint="#00E5FF"
         android:layout_marginBottom="20dp"/>
 
+    <!-- Campo de texto para introducir la contraseña -->
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:hint="Contraseña"
+        android:hint="@string/contrase_a"
         android:textColor="#FFFFFF"
         android:textColorHint="#90A4AE"
         android:inputType="textPassword"
         android:backgroundTint="#00E5FF"
         android:layout_marginBottom="40dp"/>
 
+    <!-- Botón para iniciar sesión con las credenciales introducidas -->
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="INICIAR SESIÓN"
+        android:text="@string/iniciar_sesi_n"
         android:backgroundTint="#00E5FF"
         android:textColor="#000000"
         android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="20dp"/>
 
+    <!-- Texto informativo que invita a crear una cuenta nueva -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="¿No tienes cuenta?"
+        android:text="@string/no_tienes_cuenta"
         android:textColor="#B0BEC5"
         android:layout_marginBottom="10dp"/>
 
+    <!-- Botón para acceder al registro de un nuevo usuario -->
     <Button
         android:id="@+id/btnRegistro"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="CREAR CUENTA NUEVA"
+        android:text="@string/crear_cuenta_nueva"
         android:backgroundTint="#2979FF"
         android:textColor="#FFFFFF"
         android:textStyle="bold"/>

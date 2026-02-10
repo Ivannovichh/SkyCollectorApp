@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor vertical para mostrar información básica del avión -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="wrap_content"
@@ -6,21 +8,22 @@
     android:padding="12dp"
     android:background="@android:color/white">
 
-    <!-- Modelo + Fabricante -->
+    <!-- Texto que muestra el modelo y fabricante del avión -->
     <TextView
         android:id="@+id/txtModeloFabricante"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Boeing 737 | Boeing"
+        android:text="@string/boeing_737_boeing"
         android:textStyle="bold"
         android:textSize="16sp"
         android:textColor="@android:color/black"/>
 
+    <!-- Texto que muestra la matrícula y país del avión -->
     <TextView
         android:id="@+id/txtMatriculaPais"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Callsign: IBE324 | País: Spain"
+        android:text="@string/callsign_ibe324_pa_s_spain"
         android:textSize="14sp"
         android:layout_marginTop="4dp"
         android:textColor="@android:color/darker_gray"/>

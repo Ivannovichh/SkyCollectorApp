@@ -1,9 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- Tema base de la aplicación, heredando de Material3 sin ActionBar -->
     <style name="Base.Theme.SkyCollectorApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+        <!-- Aquí se pueden personalizar los colores y estilos del tema claro -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
+    <!-- Tema principal de la aplicación que utiliza el tema base definido arriba -->
     <style name="Theme.SkyCollectorApp" parent="Base.Theme.SkyCollectorApp" />
+
 </resources>

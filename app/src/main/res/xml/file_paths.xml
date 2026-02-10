@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Define la carpeta externa para guardar imágenes de la app -->
     <external-files-path
         name="images"
         path="Pictures/" />
 
+    <!-- Define la carpeta de caché externa para almacenar archivos temporales -->
     <external-cache-path
         name="cache_images"
         path="." />

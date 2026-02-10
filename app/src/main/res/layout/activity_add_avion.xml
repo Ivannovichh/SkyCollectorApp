@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Vista principal con desplazamiento vertical para permitir scroll si el contenido es grande -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0B1021"
     android:fillViewport="true">
 
+    <!-- Contenedor vertical que agrupa todos los elementos de la pantalla -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -12,23 +15,26 @@
         android:padding="20dp"
         android:gravity="center_horizontal">
 
+        <!-- Texto de título principal de la pantalla -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="REGISTRAR AVISTAMIENTO"
+            android:text="@string/registrar_avistamiento"
             android:textColor="#00E5FF"
             android:textSize="22sp"
             android:textStyle="bold"
             android:layout_marginBottom="30dp"/>
 
+        <!-- Texto descriptivo que indica el primer paso del formulario -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1. Selecciona el modelo:"
+            android:text="@string/_1_selecciona_el_modelo"
             android:textStyle="bold"
             android:textColor="#B0BEC5"
             android:layout_marginBottom="5dp"/>
 
+        <!-- Lista desplegable para seleccionar un modelo -->
         <Spinner
             android:id="@+id/spinnerAviones"
             android:layout_width="match_parent"
@@ -36,14 +42,16 @@
             android:background="#151E32"
             android:layout_marginBottom="20dp"/>
 
+        <!-- Texto descriptivo que indica el segundo paso del formulario -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2. Añade tu foto (Opcional):"
+            android:text="@string/_2_a_ade_tu_foto_opcional"
             android:textStyle="bold"
             android:textColor="#B0BEC5"
             android:layout_marginBottom="5dp"/>
 
+        <!-- Imagen que muestra una previsualización de la foto seleccionada -->
         <ImageView
             android:id="@+id/imgPreviewAvion"
             android:layout_width="match_parent"
@@ -53,44 +61,48 @@
             android:src="@android:drawable/ic_menu_camera"
             android:layout_marginBottom="10dp"/>
 
+        <!-- Botón para abrir la cámara o galería y añadir una foto -->
         <Button
             android:id="@+id/btnSubirFoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="AÑADIR FOTO"
+            android:text="@string/a_adir_foto"
             android:backgroundTint="#2979FF"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="40dp"/>
 
-        <!-- BOTONES EN LA MISMA FILA -->
+        <!-- Contenedor horizontal que agrupa los botones finales -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center">
 
+            <!-- Botón para cancelar la acción actual -->
             <Button
                 android:id="@+id/btnCancelar"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:backgroundTint="#F42020"
-                android:text="CANCELAR"
+                android:text="@string/cancelar"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
+            <!-- Espacio vacío que separa visualmente los botones -->
             <Space
                 android:layout_width="16dp"
                 android:layout_height="1dp" />
 
+            <!-- Botón para guardar la información introducida -->
             <Button
                 android:id="@+id/btnGuardar"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:backgroundTint="#00C853"
-                android:text="GUARDAR"
+                android:text="@string/guardar"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold" />

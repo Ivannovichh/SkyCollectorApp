@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor con desplazamiento vertical para permitir scroll en toda la pantalla -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,12 +9,14 @@
     android:background="#0B1021"
     android:fillViewport="true">
 
+    <!-- Contenedor principal vertical que agrupa todo el contenido -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingBottom="40dp">
 
+        <!-- Imagen grande superior para mostrar el avión seleccionado -->
         <ImageView
             android:id="@+id/imgDetalleGrande"
             android:layout_width="match_parent"
@@ -22,24 +26,27 @@
             android:src="@android:drawable/ic_menu_gallery"
             android:background="#1F2937" />
 
+        <!-- Contenedor para los datos principales del avión -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Texto que indica el campo del nombre -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nombre / Apodo"
+                android:text="@string/nombre_apodo"
                 android:textColor="#AAAAAA"
                 android:textSize="12sp" />
 
+            <!-- Campo editable donde se muestra o introduce el nombre del avión -->
             <EditText
                 android:id="@+id/etNombreAvion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Boeing 747"
+                android:text="@string/boeing_747"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
@@ -47,14 +54,16 @@
                 android:inputType="textCapWords"
                 android:layout_marginBottom="20dp"/>
 
+            <!-- Título de la sección de datos técnicos -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DATOS TÉCNICOS"
+                android:text="@string/datos_t_cnicos"
                 android:textColor="#03DAC6"
                 android:textStyle="bold"
                 android:layout_marginBottom="10dp"/>
 
+            <!-- Tarjeta visual que agrupa los datos técnicos -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -63,70 +72,79 @@
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="20dp">
 
+                <!-- Contenedor interno para organizar los textos técnicos -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="15dp">
 
+                    <!-- Texto que muestra el fabricante -->
                     <TextView
                         android:id="@+id/txtDetalleFabricante"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Fabricante: -"
+                        android:text="@string/fabricante"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
+                    <!-- Texto que muestra el país -->
                     <TextView
                         android:id="@+id/txtDetallePais"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="País: -"
+                        android:text="@string/pa_s"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
+                    <!-- Texto que muestra la velocidad -->
                     <TextView
                         android:id="@+id/txtDetalleVelocidad"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Velocidad: -"
+                        android:text="@string/velocidad"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
+                    <!-- Texto que muestra la capacidad -->
                     <TextView
                         android:id="@+id/txtDetalleCapacidad"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Capacidad: -"
+                        android:text="@string/capacidad"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
+                    <!-- Texto que muestra el peso -->
                     <TextView
                         android:id="@+id/txtDetallePeso"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Peso: -"
+                        android:text="@string/peso"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
 
+                    <!-- Texto que muestra las dimensiones -->
                     <TextView
                         android:id="@+id/txtDetalleDimensiones"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Dimensiones: -"
+                        android:text="@string/dimensiones"
                         android:textColor="#E0E0E0"
                         android:padding="4dp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Título de la sección del avistamiento del usuario -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TU AVISTAMIENTO"
+                android:text="@string/tu_avistamiento"
                 android:textColor="#03DAC6"
                 android:textStyle="bold"
                 android:layout_marginBottom="10dp"/>
 
+            <!-- Contenedor horizontal para los botones de cámara y galería -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -134,28 +152,31 @@
                 android:gravity="center"
                 android:layout_marginBottom="15dp">
 
+                <!-- Botón para abrir la cámara -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCamara"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="55dp"
-                    android:text="Cámara"
+                    android:text="@string/c_mara"
                     android:backgroundTint="#D32F2F"
                     app:icon="@android:drawable/ic_menu_camera"
                     app:cornerRadius="10dp"
                     android:layout_marginEnd="10dp"/>
 
+                <!-- Botón para abrir la galería -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGaleria"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="55dp"
-                    android:text="Galería"
+                    android:text="@string/galer_a"
                     android:backgroundTint="#1976D2"
                     app:icon="@android:drawable/ic_menu_gallery"
                     app:cornerRadius="10dp"/>
             </LinearLayout>
 
+            <!-- Tarjeta que contiene la foto tomada por el usuario -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/layoutFotoUsuario"
                 android:layout_width="match_parent"
@@ -166,6 +187,7 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
+                <!-- Imagen principal con la foto del usuario -->
                 <ImageView
                     android:id="@+id/imgFotoUsuario"
                     android:layout_width="match_parent"
@@ -173,6 +195,7 @@
                     android:scaleType="centerCrop"
                     android:src="@android:drawable/ic_menu_camera" />
 
+                <!-- Icono superpuesto en la esquina inferior -->
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
@@ -182,9 +205,7 @@
                     app:tint="#FFFFFF"/>
             </androidx.cardview.widget.CardView>
 
-            <!-- ============================= -->
-            <!-- BOTONES CANCELAR + GUARDAR    -->
-            <!-- ============================= -->
+            <!-- Contenedor horizontal para los botones finales -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,28 +213,31 @@
                 android:gravity="center"
                 android:layout_marginTop="10dp">
 
+                <!-- Botón para cancelar la operación -->
                 <Button
                     android:id="@+id/btnCancelar"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_weight="1"
                     android:backgroundTint="#F42020"
-                    android:text="CANCELAR"
+                    android:text="@string/cancelar"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold"/>
 
+                <!-- Espacio separador entre botones -->
                 <Space
                     android:layout_width="16dp"
                     android:layout_height="1dp" />
 
+                <!-- Botón para guardar la información -->
                 <Button
                     android:id="@+id/btnGuardar"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_weight="1"
                     android:backgroundTint="#00C853"
-                    android:text="GUARDAR"
+                    android:text="@string/guardar"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
