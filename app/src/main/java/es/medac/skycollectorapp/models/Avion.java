@@ -47,6 +47,12 @@ public class Avion implements Serializable {
     // Declaración de la variable para el código de identificación aeronáutico
     private String icao24;
 
+    // Declaración de la variable para la matrícula de la aeronave avistada
+    private String matricula;
+
+    // Declaración de la variable para la fecha del avistamiento en milisegundos
+    private long fechaAvistamiento;
+
     // Constructor vacío que se ejecuta al crear una instancia sin parámetros
     public Avion() {
         // Generación automática de un identificador aleatorio único
@@ -198,6 +204,16 @@ public class Avion implements Serializable {
         this.icao24 = icao24 != null ? icao24.toUpperCase() : null;
     }
 
+    // Método para obtener la matrícula de la aeronave avistada
+    public String getMatricula() { return matricula; }
+    // Método para establecer la matrícula de la aeronave avistada
+    public void setMatricula(String matricula) { this.matricula = matricula; }
+
+    // Método para obtener la fecha del avistamiento en milisegundos
+    public long getFechaAvistamiento() { return fechaAvistamiento; }
+    // Método para establecer la fecha del avistamiento en milisegundos
+    public void setFechaAvistamiento(long fechaAvistamiento) { this.fechaAvistamiento = fechaAvistamiento; }
+
     // Método de utilidad para verificar si el objeto posee un código ICAO válido
     public boolean tieneIcao() {
         // Retorno de verdadero si la variable no es nula ni está vacía
@@ -219,6 +235,8 @@ public class Avion implements Serializable {
             case "EPIC": case "EPICO": return 0xFF9C27B0;
             // Caso para rareza legendaria
             case "LEGENDARY": case "LEGENDARIO": return 0xFFFFD700;
+            // Caso para rareza mítica
+            case "MYTHIC": case "MITICO": return 0xFFFF1744;
             // Valor de retorno por defecto si no coincide con ninguna categoría
             default: return 0xFF808080;
         }

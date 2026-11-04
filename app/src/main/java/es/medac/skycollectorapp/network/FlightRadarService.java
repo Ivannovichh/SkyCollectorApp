@@ -28,7 +28,7 @@ public interface FlightRadarService {
     );
 
     // Definición de una petición GET para obtener el rastro o camino de un avión
-    @GET("tracks/")
+    @GET("tracks")
     // Declaración del método para recuperar la trayectoria histórica de una aeronave específica
     Call<es.medac.skycollectorapp.activities.TrackResponse> getTrayectoria(
             // Parámetro de consulta para identificar el avión mediante su código ICAO

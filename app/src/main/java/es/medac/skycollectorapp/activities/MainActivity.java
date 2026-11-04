@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 // Importación de la clase base para actividades de compatibilidad
 import androidx.appcompat.app.AppCompatActivity;
+// Importación para mostrar cuadros de diálogo
+import androidx.appcompat.app.AlertDialog;
 // Importación para la disposición de elementos en cuadrícula dentro de una lista
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -38,8 +40,15 @@ import com.google.gson.reflect.TypeToken;
 
 // Importación para el uso de reflexión en tipos de datos
 import java.lang.reflect.Type;
+// Importación para dar formato a las fechas
+import java.text.SimpleDateFormat;
 // Importación para el uso de listas de tamaño dinámico
 import java.util.ArrayList;
+// Importación para guardar el orden de aparición de los modelos
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 // Importación para la definición de interfaces de listas
 import java.util.List;
 
@@ -49,6 +58,8 @@ import es.medac.skycollectorapp.adapters.AvionAdapter;
 import es.medac.skycollectorapp.databinding.ActivityMainBinding;
 // Importación del modelo de datos de Avión
 import es.medac.skycollectorapp.models.Avion;
+// Importación del modelo que agrupa los avistamientos de un mismo modelo
+import es.medac.skycollectorapp.models.GrupoAvion;
 // Importación de la actividad para añadir nuevos aviones
 import es.medac.skycollectorapp.activities.AddAvionActivity;
 
@@ -59,8 +70,10 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     // Variable para gestionar el puente entre los datos y la lista visual
     private AvionAdapter adapter;
-    // Lista en memoria que contiene los objetos de la colección
+    // Lista en memoria que contiene todos los avistamientos de la colección
     private List<Avion> listaAviones;
+    // Lista en memoria con los avistamientos agrupados por modelo para mostrarlos
+    private List<GrupoAvion> grupos;
 
     // Método que se ejecuta al iniciar la creación de la actividad
     @Override
@@ -75,15 +88,16 @@ public class MainActivity extends AppCompatActivity {
         // Instanciación de la lista dinámica de aviones
         listaAviones = new ArrayList<>();
 
-        // Inicialización del adaptador con la lista y los eventos de clic
-        adapter = new AvionAdapter(listaAviones,
-                (avion, position) -> {
-                    // Creación de una intención para abrir la pantalla de detalles
-                    Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
-                    // Inserción del identificador del avión en la intención
-                    intent.putExtra("avion_id", avion.getId());
-                    // Inicio de la actividad de destino
-                    startActivity(intent);
+        // Instanciación de la lista de grupos de aviones
+        grupos = new ArrayList<>();
+
+        // Inicialización del adaptador con la lista de grupos y los eventos de clic
+        adapter = new AvionAdapter(grupos,
+                (grupo, position) -> {
+                    // Apertura directa del detalle si el modelo tiene un solo avistamiento
+                    if (grupo.getCantidad() == 1) abrirDetalle(grupo.getRepresentante());
+                        // Si hay varios avistamientos se deja elegir cuál abrir
+                    else mostrarAvistamientos(grupo);
                 },
                 // Referencia al método que gestiona la visibilidad del botón de borrado
                 this::actualizarPapelera
@@ -177,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
             if (avionesGuardados != null) listaAviones.addAll(avionesGuardados);
         }
 
+        // Agrupación de los avistamientos por modelo para no mostrar tarjetas repetidas
+        construirGrupos();
+
         // Gestión de la visibilidad de los componentes según si hay datos
         if (listaAviones.isEmpty()) {
             // Muestra el mensaje informativo de lista vacía
@@ -196,53 +213,62 @@ public class MainActivity extends AppCompatActivity {
         actualizarPapelera();
     }
 
-    // Método para eliminar los elementos marcados por el usuario
+    // Método para eliminar los grupos marcados por el usuario
     private void borrarSeleccionados() {
-        // Interrupción si no hay elementos en la colección
-        if (listaAviones.isEmpty()) return;
+        // Creación de una lista temporal para identificar los grupos a eliminar
+        List<GrupoAvion> gruposABorrar = new ArrayList<>();
+        // Contador del total de avistamientos que se eliminarían
+        int totalAvistamientos = 0;
 
-        // Creación de una lista temporal para identificar los elementos a eliminar
-        List<Avion> avionesABorrar = new ArrayList<>();
-        // Recorrido de la lista buscando elementos con la marca de selección
-        for (Avion a : listaAviones) {
-            // Verificación del estado de selección del objeto
-            if (a.isSeleccionado()) {
-                // Adición del objeto a la lista temporal de borrado
-                avionesABorrar.add(a);
+        // Recorrido de los grupos buscando los que tienen la marca de selección
+        for (GrupoAvion g : grupos) {
+            if (g.isSeleccionado()) {
+                gruposABorrar.add(g); // Adición del grupo a la lista de borrado
+                totalAvistamientos += g.getCantidad(); // Suma de sus avistamientos
             }
         }
 
-        // Interrupción si no se ha marcado ningún elemento para borrar
-        if (avionesABorrar.isEmpty()) return;
+        // Interrupción si no se ha marcado ningún grupo para borrar
+        if (gruposABorrar.isEmpty()) return;
 
-        // Recorrido de la lista temporal para eliminar registros remotos
-        for (Avion a : avionesABorrar) {
-            // Invocación del borrado en la base de datos de la nube
-            borrarAvionEnFirestore(a);
+        // Si se van a borrar varios avistamientos de un mismo modelo se pide confirmación
+        if (totalAvistamientos > gruposABorrar.size()) {
+            final int total = totalAvistamientos;
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar avistamientos")
+                    .setMessage("Se eliminarán " + total + " avistamientos. ¿Continuar?")
+                    .setPositiveButton("Eliminar", (d, w) -> eliminarGrupos(gruposABorrar))
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        } else {
+            // Borrado directo si cada grupo tiene un solo avistamiento
+            eliminarGrupos(gruposABorrar);
         }
+    }
 
-        // Eliminación de los elementos en la lista local de forma segura
-        for (int i = listaAviones.size() - 1; i >= 0; i--) {
-            // Obtención del objeto en la posición actual
-            Avion a = listaAviones.get(i);
-            // Verificación si el objeto debe ser eliminado
-            if (a.isSeleccionado()) {
-                // Remoción del objeto de la colección en memoria
-                listaAviones.remove(i);
-                // Notificación al adaptador para ejecutar la animación de borrado
-                adapter.notifyItemRemoved(i);
+    // Método que elimina los grupos indicados junto con todos sus avistamientos
+    private void eliminarGrupos(List<GrupoAvion> gruposABorrar) {
+        // Recorrido de cada grupo y de cada uno de sus avistamientos
+        for (GrupoAvion g : gruposABorrar) {
+            for (Avion a : g.getAvistamientos()) {
+                // Invocación del borrado en la base de datos de la nube
+                borrarAvionEnFirestore(a);
+                // Eliminación del avistamiento de la lista local
+                listaAviones.remove(a);
             }
         }
 
         // Apertura del editor para actualizar el almacenamiento local
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        // Conversión de la lista resultante a formato de texto JSON
-        Gson gson = new Gson();
-        // Almacenamiento de la nueva cadena de datos
-        editor.putString("lista_aviones", gson.toJson(listaAviones));
+        // Almacenamiento de la nueva lista de avistamientos en formato JSON
+        editor.putString("lista_aviones", new Gson().toJson(listaAviones));
         // Aplicación persistente de los cambios
         editor.apply();
+
+        // Reconstrucción de los grupos y refresco de la lista visual
+        construirGrupos();
+        adapter.notifyDataSetChanged();
 
         // Refresco de la visibilidad del botón de papelera
         actualizarPapelera();
@@ -250,20 +276,87 @@ public class MainActivity extends AppCompatActivity {
         // Muestra el aviso visual si ya no quedan elementos en la colección
         if (listaAviones.isEmpty()) {
             binding.txtVacio.setVisibility(View.VISIBLE);
+            binding.recyclerView.setVisibility(View.GONE);
         }
 
         // Notificación final al usuario sobre el éxito del proceso
         Toast.makeText(this, "Aviones eliminados", Toast.LENGTH_SHORT).show();
     }
 
+    // Método para agrupar los avistamientos por modelo conservando el orden de aparición
+    private void construirGrupos() {
+        // Limpieza de los grupos actuales
+        grupos.clear();
+
+        // Mapa que relaciona cada modelo con su grupo, respetando el orden de inserción
+        Map<String, GrupoAvion> porModelo = new LinkedHashMap<>();
+
+        // Recorrido de todos los avistamientos para repartirlos por modelo
+        for (Avion a : listaAviones) {
+            String clave = a.getModelo() != null ? a.getModelo() : "";
+            GrupoAvion g = porModelo.get(clave);
+            if (g == null) {
+                g = new GrupoAvion(clave); // Creación del grupo si es el primer avistamiento del modelo
+                porModelo.put(clave, g);
+            }
+            g.agregar(a); // Adición del avistamiento al grupo
+        }
+
+        // Paso de los grupos creados a la lista que usa el adaptador
+        grupos.addAll(porModelo.values());
+    }
+
+    // Método para abrir la pantalla de detalles de un avistamiento
+    private void abrirDetalle(Avion avion) {
+        // Creación de una intención para abrir la pantalla de detalles
+        Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
+        // Inserción del identificador del avión en la intención
+        intent.putExtra("avion_id", avion.getId());
+        // Inicio de la actividad de destino
+        startActivity(intent);
+    }
+
+    // Método para mostrar la lista de avistamientos de un modelo y elegir cuál abrir
+    private void mostrarAvistamientos(GrupoAvion grupo) {
+        List<Avion> lista = grupo.getAvistamientos();
+        String[] etiquetas = new String[lista.size()];
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        // Construcción de una etiqueta por avistamiento, del más reciente al más antiguo
+        for (int i = 0; i < lista.size(); i++) {
+            Avion a = lista.get(lista.size() - 1 - i);
+
+            // Matrícula si existe, si no el ICAO y si no un texto genérico
+            String matricula = (a.getMatricula() != null && !a.getMatricula().isEmpty())
+                    ? a.getMatricula()
+                    : (a.getIcao24() != null ? a.getIcao24() : "Sin matrícula");
+
+            // Fecha del avistamiento si se conoce
+            String fecha = a.getFechaAvistamiento() > 0
+                    ? formato.format(new Date(a.getFechaAvistamiento()))
+                    : "fecha desconocida";
+
+            // Indicación de si el avistamiento tiene foto del usuario
+            String foto = a.getUriFotoUsuario() != null ? " · con foto" : "";
+
+            etiquetas[i] = matricula + " · " + fecha + foto;
+        }
+
+        // Diálogo con la lista de avistamientos del modelo
+        new AlertDialog.Builder(this)
+                .setTitle(grupo.getModelo() + " (" + lista.size() + " avistamientos)")
+                .setItems(etiquetas, (d, which) -> abrirDetalle(lista.get(lista.size() - 1 - which)))
+                .show();
+    }
+
     // Método para mostrar u ocultar el botón de borrado según la selección
     private void actualizarPapelera() {
         // Variable de control para detectar si hay algún elemento marcado
         boolean haySeleccionados = false;
-        // Recorrido de la colección en busca de cualquier selección activa
-        for (Avion a : listaAviones) {
+        // Recorrido de los grupos en busca de cualquier selección activa
+        for (GrupoAvion g : grupos) {
             // Comprobación de la marca de selección
-            if (a.isSeleccionado()) {
+            if (g.isSeleccionado()) {
                 // Activación del estado de detección
                 haySeleccionados = true;
                 // Salida prematura del bucle al encontrar el primero

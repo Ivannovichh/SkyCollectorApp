@@ -57,6 +57,23 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Contador de avistamientos del mismo modelo, solo visible si hay más de uno -->
+        <TextView
+            android:id="@+id/txtCantidad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:background="#CC000000"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:layout_margin="4dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
         <!-- Contenedor vertical para mostrar información textual del avión -->
         <LinearLayout
             android:layout_width="0dp"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silueta genérica de aeronave usada como imagen provisional hasta tener una foto propia -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M12,1.5 C12.9,1.5 13.2,2.5 13.2,4 L13.2,9.2 L23,9.2 L23,12 L13.2,12 L13.2,18.8 L17,19.3 L17,21.5 L13,21 L12,22.2 L11,21 L7,21.5 L7,19.3 L10.8,18.8 L10.8,12 L1,12 L1,9.2 L10.8,9.2 L10.8,4 C10.8,2.5 11.1,1.5 12,1.5 Z"/>
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M5.3,6.8 h1.6 v4 h-1.6 Z"/>
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M4.2,5.9 h3.8 v0.7 h-3.8 Z"/>
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M17.1,6.8 h1.6 v4 h-1.6 Z"/>
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M16,5.9 h3.8 v0.7 h-3.8 Z"/>
+</vector>

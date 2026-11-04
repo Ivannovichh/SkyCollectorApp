@@ -39,8 +39,8 @@
             android:id="@+id/spinnerAviones"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="#151E32"
-            android:layout_marginBottom="20dp"/>
+            android:background="#ACC2E9"
+            android:layout_marginBottom="20dp" />
 
         <!-- Texto descriptivo que indica el segundo paso del formulario -->
         <TextView

@@ -45,6 +45,9 @@ import java.io.File;
 
 // Importación de los recursos del proyecto
 import es.medac.skycollectorapp.R;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.content.ContextCompat;
 
 // Clase que gestiona la edición del perfil de usuario y la foto personalizada
 public class PerfilActivity extends AppCompatActivity {
@@ -85,6 +88,15 @@ public class PerfilActivity extends AppCompatActivity {
                     // Visualización de la foto capturada con formato circular
                     Glide.with(this).load(uriFotoSeleccionada).circleCrop().into(imgPerfil);
                 }
+            }
+    );
+
+    // Lanzador para solicitar el permiso de cámara en tiempo de ejecución
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) abrirCamara();
+                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
             }
     );
 
@@ -144,9 +156,13 @@ public class PerfilActivity extends AppCompatActivity {
         builder.setItems(opciones, (dialog, which) -> {
             // Selección de la cámara si se pulsa el primer índice
             if (which == 0) {
-                abrirCamara();
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    abrirCamara();
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+                }
             } else {
-                // Selección de la galería en caso contrario
                 abrirGaleria();
             }
         });

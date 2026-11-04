@@ -99,6 +99,8 @@ public class AddAvionActivity extends AppCompatActivity {
 
         cargarDatosGenerator(); // Llenar el spinner con los aviones disponibles
 
+        preseleccionarModeloPorTipo(prefs.getString("tipo_seleccionado", null)); // Elegir el modelo automáticamente según el tipo del avión
+
         // Asignar listeners a los botones
         btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion()); // Mostrar opciones de foto
         btnGuardar.setOnClickListener(v -> guardarAvionCatalogo()); // Guardar avión seleccionado
@@ -154,6 +156,10 @@ public class AddAvionActivity extends AppCompatActivity {
                 base.getPeso(), // Peso del avión
                 icaoSeleccionado // ICAO real seleccionado
         );
+        // Guardar la matrícula y la fecha del avistamiento
+        nuevo.setMatricula(getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
+                .getString("matricula_seleccionada", null)); // Matrícula del avión seleccionado en el mapa
+        nuevo.setFechaAvistamiento(System.currentTimeMillis()); // Fecha y hora actuales
 
         // Asignar foto del usuario si existe
         if (uriImagenFinal != null) {
@@ -168,6 +174,8 @@ public class AddAvionActivity extends AppCompatActivity {
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
                 .edit()
                 .remove("icao_seleccionado")
+                .remove("tipo_seleccionado")
+                .remove("matricula_seleccionada")
                 .apply();
 
         // Notificar al usuario que el avión se guardó correctamente
@@ -285,5 +293,29 @@ public class AddAvionActivity extends AppCompatActivity {
                 .diskCacheStrategy(DiskCacheStrategy.NONE) // Evitar cache en disco
                 .skipMemoryCache(true) // Evitar cache en memoria
                 .into(imgPreviewAvion); // Mostrar en ImageView
+    }
+
+    // Método para elegir en el spinner el modelo que corresponde al tipo de avión detectado
+    private void preseleccionarModeloPorTipo(String tipoIcao) {
+        if (tipoIcao == null) return; // Salir si la API no dio el tipo del avión
+
+        Avion detectado = AvionGenerator.getAvionPorTipoIcao(tipoIcao); // Buscar el tipo en el catálogo
+
+        if (detectado == null) { // Si el tipo no está en el catálogo
+            Toast.makeText(this,
+                    "El tipo " + tipoIcao + " no está en el catálogo, elige el modelo a mano",
+                    Toast.LENGTH_LONG).show(); // Avisar al usuario
+            return;
+        }
+
+        for (int i = 0; i < listaAvionesBase.size(); i++) { // Recorrer el catálogo del spinner
+            if (listaAvionesBase.get(i).getModelo().equals(detectado.getModelo())) {
+                spinnerAviones.setSelection(i); // Seleccionar el modelo detectado
+                Toast.makeText(this,
+                        "Modelo detectado: " + detectado.getModelo(),
+                        Toast.LENGTH_SHORT).show(); // Avisar al usuario
+                return;
+            }
+        }
     }
 }
