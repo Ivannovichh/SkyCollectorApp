@@ -85,36 +85,16 @@ public class AvionGenerator {
             // Definición de datos para el helicóptero de combate Mi-24 Hind
             new AvionData("Mi-24 Hind", "Mil", "EPIC", R.drawable.mi24_hind, "335 km/h", "8 tropas", "17m", "URSS", "12t"),
 
-            // Registro de un avión legendario de reconocimiento SR-71
-            new AvionData("SR-71 Blackbird", "Lockheed", "LEGENDARY", R.drawable.sr71, "3529 km/h", "2 trip.", "17m", "EE.UU.", "78t"),
             // Definición de datos para el caza de superioridad aérea F-22 Raptor
             new AvionData("F-22 Raptor", "Lockheed Martin", "LEGENDARY", R.drawable.f22, "2414 km/h", "1 piloto", "13m", "EE.UU.", "38t"),
-            // Definición de datos para el bombardero invisible B-2 Spirit
-            new AvionData("B-2 Spirit", "Northrop", "LEGENDARY", R.drawable.b2_spirit, "1010 km/h", "2 pilotos", "52m", "EE.UU.", "170t"),
             // Definición de datos para el caza histórico Spitfire
             new AvionData("Spitfire", "Supermarine", "LEGENDARY", R.drawable.spitfire, "584 km/h", "1 piloto", "11m", "UK", "3t"),
             // Definición de datos para el P-51 Mustang de la Segunda Guerra Mundial
             new AvionData("P-51 Mustang", "North American", "LEGENDARY", R.drawable.p51_mustang, "703 km/h", "1 piloto", "11m", "EE.UU.", "5t"),
-            // Definición de datos para la primera aeronave de los Hermanos Wright
-            new AvionData("Wright Flyer", "Hermanos Wright", "LEGENDARY", R.drawable.wright_flyer, "48 km/h", "1 piloto", "6m", "EE.UU.", "274kg"),
-            // Definición de datos para el avión más grande jamás construido An-225
-            new AvionData("Antonov An-225", "Antonov", "LEGENDARY", R.drawable.an225, "850 km/h", "Carga Max.", "84m", "URSS/Ucrania", "640t"),
-            // Definición de datos para el avión cohete experimental X-15
-            new AvionData("X-15", "North American", "LEGENDARY", R.drawable.x15, "7274 km/h", "1 piloto", "15m", "EE.UU.", "15t"),
-            // Definición de datos para el triplano Fokker del Barón Rojo
-            new AvionData("Fokker Dr.I (Barón Rojo)", "Fokker", "LEGENDARY", R.drawable.fokker_dr1, "185 km/h", "1 piloto", "5.7m", "Alemania", "586kg"),
             // Definición de datos para el primer caza a reacción operativo Me 262
             new AvionData("Me 262", "Messerschmitt", "LEGENDARY", R.drawable.me_262, "900 km/h", "1 piloto", "10m", "Alemania", "7t"),
-            // Definición de datos para el Rutan Voyager que dio la vuelta al mundo
-            new AvionData("Rutan Voyager", "Rutan", "LEGENDARY", R.drawable.voyager, "196 km/h", "2 pilotos", "8.9m", "EE.UU.", "4t"),
-            // Definición de datos para el Spirit of St. Louis de Lindbergh
-            new AvionData("Spirit of St. Louis", "Ryan", "LEGENDARY", R.drawable.spirit_of_st_louis, "214 km/h", "1 piloto", "8m", "EE.UU.", "2t"),
             // Definición de datos para el avión de despegue vertical Harrier
             new AvionData("Harrier Jump Jet", "Hawker Siddeley", "LEGENDARY", R.drawable.harrier, "1176 km/h", "1 piloto", "14m", "UK", "11t"),
-            // Definición de datos para el avión supersónico de pasajeros Concorde
-            new AvionData("Concorde", "BAC", "LEGENDARY", R.drawable.concorde, "2179 km/h", "100 pax", "25m", "UK/Francia", "185t"),
-            // Definición de datos para el caza de quinta generación ruso Su-57
-            new AvionData("Su-57 Felon", "Sukhoi", "LEGENDARY", R.drawable.su57, "2130 km/h", "1 piloto", "19m", "Rusia", "35t"),
     };
 
     // Estructura interna estática para organizar las cadenas de texto y recursos de cada avión
@@ -142,12 +122,38 @@ public class AvionGenerator {
     // Lista con los modelos añadidos al catálogo, que de momento usan una silueta genérica como imagen
     private static final java.util.List<AvionData> DATOS_NUEVOS = new java.util.ArrayList<>();
 
+    // Lista con los modelos que no pueden aparecer en el mapa (museos, retirados, sigilosos o que no emiten su posición)
+    // No se ofrecen al añadir un avión: quedan guardados para un futuro apartado de avistamientos especiales con foto
+    private static final java.util.List<AvionData> DATOS_ESPECIALES = new java.util.ArrayList<>();
+
     // Tabla que relaciona los códigos ICAO de tipo de aeronave con el modelo del catálogo
     private static final java.util.Map<String, String> TIPOS_ICAO = new java.util.HashMap<>();
 
     // Bloque que rellena el catálogo ampliado y la tabla de tipos al cargar la clase
     static {
-        // Códigos de tipo de los modelos que ya existían en el catálogo
+        // Modelos originales que ya no pueden aparecer en el mapa
+        // Registro de un avión legendario de reconocimiento SR-71
+        DATOS_ESPECIALES.add(new AvionData("SR-71 Blackbird", "Lockheed", "LEGENDARY", R.drawable.sr71, "3529 km/h", "2 trip.", "17m", "EE.UU.", "78t"));
+        // Definición de datos para el bombardero invisible B-2 Spirit
+        DATOS_ESPECIALES.add(new AvionData("B-2 Spirit", "Northrop", "LEGENDARY", R.drawable.b2_spirit, "1010 km/h", "2 pilotos", "52m", "EE.UU.", "170t"));
+        // Definición de datos para la primera aeronave de los Hermanos Wright
+        DATOS_ESPECIALES.add(new AvionData("Wright Flyer", "Hermanos Wright", "LEGENDARY", R.drawable.wright_flyer, "48 km/h", "1 piloto", "6m", "EE.UU.", "274kg"));
+        // Definición de datos para el avión más grande jamás construido An-225
+        DATOS_ESPECIALES.add(new AvionData("Antonov An-225", "Antonov", "LEGENDARY", R.drawable.an225, "850 km/h", "Carga Max.", "84m", "URSS/Ucrania", "640t"));
+        // Definición de datos para el avión cohete experimental X-15
+        DATOS_ESPECIALES.add(new AvionData("X-15", "North American", "LEGENDARY", R.drawable.x15, "7274 km/h", "1 piloto", "15m", "EE.UU.", "15t"));
+        // Definición de datos para el triplano Fokker del Barón Rojo
+        DATOS_ESPECIALES.add(new AvionData("Fokker Dr.I (Barón Rojo)", "Fokker", "LEGENDARY", R.drawable.fokker_dr1, "185 km/h", "1 piloto", "5.7m", "Alemania", "586kg"));
+        // Definición de datos para el Rutan Voyager que dio la vuelta al mundo
+        DATOS_ESPECIALES.add(new AvionData("Rutan Voyager", "Rutan", "LEGENDARY", R.drawable.voyager, "196 km/h", "2 pilotos", "8.9m", "EE.UU.", "4t"));
+        // Definición de datos para el Spirit of St. Louis de Lindbergh
+        DATOS_ESPECIALES.add(new AvionData("Spirit of St. Louis", "Ryan", "LEGENDARY", R.drawable.spirit_of_st_louis, "214 km/h", "1 piloto", "8m", "EE.UU.", "2t"));
+        // Definición de datos para el avión supersónico de pasajeros Concorde
+        DATOS_ESPECIALES.add(new AvionData("Concorde", "BAC", "LEGENDARY", R.drawable.concorde, "2179 km/h", "100 pax", "25m", "UK/Francia", "185t"));
+        // Definición de datos para el caza de quinta generación ruso Su-57
+        DATOS_ESPECIALES.add(new AvionData("Su-57 Felon", "Sukhoi", "LEGENDARY", R.drawable.su57, "2130 km/h", "1 piloto", "19m", "Rusia", "35t"));
+
+        // Códigos de tipo de los modelos que están en el catálogo del mapa
         registrarTipos("Boeing 737-800", "B738");
         registrarTipos("Airbus A320", "A320");
         registrarTipos("Cessna 172 Skyhawk", "C172");
@@ -179,11 +185,10 @@ public class AvionGenerator {
         registrarTipos("F/A-18 Super Hornet", "F18S");
         registrarTipos("Antonov An-124", "A124");
         registrarTipos("Airbus Beluga XL", "A337");
-        registrarTipos("SR-71 Blackbird", "SR71");
         registrarTipos("F-22 Raptor", "F22");
-        registrarTipos("B-2 Spirit", "B2");
-        registrarTipos("Antonov An-225", "A225");
-        registrarTipos("Concorde", "CONC");
+        registrarTipos("Spitfire", "SPIT");
+        registrarTipos("P-51 Mustang", "P51");
+        registrarTipos("Harrier Jump Jet", "HAR");
 
         // Datos aproximados de los modelos nuevos: nombre, fabricante, rareza, imagen, velocidad, capacidad, envergadura, país, peso máximo y códigos de tipo
 
@@ -367,19 +372,14 @@ public class AvionGenerator {
         anadir("Boeing KC-135 Stratotanker", "Boeing", "EPIC", SIL_CARGA, "933 km/h", "Cisterna", "40m", "EE.UU.", "146t", "K35R");
         anadir("Boeing B-52 Stratofortress", "Boeing", "EPIC", SIL_CARGA, "1047 km/h", "5 tripulantes", "56m", "EE.UU.", "220t", "B52");
         anadir("Rockwell B-1B Lancer", "Rockwell", "EPIC", SIL_CAZA, "1335 km/h", "4 tripulantes", "42m", "EE.UU.", "216t", "B1");
-        anadir("Tupolev Tu-95 Bear", "Tupolev", "EPIC", SIL_CARGA, "830 km/h", "7 tripulantes", "51m", "URSS", "188t", "T95");
-        anadir("Tupolev Tu-160", "Tupolev", "EPIC", SIL_CAZA, "2220 km/h", "4 tripulantes", "56m", "URSS", "275t", "T160");
 
         // Cazas y entrenadores militares
         anadir("F-15 Eagle", "McDonnell Douglas", "EPIC", SIL_CAZA, "2655 km/h", "1 piloto", "13m", "EE.UU.", "31t", "F15");
-        anadir("F-14 Tomcat", "Grumman", "LEGENDARY", SIL_CAZA, "2485 km/h", "2 pilotos", "19m", "EE.UU.", "33t", "F14");
         anadir("F-4 Phantom II", "McDonnell Douglas", "LEGENDARY", SIL_CAZA, "2370 km/h", "2 pilotos", "12m", "EE.UU.", "28t", "F4");
         anadir("A-10 Thunderbolt II", "Fairchild Republic", "EPIC", SIL_CAZA, "706 km/h", "1 piloto", "18m", "EE.UU.", "23t", "A10");
         anadir("Dassault Rafale", "Dassault", "EPIC", SIL_CAZA, "1912 km/h", "1 piloto", "11m", "Francia", "25t", "RFAL");
         anadir("Panavia Tornado", "Panavia", "EPIC", SIL_CAZA, "2400 km/h", "2 pilotos", "14m", "Europa", "28t", "TOR");
         anadir("Mikoyan MiG-29", "Mikoyan", "EPIC", SIL_CAZA, "2400 km/h", "1 piloto", "11m", "URSS", "18t", "MG29");
-        anadir("Sukhoi Su-27", "Sukhoi", "EPIC", SIL_CAZA, "2500 km/h", "1 piloto", "15m", "URSS", "33t", "SU27");
-        anadir("Sukhoi Su-35", "Sukhoi", "EPIC", SIL_CAZA, "2500 km/h", "1 piloto", "15m", "Rusia", "34t", "SU35");
         anadir("Northrop F-5 Tiger II", "Northrop", "EPIC", SIL_CAZA, "1700 km/h", "1 piloto", "8m", "EE.UU.", "11t", "F5");
         anadir("Lockheed U-2 Dragon Lady", "Lockheed", "EPIC", SIL_CAZA, "800 km/h", "1 piloto", "32m", "EE.UU.", "18t", "U2");
         anadir("BAE Hawk", "BAE Systems", "RARE", SIL_CAZA, "1000 km/h", "2 pilotos", "10m", "UK", "9t", "HAWK");
@@ -418,21 +418,28 @@ public class AvionGenerator {
         anadir("Antonov An-2", "Antonov", "LEGENDARY", SIL_HISTORICO, "190 km/h", "12 pax", "18m", "URSS", "5.5t", "AN2");
         anadir("De Havilland Beaver", "De Havilland", "LEGENDARY", SIL_HISTORICO, "255 km/h", "7 pax", "14m", "Canadá", "2.3t", "DHC2");
 
-        // Míticos: prototipos y aviones de museo
-        anadir("Hughes H-4 Hercules (Spruce Goose)", "Hughes", "MYTHIC", SIL_HISTORICO, "351 km/h", "750 tropas", "97m", "EE.UU.", "180t");
-        anadir("North American XB-70 Valkyrie", "North American", "MYTHIC", SIL_CAZA, "3309 km/h", "2 pilotos", "32m", "EE.UU.", "250t");
-        anadir("Bell X-1", "Bell", "MYTHIC", SIL_CAZA, "1541 km/h", "1 piloto", "9m", "EE.UU.", "6t");
-        anadir("Messerschmitt Me 163 Komet", "Messerschmitt", "MYTHIC", SIL_CAZA, "960 km/h", "1 piloto", "9m", "Alemania", "4.3t");
-        anadir("Tupolev Tu-144", "Tupolev", "MYTHIC", SIL_JET, "2300 km/h", "140 pax", "29m", "URSS", "180t");
-        anadir("De Havilland Comet 4", "De Havilland", "MYTHIC", SIL_JET, "809 km/h", "81 pax", "35m", "UK", "74t");
-        anadir("Vickers VC10", "Vickers", "MYTHIC", SIL_JET, "930 km/h", "150 pax", "44m", "UK", "152t");
-        anadir("Boeing 314 Clipper", "Boeing", "MYTHIC", SIL_HISTORICO, "340 km/h", "74 pax", "46m", "EE.UU.", "38t");
-        anadir("Convair B-36 Peacemaker", "Convair", "MYTHIC", SIL_CARGA, "672 km/h", "15 tripulantes", "70m", "EE.UU.", "185t");
-        anadir("Northrop YB-49", "Northrop", "MYTHIC", SIL_CAZA, "793 km/h", "7 tripulantes", "52m", "EE.UU.", "88t");
-        anadir("Lockheed YF-12", "Lockheed", "MYTHIC", SIL_CAZA, "3330 km/h", "2 pilotos", "17m", "EE.UU.", "54t");
-        anadir("Lockheed F-117 Nighthawk", "Lockheed", "MYTHIC", SIL_CAZA, "993 km/h", "1 piloto", "13m", "EE.UU.", "24t");
-        anadir("Avro Vulcan", "Avro", "MYTHIC", SIL_CAZA, "1038 km/h", "5 tripulantes", "30m", "UK", "77t");
-        anadir("Dornier Do X", "Dornier", "MYTHIC", SIL_HISTORICO, "175 km/h", "66 pax", "48m", "Alemania", "52t");
+        // Modelos nuevos que no pueden aparecer en el mapa: no emiten su posición (militares rusos e iraníes)
+        anadirEspecial("Tupolev Tu-95 Bear", "Tupolev", "EPIC", SIL_CARGA, "830 km/h", "7 tripulantes", "51m", "URSS", "188t");
+        anadirEspecial("Tupolev Tu-160", "Tupolev", "EPIC", SIL_CAZA, "2220 km/h", "4 tripulantes", "56m", "URSS", "275t");
+        anadirEspecial("F-14 Tomcat", "Grumman", "LEGENDARY", SIL_CAZA, "2485 km/h", "2 pilotos", "19m", "EE.UU.", "33t");
+        anadirEspecial("Sukhoi Su-27", "Sukhoi", "EPIC", SIL_CAZA, "2500 km/h", "1 piloto", "15m", "URSS", "33t");
+        anadirEspecial("Sukhoi Su-35", "Sukhoi", "EPIC", SIL_CAZA, "2500 km/h", "1 piloto", "15m", "Rusia", "34t");
+
+        // Modelos míticos: prototipos, retirados o solo visibles en museos
+        anadirEspecial("Hughes H-4 Hercules (Spruce Goose)", "Hughes", "MYTHIC", SIL_HISTORICO, "351 km/h", "750 tropas", "97m", "EE.UU.", "180t");
+        anadirEspecial("North American XB-70 Valkyrie", "North American", "MYTHIC", SIL_CAZA, "3309 km/h", "2 pilotos", "32m", "EE.UU.", "250t");
+        anadirEspecial("Bell X-1", "Bell", "MYTHIC", SIL_CAZA, "1541 km/h", "1 piloto", "9m", "EE.UU.", "6t");
+        anadirEspecial("Messerschmitt Me 163 Komet", "Messerschmitt", "MYTHIC", SIL_CAZA, "960 km/h", "1 piloto", "9m", "Alemania", "4.3t");
+        anadirEspecial("Tupolev Tu-144", "Tupolev", "MYTHIC", SIL_JET, "2300 km/h", "140 pax", "29m", "URSS", "180t");
+        anadirEspecial("De Havilland Comet 4", "De Havilland", "MYTHIC", SIL_JET, "809 km/h", "81 pax", "35m", "UK", "74t");
+        anadirEspecial("Vickers VC10", "Vickers", "MYTHIC", SIL_JET, "930 km/h", "150 pax", "44m", "UK", "152t");
+        anadirEspecial("Boeing 314 Clipper", "Boeing", "MYTHIC", SIL_HISTORICO, "340 km/h", "74 pax", "46m", "EE.UU.", "38t");
+        anadirEspecial("Convair B-36 Peacemaker", "Convair", "MYTHIC", SIL_CARGA, "672 km/h", "15 tripulantes", "70m", "EE.UU.", "185t");
+        anadirEspecial("Northrop YB-49", "Northrop", "MYTHIC", SIL_CAZA, "793 km/h", "7 tripulantes", "52m", "EE.UU.", "88t");
+        anadirEspecial("Lockheed YF-12", "Lockheed", "MYTHIC", SIL_CAZA, "3330 km/h", "2 pilotos", "17m", "EE.UU.", "54t");
+        anadirEspecial("Lockheed F-117 Nighthawk", "Lockheed", "MYTHIC", SIL_CAZA, "993 km/h", "1 piloto", "13m", "EE.UU.", "24t");
+        anadirEspecial("Avro Vulcan", "Avro", "MYTHIC", SIL_CAZA, "1038 km/h", "5 tripulantes", "30m", "UK", "77t");
+        anadirEspecial("Dornier Do X", "Dornier", "MYTHIC", SIL_HISTORICO, "175 km/h", "66 pax", "48m", "Alemania", "52t");
     }
 
     // Método auxiliar que asocia varios códigos de tipo ICAO a un mismo modelo del catálogo
@@ -441,7 +448,7 @@ public class AvionGenerator {
         for (String c : codigos) TIPOS_ICAO.put(c, modelo);
     }
 
-    // Método auxiliar que añade un modelo nuevo al catálogo y registra sus códigos de tipo
+    // Método auxiliar que añade un modelo nuevo al catálogo del mapa y registra sus códigos de tipo
     private static void anadir(String modelo, String fabricante, String rareza, int imgId,
                                String vel, String cap, String dim, String pais, String peso,
                                String... codigos) {
@@ -451,10 +458,27 @@ public class AvionGenerator {
         registrarTipos(modelo, codigos);
     }
 
+    // Método auxiliar que añade un modelo especial, que no puede aparecer en el mapa
+    private static void anadirEspecial(String modelo, String fabricante, String rareza, int imgId,
+                                       String vel, String cap, String dim, String pais, String peso) {
+        // Adición de los datos del modelo a la lista de modelos especiales
+        DATOS_ESPECIALES.add(new AvionData(modelo, fabricante, rareza, imgId, vel, cap, dim, pais, peso));
+    }
+
     // Método auxiliar que convierte la estructura AvionData en un objeto Avion real
     private static Avion crearAvion(AvionData d) {
         // Construcción del avión con todos los datos de la estructura
         return new Avion(d.modelo, d.fabricante, d.rareza, d.imgId, d.vel, d.cap, d.dim, d.pais, d.peso);
+    }
+
+    // Método público que devuelve los modelos especiales, que no pueden aparecer en el mapa
+    public static java.util.List<Avion> getAvionesEspeciales() {
+        // Creación de la lista de resultado
+        java.util.List<Avion> lista = new java.util.ArrayList<>();
+        // Conversión de cada modelo especial a un objeto Avion
+        for (AvionData d : DATOS_ESPECIALES) lista.add(crearAvion(d));
+        // Devolución de la lista completa
+        return lista;
     }
 
     // Método público que busca el avión del catálogo que corresponde a un código de tipo ICAO
