@@ -15,6 +15,7 @@ import android.os.Bundle; // Para recibir parámetros al crear la actividad
 import android.os.Handler; // Para programar tareas en el hilo principal
 import android.os.Looper; // Para asociar Handler al hilo principal
 import android.os.SystemClock; // Para medir el tiempo transcurrido entre actualizaciones
+import android.util.Log; // Para escribir mensajes de diagnóstico en el Logcat
 import android.view.View; // Para manejar vistas en la interfaz
 import android.widget.Button; // Elemento de interfaz tipo botón
 import android.widget.TextView; // Elemento de interfaz para mostrar texto
@@ -43,8 +44,10 @@ import java.util.*; // Para List, Map, Set, ArrayList, HashMap, HashSet, Iterato
 import es.medac.skycollectorapp.R; // Recursos de layouts, drawables, strings, etc.
 import es.medac.skycollectorapp.models.Avion; // Modelo de datos de Avión
 import es.medac.skycollectorapp.models.AdsbResponse; // Modelo de respuesta de la API de vuelos
+import es.medac.skycollectorapp.models.AdsbdbResponse; // Modelo de respuesta de la API de detalles de aeronaves
 import es.medac.skycollectorapp.models.Vuelo; // Modelo de un vuelo con las unidades que usa la app
 import es.medac.skycollectorapp.network.AdsbService; // Interfaz para llamadas HTTP a la API de vuelos
+import es.medac.skycollectorapp.network.AdsbdbService; // Interfaz para llamadas HTTP a la API de detalles de aeronaves
 import es.medac.skycollectorapp.utils.AvionGenerator; // Catálogo de aviones y tabla de tipos ICAO
 import retrofit2.*; // Clases Retrofit para llamadas HTTP
 import retrofit2.converter.gson.GsonConverterFactory; // Conversor de JSON para Retrofit
@@ -60,6 +63,7 @@ public class MapaActivity extends AppCompatActivity
     // Configuración de la API de vuelos
     private static final String URL_API_VUELOS = "https://api.adsb.lol/"; // URL base de la API (con airplanes.live sería https://api.airplanes.live/)
     private static final int RADIO_MAXIMO_NM = 250; // Radio máximo que permite la API, en millas náuticas
+    private static final String URL_API_DETALLES = "https://api.adsbdb.com/"; // URL base de la API con el modelo completo, la aerolínea y la ruta
 
     // Tiempo entre cada actualización automática de los vuelos
     private static final long INTERVALO_ACTUALIZACION_MS = 15000; // 15 segundos entre cada descarga de vuelos
@@ -75,6 +79,9 @@ public class MapaActivity extends AppCompatActivity
 
     // Servicio Retrofit para obtener datos de vuelos
     private AdsbService service;
+
+    // Servicio Retrofit para obtener el modelo completo, la aerolínea y la ruta de un vuelo
+    private AdsbdbService serviceDetalles;
 
     // Handler para ejecutar tareas en el hilo principal
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -120,6 +127,12 @@ public class MapaActivity extends AppCompatActivity
     private String icaoSeleccionado = null; // ICAO del avión seleccionado actualmente
     private String tipoSeleccionado = null; // Código de tipo (por ejemplo A320) del avión seleccionado actualmente
     private String matriculaSeleccionada = null; // Matrícula del avión seleccionado actualmente
+    private Vuelo vueloSeleccionado = null; // Último dato recibido del vuelo seleccionado
+    private Avion avistadoSeleccionado = null; // Avión de la colección que corresponde al vuelo seleccionado (si existe)
+    private final Map<String, AdsbdbResponse.Aeronave> cacheAeronaves = new HashMap<>(); // Datos de aeronaves ya descargados (por ICAO)
+    private final Map<String, AdsbdbResponse.RutaVuelo> cacheRutas = new HashMap<>(); // Rutas ya descargadas (por indicativo)
+    private final Set<String> aeronavesNoDisponibles = new HashSet<>(); // Aeronaves que la API no conoce, para no repetir la consulta
+    private final Set<String> rutasNoDisponibles = new HashSet<>(); // Indicativos que la API no conoce, para no repetir la consulta
 
     // Lanzador para pedir el permiso de ubicación en tiempo de ejecución
     private final ActivityResultLauncher<String[]> permisoUbicacionLauncher =
@@ -189,6 +202,14 @@ public class MapaActivity extends AppCompatActivity
                 .build();
 
         service = retrofit.create(AdsbService.class); // Crear instancia del servicio
+
+        // Configurar Retrofit para consumir la API de detalles de aeronaves
+        Retrofit retrofitDetalles = new Retrofit.Builder()
+                .baseUrl(URL_API_DETALLES) // URL base de la API
+                .addConverterFactory(GsonConverterFactory.create()) // Convertir JSON automáticamente
+                .build();
+
+        serviceDetalles = retrofitDetalles.create(AdsbdbService.class); // Crear instancia del servicio
 
         // Obtener el fragmento del mapa y configurar el callback
         SupportMapFragment mapFragment =
@@ -471,6 +492,12 @@ public class MapaActivity extends AppCompatActivity
 
             m.setTag(new Object[]{api, avistado}); // Guardar datos en el tag del marcador
 
+            if (api.icao24.equals(icaoSeleccionado)) { // Si es el avión seleccionado
+                vueloSeleccionado = api; // Guardar el dato más reciente del vuelo
+                avistadoSeleccionado = avistado; // Guardar el avión de la colección que le corresponde
+                if (panel.getVisibility() == View.VISIBLE) pintarPanel(); // Refrescar velocidad y altitud en el panel
+            }
+
             if (api.icao24.equals(icaoSeleccionado) && lineaHistorial != null) { // Si es el avión seleccionado y su camino está dibujado
                 puntosTrayectoria.add(pos); // Añadir la nueva posición real al camino recorrido
                 dibujarTrayectoria(); // Redibujar el camino
@@ -594,43 +621,12 @@ public class MapaActivity extends AppCompatActivity
         icaoSeleccionado = api.icao24; // Guardar ICAO seleccionado
         tipoSeleccionado = api.tipo; // Guardar el tipo de avión seleccionado
         matriculaSeleccionada = api.matricula; // Guardar la matrícula del avión seleccionado
+        vueloSeleccionado = api; // Guardar el vuelo seleccionado para poder repintar el panel
+        avistadoSeleccionado = a; // Guardar el avión de la colección que le corresponde
         if (cambioDeAvion) mostrarTrayectoria(api.icao24); // Dibujar el camino recorrido por el avión seleccionado
 
-        int vel = api.velocity != null
-                ? (int) (api.velocity * 3.6) // Convertir de m/s a km/h
-                : 0; // Velocidad cero si no disponible
-
-        Avion modeloCatalogo = a == null
-                ? AvionGenerator.getAvionPorTipoIcao(api.tipo) // Buscar el tipo en el catálogo si el avión aún no está avistado
-                : null;
-
-        if (a != null) {
-            txtModelo.setText(a.getModelo() + " | " + a.getFabricante()); // Mostrar modelo y fabricante
-        } else if (modeloCatalogo != null) {
-            txtModelo.setText(modeloCatalogo.getModelo() + " | " + modeloCatalogo.getFabricante()); // Mostrar el modelo del catálogo que corresponde al tipo
-        } else if (api.descripcion != null && !api.descripcion.isEmpty()) {
-            txtModelo.setText(api.descripcion); // Mostrar la descripción que da la API
-        } else {
-            txtModelo.setText("Vuelo " + (api.callsign != null && !api.callsign.isEmpty()
-                    ? api.callsign : api.icao24)); // Mostrar callsign (o ICAO si no hay) si no hay avión local
-        }
-
-        String rareza = a != null
-                ? a.getRareza() // Rareza del avión ya avistado
-                : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null); // Rareza del modelo del catálogo si se conoce
-
-        String altitud = api.enTierra
-                ? "En tierra" // Avión parado en el suelo
-                : (api.altitude != null ? Math.round(api.altitude) + " m" : "—"); // Altitud redondeada o guion si no hay dato
-
-        txtDatos.setText(
-                "ICAO: " + api.icao24 + "\n" +
-                        "Matrícula: " + (api.matricula != null ? api.matricula : "—") + "\n" +
-                        "Tipo: " + (api.tipo != null ? api.tipo : "—") + "\n" +
-                        (rareza != null ? "Rareza: " + rareza + "\n" : "") +
-                        "Velocidad: " + vel + " km/h\n" +
-                        "Altitud: " + altitud
-        ); // Mostrar otros datos
+        pintarPanel(); // Mostrar en el panel los datos que ya se conocen
+        pedirDetalles(api); // Pedir el modelo completo, la aerolínea y la ruta
 
         panel.setVisibility(View.VISIBLE); // Mostrar panel de información
         ajustarPaddingMapa(true); // Subir los controles del mapa por encima del panel
@@ -641,6 +637,178 @@ public class MapaActivity extends AppCompatActivity
         );
 
         return true; // Consumir evento click
+    }
+
+    // Pedir a la API los datos de la aeronave y de la ruta del vuelo seleccionado, en dos consultas independientes
+    private void pedirDetalles(Vuelo api) {
+        pedirAeronave(api.icao24); // Modelo completo y propietario del avión
+        if (api.callsign != null && !api.callsign.isEmpty()) pedirRuta(api.callsign); // Aerolínea y ruta del vuelo
+    }
+
+    // Pedir a la API los datos de una aeronave (modelo completo y propietario)
+    private void pedirAeronave(String icao) {
+        if (icao == null || cacheAeronaves.containsKey(icao) || aeronavesNoDisponibles.contains(icao)) return; // Salir si ya se consultó
+
+        serviceDetalles.getAeronave(icao).enqueue(new Callback<AdsbdbResponse>() { // Llamada asíncrona
+            @Override
+            public void onResponse(Call<AdsbdbResponse> call, Response<AdsbdbResponse> response) {
+                if (isDestroyed()) return; // Salir si la pantalla ya se cerró
+
+                AdsbdbResponse body = response.body(); // Contenido de la respuesta
+                if (!response.isSuccessful() || body == null
+                        || body.getRespuesta() == null || body.getRespuesta().aircraft == null) {
+                    aeronavesNoDisponibles.add(icao); // Recordar que la API no conoce esta aeronave
+                    Log.d("SkyCollector", "adsbdb aeronave " + icao + " sin datos (HTTP " + response.code() + ")");
+                    return;
+                }
+
+                cacheAeronaves.put(icao, body.getRespuesta().aircraft); // Guardar los datos en memoria
+                if (icao.equals(icaoSeleccionado)) pintarPanel(); // Repintar si sigue seleccionado
+            }
+
+            @Override
+            public void onFailure(Call<AdsbdbResponse> call, Throwable t) {
+                Log.d("SkyCollector", "adsbdb aeronave " + icao + " fallo: " + t.getMessage()); // Se reintentará al tocar de nuevo
+            }
+        });
+    }
+
+    // Pedir a la API la aerolínea y la ruta de un vuelo a partir de su indicativo
+    private void pedirRuta(String indicativo) {
+        if (cacheRutas.containsKey(indicativo) || rutasNoDisponibles.contains(indicativo)) return; // Salir si ya se consultó
+
+        serviceDetalles.getRuta(indicativo).enqueue(new Callback<AdsbdbResponse>() { // Llamada asíncrona
+            @Override
+            public void onResponse(Call<AdsbdbResponse> call, Response<AdsbdbResponse> response) {
+                if (isDestroyed()) return; // Salir si la pantalla ya se cerró
+
+                AdsbdbResponse body = response.body(); // Contenido de la respuesta
+                if (!response.isSuccessful() || body == null
+                        || body.getRespuesta() == null || body.getRespuesta().flightroute == null) {
+                    rutasNoDisponibles.add(indicativo); // Recordar que la API no conoce este indicativo
+                    Log.d("SkyCollector", "adsbdb ruta " + indicativo + " sin datos (HTTP " + response.code() + ")");
+                    return;
+                }
+
+                cacheRutas.put(indicativo, body.getRespuesta().flightroute); // Guardar la ruta en memoria
+                if (vueloSeleccionado != null && indicativo.equals(vueloSeleccionado.callsign)) pintarPanel(); // Repintar si sigue seleccionado
+            }
+
+            @Override
+            public void onFailure(Call<AdsbdbResponse> call, Throwable t) {
+                Log.d("SkyCollector", "adsbdb ruta " + indicativo + " fallo: " + t.getMessage()); // Se reintentará al tocar de nuevo
+            }
+        });
+    }
+
+    // Escribir en el panel los datos del vuelo seleccionado con la información disponible
+    private void pintarPanel() {
+        Vuelo api = vueloSeleccionado; // Vuelo seleccionado
+        Avion a = avistadoSeleccionado; // Avión de la colección (si existe)
+        if (api == null) return; // Salir si no hay ningún vuelo seleccionado
+
+        AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(api.icao24); // Datos de la aeronave (si los hay)
+        AdsbdbResponse.RutaVuelo ruta = api.callsign != null ? cacheRutas.get(api.callsign) : null; // Datos de la ruta (si los hay)
+
+        Avion modeloCatalogo = a == null
+                ? AvionGenerator.getAvionPorTipoIcao(api.tipo) // Buscar el tipo en el catálogo si el avión aún no está avistado
+                : null;
+
+        // Parte izquierda del título: modelo completo, o el del catálogo si no hay datos
+        String modelo = modeloCompleto(aeronave);
+        if (modelo == null) {
+            if (a != null) {
+                modelo = a.getModelo(); // Modelo del avión ya avistado
+            } else if (modeloCatalogo != null) {
+                modelo = modeloCatalogo.getModelo(); // Modelo del catálogo que corresponde al tipo
+            } else if (api.descripcion != null && !api.descripcion.isEmpty()) {
+                modelo = api.descripcion; // Descripción que da la API de vuelos
+            } else {
+                modelo = "Vuelo " + (api.callsign != null && !api.callsign.isEmpty()
+                        ? api.callsign : api.icao24); // Callsign (o ICAO si no hay)
+            }
+        }
+
+        // Parte derecha del título: aerolínea, o propietario, o fabricante del catálogo
+        String empresa = null;
+        if (ruta != null && ruta.airline != null && ruta.airline.name != null && !ruta.airline.name.isEmpty()) {
+            empresa = ruta.airline.name; // Aerolínea que opera el vuelo
+        } else if (aeronave != null && aeronave.registeredOwner != null && !aeronave.registeredOwner.isEmpty()) {
+            empresa = formatearNombre(aeronave.registeredOwner); // Propietario registrado de la aeronave
+        } else if (a != null) {
+            empresa = a.getFabricante(); // Fabricante del avión ya avistado
+        } else if (modeloCatalogo != null) {
+            empresa = modeloCatalogo.getFabricante(); // Fabricante del modelo del catálogo
+        }
+
+        txtModelo.setText(empresa != null && !empresa.isEmpty() ? modelo + " | " + empresa : modelo); // Mostrar el título
+
+        int vel = api.velocity != null
+                ? (int) (api.velocity * 3.6) // Convertir de m/s a km/h
+                : 0; // Velocidad cero si no disponible
+
+        String rareza = a != null
+                ? a.getRareza() // Rareza del avión ya avistado
+                : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null); // Rareza del modelo del catálogo si se conoce
+
+        String altitud = api.enTierra
+                ? "En tierra" // Avión parado en el suelo
+                : (api.altitude != null ? Math.round(api.altitude) + " m" : "—"); // Altitud redondeada o guion si no hay dato
+
+        // Línea con el origen y el destino si la API los conoce
+        String origen = ruta != null ? describirAeropuerto(ruta.origin) : null;
+        String destino = ruta != null ? describirAeropuerto(ruta.destination) : null;
+        String lineaRuta = (origen != null && destino != null) ? "Ruta: " + origen + " → " + destino + "\n" : "";
+
+        txtDatos.setText(
+                lineaRuta +
+                        "ICAO: " + api.icao24 + "\n" +
+                        "Matrícula: " + (api.matricula != null ? api.matricula : "—") + "\n" +
+                        "Tipo: " + (api.tipo != null ? api.tipo : "—") + "\n" +
+                        (rareza != null ? "Rareza: " + rareza + "\n" : "") +
+                        "Velocidad: " + vel + " km/h\n" +
+                        "Altitud: " + altitud
+        ); // Mostrar otros datos
+    }
+
+    // Construir el modelo completo de la aeronave a partir de los datos de la API (por ejemplo Airbus A320-252N)
+    private String modeloCompleto(AdsbdbResponse.Aeronave aeronave) {
+        if (aeronave == null || aeronave.type == null || aeronave.type.trim().isEmpty()) return null; // Sin datos
+        String tipo = aeronave.type.trim().replaceFirst("^(A\\d{3})\\s+(\\d{3}[A-Z]?)$", "$1-$2"); // Los Airbus pasan de A320 214 a A320-214
+        String fabricante = formatearNombre(aeronave.manufacturer); // Fabricante con formato legible
+        if (fabricante == null || fabricante.isEmpty()
+                || tipo.toLowerCase().contains(fabricante.toLowerCase())) {
+            return tipo; // No se repite el fabricante si ya está incluido
+        }
+        return fabricante + " " + tipo; // Fabricante seguido del modelo
+    }
+
+    // Convertir un nombre escrito todo en mayúsculas a un formato legible (AIRBUS pasa a Airbus)
+    private String formatearNombre(String texto) {
+        if (texto == null) return null; // Salir si no hay texto
+        texto = texto.trim(); // Quitar espacios sobrantes
+        if (texto.isEmpty() || !texto.equals(texto.toUpperCase())) return texto; // Solo se corrige si está todo en mayúsculas
+
+        StringBuilder sb = new StringBuilder(); // Resultado
+        for (String palabra : texto.split(" ")) { // Recorrer cada palabra
+            if (palabra.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            if (palabra.length() <= 3) {
+                sb.append(palabra); // Las palabras cortas (ATR, BAE, DE) se dejan como siglas
+            } else {
+                sb.append(Character.toUpperCase(palabra.charAt(0)))
+                        .append(palabra.substring(1).toLowerCase()); // Primera letra en mayúscula y el resto en minúscula
+            }
+        }
+        return sb.toString();
+    }
+
+    // Describir un aeropuerto con su ciudad y su código IATA (por ejemplo Seville (SVQ))
+    private String describirAeropuerto(AdsbdbResponse.Aeropuerto ap) {
+        if (ap == null) return null; // Sin datos del aeropuerto
+        String ciudad = (ap.municipality != null && !ap.municipality.isEmpty()) ? ap.municipality : ap.name; // Ciudad o nombre
+        if (ciudad == null) return ap.iataCode; // Solo el código si no hay nombre
+        return (ap.iataCode != null && !ap.iataCode.isEmpty()) ? ciudad + " (" + ap.iataCode + ")" : ciudad;
     }
 
     // Método para obtener icono genérico de avión
