@@ -53,6 +53,19 @@ public class Avion implements Serializable {
     // Declaración de la variable para la fecha del avistamiento en milisegundos
     private long fechaAvistamiento;
 
+    // Declaración de la variable para el código ICAO del tipo de aeronave (por ejemplo A320)
+    private String tipoIcao;
+
+    // Declaración de la variable para el origen del avistamiento (MAPA o ESPECIAL)
+    private String origen;
+
+    // Declaración de la variable para la distancia en kilómetros entre el usuario y el avión al avistarlo
+    private float distanciaKm;
+
+    // Declaración de las variables para la posición del avión en el momento del avistamiento
+    private double latAvion;
+    private double lonAvion;
+
     // Constructor vacío que se ejecuta al crear una instancia sin parámetros
     public Avion() {
         // Generación automática de un identificador aleatorio único
@@ -213,6 +226,31 @@ public class Avion implements Serializable {
     public long getFechaAvistamiento() { return fechaAvistamiento; }
     // Método para establecer la fecha del avistamiento en milisegundos
     public void setFechaAvistamiento(long fechaAvistamiento) { this.fechaAvistamiento = fechaAvistamiento; }
+
+    // Método para obtener el código ICAO del tipo de aeronave
+    public String getTipoIcao() { return tipoIcao; }
+    // Método para establecer el código ICAO del tipo de aeronave
+    public void setTipoIcao(String tipoIcao) { this.tipoIcao = tipoIcao; }
+
+    // Método para obtener el origen del avistamiento
+    public String getOrigen() { return origen; }
+    // Método para establecer el origen del avistamiento
+    public void setOrigen(String origen) { this.origen = origen; }
+
+    // Método para obtener la distancia al avión en el momento del avistamiento
+    public float getDistanciaKm() { return distanciaKm; }
+    // Método para establecer la distancia al avión en el momento del avistamiento
+    public void setDistanciaKm(float distanciaKm) { this.distanciaKm = distanciaKm; }
+
+    // Método para obtener la latitud del avión en el momento del avistamiento
+    public double getLatAvion() { return latAvion; }
+    // Método para establecer la latitud del avión en el momento del avistamiento
+    public void setLatAvion(double latAvion) { this.latAvion = latAvion; }
+
+    // Método para obtener la longitud del avión en el momento del avistamiento
+    public double getLonAvion() { return lonAvion; }
+    // Método para establecer la longitud del avión en el momento del avistamiento
+    public void setLonAvion(double lonAvion) { this.lonAvion = lonAvion; }
 
     // Método de utilidad para verificar si el objeto posee un código ICAO válido
     public boolean tieneIcao() {

@@ -99,7 +99,9 @@ public class AddAvionActivity extends AppCompatActivity {
 
         cargarDatosGenerator(); // Llenar el spinner con los aviones disponibles
 
-        preseleccionarModeloPorTipo(prefs.getString("tipo_seleccionado", null)); // Elegir el modelo automáticamente según el tipo del avión
+        // Fijar el modelo según el tipo del avión avistado (el usuario no puede cambiarlo)
+        fijarModeloDetectado(prefs.getString("tipo_seleccionado", null),
+                prefs.getString("descripcion_seleccionada", null));
 
         // Asignar listeners a los botones
         btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion()); // Mostrar opciones de foto
@@ -110,6 +112,11 @@ public class AddAvionActivity extends AppCompatActivity {
     // Método para cargar los datos de aviones en el spinner
     private void cargarDatosGenerator() {
         listaAvionesBase = AvionGenerator.getTodosLosAviones(); // Obtener lista completa de aviones
+        actualizarSpinner(); // Mostrar la lista en el spinner
+    }
+
+    // Método para volcar la lista de aviones base en el spinner
+    private void actualizarSpinner() {
         List<String> nombres = new ArrayList<>(); // Crear lista de nombres para mostrar en el spinner
 
         // Recorrer cada avión y agregar su modelo y rareza a la lista de nombres
@@ -138,6 +145,15 @@ public class AddAvionActivity extends AppCompatActivity {
             return; // Salir del método si no hay ICAO seleccionado
         }
 
+        // Comprobar que este avión concreto no se haya avistado ya
+        if (yaAvistado(icaoSeleccionado)) {
+            Toast.makeText(this,
+                    "Ya has avistado este avión",
+                    Toast.LENGTH_SHORT).show();
+            limpiarAvistamientoPendiente(); // Descartar el avistamiento pendiente
+            return; // Salir sin guardar
+        }
+
         int pos = spinnerAviones.getSelectedItemPosition(); // Obtener posición seleccionada en spinner
         if (pos < 0) return; // Salir si no hay selección
 
@@ -156,10 +172,15 @@ public class AddAvionActivity extends AppCompatActivity {
                 base.getPeso(), // Peso del avión
                 icaoSeleccionado // ICAO real seleccionado
         );
-        // Guardar la matrícula y la fecha del avistamiento
-        nuevo.setMatricula(getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
-                .getString("matricula_seleccionada", null)); // Matrícula del avión seleccionado en el mapa
-        nuevo.setFechaAvistamiento(System.currentTimeMillis()); // Fecha y hora actuales
+        // Guardar los datos de verificación del avistamiento tomados en el mapa
+        SharedPreferences prefsAv = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
+        nuevo.setMatricula(prefsAv.getString("matricula_seleccionada", null)); // Matrícula del avión
+        nuevo.setTipoIcao(prefsAv.getString("tipo_seleccionado", null)); // Tipo de aeronave según la API
+        nuevo.setFechaAvistamiento(prefsAv.getLong("fecha_seleccionada", System.currentTimeMillis())); // Momento del avistamiento
+        nuevo.setDistanciaKm(prefsAv.getFloat("distancia_seleccionada", 0f)); // Distancia a la que estaba el usuario
+        nuevo.setLatAvion(prefsAv.getFloat("lat_avion_seleccionado", 0f)); // Latitud del avión
+        nuevo.setLonAvion(prefsAv.getFloat("lon_avion_seleccionado", 0f)); // Longitud del avión
+        nuevo.setOrigen("MAPA"); // Avistamiento verificado con el mapa
 
         // Asignar foto del usuario si existe
         if (uriImagenFinal != null) {
@@ -170,13 +191,8 @@ public class AddAvionActivity extends AppCompatActivity {
         guardarEnPreferencias(nuevo);
         guardarEnFirestore(nuevo);
 
-        // Limpiar ICAO usado en SharedPreferences
-        getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
-                .edit()
-                .remove("icao_seleccionado")
-                .remove("tipo_seleccionado")
-                .remove("matricula_seleccionada")
-                .apply();
+        // Limpiar los datos del avistamiento pendiente en SharedPreferences
+        limpiarAvistamientoPendiente();
 
         // Notificar al usuario que el avión se guardó correctamente
         Toast.makeText(this,
@@ -295,27 +311,71 @@ public class AddAvionActivity extends AppCompatActivity {
                 .into(imgPreviewAvion); // Mostrar en ImageView
     }
 
-    // Método para elegir en el spinner el modelo que corresponde al tipo de avión detectado
-    private void preseleccionarModeloPorTipo(String tipoIcao) {
-        if (tipoIcao == null) return; // Salir si la API no dio el tipo del avión
+    // Método para fijar el modelo que corresponde al avión avistado, sin dejar que el usuario lo cambie
+    private void fijarModeloDetectado(String tipoIcao, String descripcion) {
+        if (icaoSeleccionado == null) return; // Salir si no hay avión avistado
 
         Avion detectado = AvionGenerator.getAvionPorTipoIcao(tipoIcao); // Buscar el tipo en el catálogo
 
-        if (detectado == null) { // Si el tipo no está en el catálogo
+        if (detectado != null) { // Si el tipo está en el catálogo
+            for (int i = 0; i < listaAvionesBase.size(); i++) { // Recorrer el catálogo del spinner
+                if (listaAvionesBase.get(i).getModelo().equals(detectado.getModelo())) {
+                    spinnerAviones.setSelection(i); // Seleccionar el modelo detectado
+                    Toast.makeText(this,
+                            "Modelo detectado: " + detectado.getModelo(),
+                            Toast.LENGTH_SHORT).show(); // Avisar al usuario
+                    break;
+                }
+            }
+        } else { // Si el tipo no está en el catálogo se guarda como aeronave sin catalogar
+            String nombre = (descripcion != null && !descripcion.isEmpty())
+                    ? descripcion // Nombre que da la API
+                    : "Aeronave " + (tipoIcao != null ? tipoIcao : "desconocida"); // Nombre genérico
+
+            Avion generico = new Avion(nombre, "Sin catalogar", "COMMON", R.drawable.sil_jet,
+                    "—", "—", "—", "—", "—"); // Avión genérico de rareza común
+            listaAvionesBase.add(0, generico); // Añadirlo al principio de la lista
+            actualizarSpinner(); // Refrescar el spinner con el nuevo elemento
+            spinnerAviones.setSelection(0); // Seleccionarlo
+
             Toast.makeText(this,
-                    "El tipo " + tipoIcao + " no está en el catálogo, elige el modelo a mano",
+                    "Este tipo aún no está en el catálogo: se guardará como aeronave sin catalogar",
                     Toast.LENGTH_LONG).show(); // Avisar al usuario
-            return;
         }
 
-        for (int i = 0; i < listaAvionesBase.size(); i++) { // Recorrer el catálogo del spinner
-            if (listaAvionesBase.get(i).getModelo().equals(detectado.getModelo())) {
-                spinnerAviones.setSelection(i); // Seleccionar el modelo detectado
-                Toast.makeText(this,
-                        "Modelo detectado: " + detectado.getModelo(),
-                        Toast.LENGTH_SHORT).show(); // Avisar al usuario
-                return;
-            }
+        spinnerAviones.setEnabled(false); // El modelo lo determina el avión avistado, no se puede cambiar
+    }
+
+    // Método para comprobar si este avión concreto (por su ICAO) ya está en la colección
+    private boolean yaAvistado(String icao) {
+        if (icao == null) return false; // Sin ICAO no se puede comprobar
+        SharedPreferences prefs =
+                getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE); // Obtener SharedPreferences
+        String json = prefs.getString("lista_aviones", null); // Leer la colección guardada
+        if (json == null) return false; // Colección vacía
+
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Tipo para conversión genérica
+        List<Avion> lista = new Gson().fromJson(json, type); // Convertir JSON a lista de aviones
+        if (lista == null) return false; // Colección vacía
+
+        for (Avion a : lista) { // Recorrer cada avistamiento guardado
+            if (icao.equalsIgnoreCase(a.getIcao24())) return true; // Este avión ya está en la colección
         }
+        return false; // No se ha avistado antes
+    }
+
+    // Método para borrar los datos del avistamiento pendiente guardados desde el mapa
+    private void limpiarAvistamientoPendiente() {
+        getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
+                .edit()
+                .remove("icao_seleccionado")
+                .remove("tipo_seleccionado")
+                .remove("matricula_seleccionada")
+                .remove("descripcion_seleccionada")
+                .remove("fecha_seleccionada")
+                .remove("distancia_seleccionada")
+                .remove("lat_avion_seleccionado")
+                .remove("lon_avion_seleccionado")
+                .apply();
     }
 }

@@ -63,6 +63,7 @@ public class MapaActivity extends AppCompatActivity
     // Configuración de la API de vuelos
     private static final String URL_API_VUELOS = "https://api.adsb.lol/"; // URL base de la API (con airplanes.live sería https://api.airplanes.live/)
     private static final int RADIO_MAXIMO_NM = 250; // Radio máximo que permite la API, en millas náuticas
+    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 30f; // Distancia máxima entre el usuario y el avión para poder avistarlo
     private static final String URL_API_DETALLES = "https://api.adsbdb.com/"; // URL base de la API con el modelo completo, la aerolínea y la ruta
 
     // Tiempo entre cada actualización automática de los vuelos
@@ -127,6 +128,7 @@ public class MapaActivity extends AppCompatActivity
     private String icaoSeleccionado = null; // ICAO del avión seleccionado actualmente
     private String tipoSeleccionado = null; // Código de tipo (por ejemplo A320) del avión seleccionado actualmente
     private String matriculaSeleccionada = null; // Matrícula del avión seleccionado actualmente
+    private Location ultimaUbicacion = null; // Última ubicación conocida del usuario
     private Vuelo vueloSeleccionado = null; // Último dato recibido del vuelo seleccionado
     private Avion avistadoSeleccionado = null; // Avión de la colección que corresponde al vuelo seleccionado (si existe)
     private final Map<String, AdsbdbResponse.Aeronave> cacheAeronaves = new HashMap<>(); // Datos de aeronaves ya descargados (por ICAO)
@@ -231,29 +233,7 @@ public class MapaActivity extends AppCompatActivity
             btnAvistar.setVisibility(View.GONE); // Ocultar botón Avistar
         });
 
-        btnAvistar.setOnClickListener(v -> {
-            if (icaoSeleccionado == null) { // Validar que un avión esté seleccionado
-                Toast.makeText(this,
-                        "Selecciona un avión primero",
-                        Toast.LENGTH_SHORT).show(); // Mostrar mensaje corto
-                return; // Salir si no hay selección
-            }
-
-            // Guardar el ICAO seleccionado en SharedPreferences
-            SharedPreferences prefs =
-                    getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
-
-            prefs.edit()
-                    .putString("icao_seleccionado", icaoSeleccionado)
-                    .putString("tipo_seleccionado", tipoSeleccionado) // Guardar también el tipo para elegir el modelo automáticamente
-                    .putString("matricula_seleccionada", matriculaSeleccionada) // Guardar la matrícula para el registro del avistamiento
-                    .apply();
-
-            // Notificar al usuario que el avión está seleccionado
-            Toast.makeText(this,
-                    "Avión seleccionado. Pulsa + para añadirlo",
-                    Toast.LENGTH_LONG).show(); // Toast largo
-        });
+        btnAvistar.setOnClickListener(v -> avistarSeleccionado()); // Comprobar la distancia y guardar el avistamiento pendiente
     }
 
     // Método llamado cuando la pantalla vuelve a primer plano
@@ -322,10 +302,78 @@ public class MapaActivity extends AppCompatActivity
 
     // Activar el punto azul de ubicación y el botón para centrar el mapa en el usuario
     @SuppressLint("MissingPermission")
+    @SuppressWarnings("deprecation")
     private void activarUbicacion() {
         if (mMap == null) return; // Salir si el mapa aún no está listo
         mMap.setMyLocationEnabled(true); // Mostrar el punto azul con la ubicación del usuario
         mMap.getUiSettings().setMyLocationButtonEnabled(true); // Mostrar el botón que centra el mapa en el usuario
+        mMap.setOnMyLocationChangeListener(location -> ultimaUbicacion = location); // Guardar cada nueva ubicación del usuario
+    }
+
+    // Calcular la distancia en kilómetros entre el usuario y el avión seleccionado (null si no se puede calcular)
+    private Float distanciaAlAvionKm() {
+        if (ultimaUbicacion == null || icaoSeleccionado == null) return null; // Sin ubicación o sin avión seleccionado
+        Marker m = marcadores.get(icaoSeleccionado); // Marcador del avión seleccionado
+        if (m == null) return null; // El avión ya no está en el mapa
+
+        float[] resultado = new float[1]; // Resultado del cálculo en metros
+        Location.distanceBetween(
+                ultimaUbicacion.getLatitude(), ultimaUbicacion.getLongitude(),
+                m.getPosition().latitude, m.getPosition().longitude, resultado); // Distancia entre el usuario y el avión
+        return resultado[0] / 1000f; // Convertir de metros a kilómetros
+    }
+
+    // Comprobar que el usuario está cerca del avión seleccionado y guardar el avistamiento pendiente de añadir
+    private void avistarSeleccionado() {
+        if (icaoSeleccionado == null || vueloSeleccionado == null) { // Validar que un avión esté seleccionado
+            Toast.makeText(this,
+                    "Selecciona un avión primero",
+                    Toast.LENGTH_SHORT).show(); // Mostrar mensaje corto
+            return; // Salir si no hay selección
+        }
+
+        Float distancia = distanciaAlAvionKm(); // Distancia entre el usuario y el avión
+        if (distancia == null) { // No se conoce la ubicación del usuario
+            Toast.makeText(this,
+                    "No se puede comprobar tu ubicación. Activa la ubicación y concede el permiso para avistar aviones",
+                    Toast.LENGTH_LONG).show();
+            return; // Salir sin guardar el avistamiento
+        }
+
+        if (distancia > DISTANCIA_MAXIMA_AVISTAMIENTO_KM) { // El usuario está demasiado lejos
+            Toast.makeText(this,
+                    "Estás a " + Math.round(distancia) + " km del avión. Acércate a menos de "
+                            + Math.round(DISTANCIA_MAXIMA_AVISTAMIENTO_KM) + " km para avistarlo",
+                    Toast.LENGTH_LONG).show();
+            return; // Salir sin guardar el avistamiento
+        }
+
+        Marker m = marcadores.get(icaoSeleccionado); // Marcador del avión seleccionado
+        LatLng posAvion = m != null
+                ? m.getPosition() // Posición actual del avión en el mapa
+                : new LatLng(vueloSeleccionado.latitude, vueloSeleccionado.longitude); // Última posición recibida
+
+        // Nombre del modelo que da la API, por si el tipo no está en el catálogo
+        String nombre = modeloCompleto(cacheAeronaves.get(icaoSeleccionado));
+        if (nombre == null) nombre = vueloSeleccionado.descripcion;
+
+        // Guardar en SharedPreferences el avistamiento verificado, pendiente de añadir
+        getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
+                .edit()
+                .putString("icao_seleccionado", icaoSeleccionado) // Identificador del avión
+                .putString("tipo_seleccionado", tipoSeleccionado) // Tipo para elegir el modelo automáticamente
+                .putString("matricula_seleccionada", matriculaSeleccionada) // Matrícula del avión
+                .putString("descripcion_seleccionada", nombre) // Nombre del modelo según la API
+                .putLong("fecha_seleccionada", System.currentTimeMillis()) // Momento del avistamiento
+                .putFloat("distancia_seleccionada", distancia) // Distancia a la que estaba el usuario
+                .putFloat("lat_avion_seleccionado", (float) posAvion.latitude) // Latitud del avión
+                .putFloat("lon_avion_seleccionado", (float) posAvion.longitude) // Longitud del avión
+                .apply();
+
+        // Notificar al usuario que el avión está avistado
+        Toast.makeText(this,
+                "Avión avistado a " + Math.round(distancia) + " km. Pulsa + para añadirlo",
+                Toast.LENGTH_LONG).show(); // Toast largo
     }
 
     // Método para refrescar el mapa eliminando marcadores antiguos y descargando nuevos
@@ -755,6 +803,13 @@ public class MapaActivity extends AppCompatActivity
                 ? "En tierra" // Avión parado en el suelo
                 : (api.altitude != null ? Math.round(api.altitude) + " m" : "—"); // Altitud redondeada o guion si no hay dato
 
+        // Línea con la distancia al avión, indicando si es demasiado lejos para avistarlo
+        Float distancia = distanciaAlAvionKm();
+        String lineaDistancia = distancia == null
+                ? ""
+                : "Distancia: " + Math.round(distancia) + " km"
+                + (distancia > DISTANCIA_MAXIMA_AVISTAMIENTO_KM ? " (demasiado lejos para avistarlo)" : "") + "\n";
+
         // Línea con el origen y el destino si la API los conoce
         String origen = ruta != null ? describirAeropuerto(ruta.origin) : null;
         String destino = ruta != null ? describirAeropuerto(ruta.destination) : null;
@@ -766,6 +821,7 @@ public class MapaActivity extends AppCompatActivity
                         "Matrícula: " + (api.matricula != null ? api.matricula : "—") + "\n" +
                         "Tipo: " + (api.tipo != null ? api.tipo : "—") + "\n" +
                         (rareza != null ? "Rareza: " + rareza + "\n" : "") +
+                        lineaDistancia +
                         "Velocidad: " + vel + " km/h\n" +
                         "Altitud: " + altitud
         ); // Mostrar otros datos
