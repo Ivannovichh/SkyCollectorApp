@@ -2,22 +2,41 @@
 
 <!-- Contenedor principal vertical que ocupa toda la pantalla -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#0B1021">
+    android:background="#0B1021"
+    android:orientation="vertical">
 
-    <!-- Barra superior con el título de la pantalla -->
-    <TextView
+    <!-- Barra superior con el botón de volver a la izquierda y el título centrado -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/wiki_avi_n_online"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="16dp"
-        android:background="#1F2937"/>
+        android:background="#1F2937"
+        android:padding="12dp">
+
+        <!-- Botón de flecha hacia atrás para regresar a la pantalla principal -->
+        <ImageButton
+            android:id="@+id/btnVolverChat"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Volver atrás"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="#00E5FF" />
+
+        <!-- Título de la pantalla centrado horizontal y verticalmente -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/wiki_avi_n_online"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
 
     <!-- Lista que muestra los mensajes del chat -->
     <androidx.recyclerview.widget.RecyclerView
@@ -25,16 +44,16 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="10dp"/>
+        android:padding="10dp" />
 
     <!-- Contenedor inferior para escribir y enviar mensajes -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
         android:background="#1F2937"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
         <!-- Campo de texto donde el usuario escribe la consulta -->
         <EditText
@@ -42,19 +61,19 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="@string/ej_f_16_falcon"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#90A4AE"
             android:background="@android:color/transparent"
-            android:padding="12dp"/>
+            android:hint="@string/ej_f_16_falcon"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#90A4AE" />
 
         <!-- Botón con icono para enviar el mensaje -->
         <ImageButton
             android:id="@+id/btnEnviar"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_send"
             android:backgroundTint="#03DAC6"
-            android:contentDescription="@string/enviar" />
+            android:contentDescription="@string/enviar"
+            android:src="@android:drawable/ic_menu_send" />
     </LinearLayout>
 </LinearLayout>

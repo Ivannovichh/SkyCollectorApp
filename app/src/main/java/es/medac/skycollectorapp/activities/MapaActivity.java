@@ -2,178 +2,184 @@
 package es.medac.skycollectorapp.activities;
 
 // Importaciones de permisos y contexto del sistema Android
-import android.Manifest; // Permisos del sistema Android para cámara y ubicación
-import android.annotation.SuppressLint; // Anotación para silenciar advertencias de permisos comprobados manualmente
+import android.Manifest; // Permisos del sistema para ubicación GPS
+import android.annotation.SuppressLint; // Silencia avisos de permisos ya verificados manualmente
 import android.content.Context; // Contexto global de la aplicación
-import android.content.SharedPreferences; // Sistema de almacenamiento ligero clave-valor
-import android.content.pm.PackageManager; // Gestor para verificar permisos de la aplicación
-import android.graphics.Bitmap; // Objeto de imagen gráfica en memoria
-import android.graphics.Canvas; // Lienzo para realizar dibujos sobre objetos Bitmap
-import android.graphics.Color; // Utilidad para la gestión de colores RGB y Hexadecimales
-import android.graphics.drawable.Drawable; // Recursos de imagen dibujables en la interfaz
-import android.location.Location; // Objeto que contiene coordenadas y datos de posicionamiento GPS
-import android.os.Bundle; // Contenedor de datos para pasar información entre estados del ciclo de vida
-import android.os.Handler; // Manejador para enviar y procesar mensajes/tareas en el hilo principal
-import android.os.Looper; // Bucle de procesamiento de eventos para el hilo de interfaz
-import android.os.SystemClock; // Reloj de sistema para medir intervalos de tiempo transcurridos
-import android.util.Log; // Utilidad para imprimir registros de depuración en la consola Logcat
-import android.view.View; // Componente base de todos los elementos visuales de la interfaz
-import android.widget.Button; // Componente de la interfaz tipo botón de interacción
-import android.widget.TextView; // Componente de la interfaz para mostrar etiquetas de texto
-import android.widget.Toast; // Notificaciones flotantes de texto breve en pantalla
+import android.content.Intent; // Navegación entre pantallas (Mapa -> Añadir Avión)
+import android.content.pm.PackageManager; // Comprobación de permisos concedidos
+import android.graphics.Bitmap; // Imagen en memoria para construir iconos
+import android.graphics.Canvas; // Lienzo para dibujar recursos sobre un Bitmap
+import android.graphics.Color; // Gestión de colores hexadecimales
+import android.graphics.drawable.Drawable; // Recursos gráficos vectoriales o PNG
+import android.location.Location; // Coordenadas y datos de ubicación GPS
+import android.location.LocationListener; // Escuchador de cambios de posición
+import android.location.LocationManager; // Gestor de servicios de localización del sistema
+import android.os.Bundle; // Contenedor de datos del ciclo de vida
+import android.os.Handler; // Ejecución de tareas programadas en el hilo principal
+import android.os.Looper; // Bucle de mensajes del hilo principal de interfaz
+import android.os.SystemClock; // Reloj del sistema para medir intervalos de tiempo
+import android.util.Log; // Registros de depuración en Logcat
+import android.view.View; // Clase base de los componentes visuales
+import android.widget.Button; // Botón de interacción
+import android.widget.ImageButton; // Botón con icono para volver atrás
+import android.widget.TextView; // Etiqueta de texto
+import android.widget.Toast; // Mensajes emergentes breves
 
 // Importaciones de librerías de soporte AndroidX
-import androidx.activity.result.ActivityResultLauncher; // Lanzador para recibir resultados de actividades
-import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar para solicitar permisos del sistema
-import androidx.annotation.NonNull; // Anotación para indicar parámetros que no deben ser nulos
-import androidx.appcompat.app.AppCompatActivity; // Clase base para actividades con soporte de ActionBar
-import androidx.cardview.widget.CardView; // Tarjeta contenedora con elevación y bordes redondeados
-import androidx.core.content.ContextCompat; // Métodos de compatibilidad para recursos y permisos
+import androidx.activity.result.ActivityResultLauncher; // Lanzador para resultados de permisos
+import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar de solicitud de permisos
+import androidx.annotation.NonNull; // Indica parámetros que no admiten valores nulos
+import androidx.appcompat.app.AppCompatActivity; // Actividad base con soporte moderno
+import androidx.cardview.widget.CardView; // Tarjeta con bordes redondeados y sombra
+import androidx.core.app.ActivityCompat; // Utilidad de compatibilidad para permisos
+import androidx.core.content.ContextCompat; // Acceso compatible a recursos y permisos
 
 // Importaciones del SDK de Google Maps para Android
-import com.google.android.gms.maps.CameraUpdateFactory; // Utilidad para aplicar cambios y animaciones a la cámara del mapa
-import com.google.android.gms.maps.GoogleMap; // Clase principal para controlar el mapa de Google
-import com.google.android.gms.maps.OnMapReadyCallback; // Interfaz que notifica cuando el mapa está listo
-import com.google.android.gms.maps.SupportMapFragment; // Fragmento de interfaz que alberga el componente de mapa
-import com.google.android.gms.maps.model.BitmapDescriptor; // Descriptor gráfico utilizado para definir el icono de un marcador
-import com.google.android.gms.maps.model.BitmapDescriptorFactory; // Fábrica para crear objetos BitmapDescriptor desde distintas fuentes
-import com.google.android.gms.maps.model.LatLng; // Representación de una coordenada geográfica (Latitud, Longitud)
-import com.google.android.gms.maps.model.LatLngBounds; // Rectángulo geográfico definido por coordenadas de esquinas
-import com.google.android.gms.maps.model.Marker; // Representación de un marcador visual posicionado en el mapa
-import com.google.android.gms.maps.model.MarkerOptions; // Conjunto de opciones para personalizar un objeto Marker
-import com.google.android.gms.maps.model.Polyline; // Objeto de línea poligonal dibujada sobre el mapa
-import com.google.android.gms.maps.model.PolylineOptions; // Conjunto de opciones para personalizar una línea Polyline
+import com.google.android.gms.maps.CameraUpdateFactory; // Control de movimiento y zoom de cámara
+import com.google.android.gms.maps.GoogleMap; // Objeto principal del mapa interactivo
+import com.google.android.gms.maps.OnMapReadyCallback; // Notificación cuando el mapa termina de cargar
+import com.google.android.gms.maps.SupportMapFragment; // Fragmento contenedor del mapa
+import com.google.android.gms.maps.model.BitmapDescriptor; // Icono gráfico para marcadores
+import com.google.android.gms.maps.model.BitmapDescriptorFactory; // Generador de iconos BitmapDescriptor
+import com.google.android.gms.maps.model.LatLng; // Par de coordenadas (Latitud, Longitud)
+import com.google.android.gms.maps.model.LatLngBounds; // Límites rectangulares de la zona visible
+import com.google.android.gms.maps.model.Marker; // Marcador visual de cada avión en el mapa
+import com.google.android.gms.maps.model.MarkerOptions; // Configuración de posición, icono y rotación del marcador
+import com.google.android.gms.maps.model.Polyline; // Línea poligonal para dibujar trayectorias
+import com.google.android.gms.maps.model.PolylineOptions; // Estilo visual de las líneas de trayectoria
 
-// Importaciones de la librería Gson para serialización y deserialización de JSON
-import com.google.gson.Gson; // Motor principal para convertir objetos a JSON y viceversa
-import com.google.gson.reflect.TypeToken; // Preservación de tipos de datos genéricos en colecciones para Gson
+// Importaciones de Firebase y Gson
+import com.google.firebase.auth.FirebaseAuth; // Gestión de sesión de Firebase
+import com.google.firebase.auth.FirebaseUser; // Usuario autenticado actual
+import com.google.gson.Gson; // Conversor entre objetos Java y JSON
+import com.google.gson.reflect.TypeToken; // Conservación de tipos genéricos en listas JSON
 
 // Importaciones de utilidades estándar de Java
-import java.text.SimpleDateFormat; // Formateador de fechas para registros
-import java.util.ArrayList; // Estructura de lista dinámicamente redimensionable
-import java.util.Arrays; // Utilidades para la conversión y manipulación de arreglos
-import java.util.Date; // Objeto para gestión de fechas
-import java.util.HashMap; // Colección de mapa basado en pares clave-valor
-import java.util.HashSet; // Colección de conjunto que garantiza elementos únicos sin duplicados
-import java.util.Iterator; // Interfaz para recorrer elementos de una colección
-import java.util.List; // Interfaz para la definición de listas
-import java.util.Locale; // Configuración de región geográfica e idioma para formateo de cadenas
-import java.util.Map; // Interfaz para la definición de mapas
-import java.util.Set; // Interfaz para la definición de conjuntos
+import java.util.ArrayList; // Lista dinámica
+import java.util.Arrays; // Utilidades para listas fijas
+import java.util.HashMap; // Mapa clave-valor en memoria
+import java.util.HashSet; // Conjunto sin elementos duplicados
+import java.util.List; // Interfaz de listas
+import java.util.Locale; // Configuración regional para formatear coordenadas
+import java.util.Map; // Interfaz de mapas
+import java.util.Set; // Interfaz de conjuntos
 
-// Importaciones del paquete propio del proyecto
-import es.medac.skycollectorapp.R; // Recursos generados del proyecto (layouts, drawables, cadenas)
-import es.medac.skycollectorapp.models.AdsbResponse; // Modelo que representa la respuesta de la API de radar en vivo
-import es.medac.skycollectorapp.models.AdsbdbResponse; // Modelo que representa la respuesta de la API de detalles de aeronaves
-import es.medac.skycollectorapp.models.Avion; // Modelo de datos del objeto Avión para la colección
-import es.medac.skycollectorapp.models.Vuelo; // Modelo procesado para almacenar datos de un vuelo en pantalla
-import es.medac.skycollectorapp.network.AdsbService; // Interfaz Retrofit para consultas de tráfico aéreo en vivo
-import es.medac.skycollectorapp.network.AdsbdbService; // Interfaz Retrofit para consultas de fichas técnicas de aeronaves
-import es.medac.skycollectorapp.utils.AvionGenerator; // Clase utilitaria con el catálogo estático de aeronaves
+// Importaciones del proyecto
+import es.medac.skycollectorapp.R; // Recursos de la aplicación
+import es.medac.skycollectorapp.models.AdsbResponse; // Respuesta JSON del radar en vivo
+import es.medac.skycollectorapp.models.AdsbdbResponse; // Respuesta JSON de fichas técnicas y rutas
+import es.medac.skycollectorapp.models.Avion; // Modelo de aeronave capturada
+import es.medac.skycollectorapp.models.Vuelo; // Modelo de vuelo activo en pantalla
+import es.medac.skycollectorapp.network.AdsbService; // Cliente API de tráfico aéreo
+import es.medac.skycollectorapp.network.AdsbdbService; // Cliente API de detalles de aeronaves
+import es.medac.skycollectorapp.utils.AvionGenerator; // Catálogo estático de modelos
 
-// Importaciones de la librería cliente HTTP Retrofit
-import retrofit2.Call; // Representación de una petición HTTP asíncrona de Retrofit
-import retrofit2.Callback; // Interfaz para recibir respuestas o errores de llamadas HTTP
-import retrofit2.Response; // Objeto envoltorio que contiene la respuesta HTTP devuelta por la API
-import retrofit2.Retrofit; // Cliente principal para la creación de servicios de red HTTP
-import retrofit2.converter.gson.GsonConverterFactory; // Conversor de datos JSON a objetos Java para Retrofit
+// Importaciones de Retrofit
+import retrofit2.Call; // Petición HTTP asíncrona
+import retrofit2.Callback; // Respuesta asíncrona de red
+import retrofit2.Response; // Contenedor de respuesta HTTP
+import retrofit2.Retrofit; // Constructor de clientes REST
+import retrofit2.converter.gson.GsonConverterFactory; // Conversor JSON automático para Retrofit
 
-// Clase principal que gestiona la pantalla del mapa interactivo con radares de tráfico aéreo en tiempo real
+/**
+ * Actividad que gestiona el radar aéreo en tiempo real sobre Google Maps.
+ */
 public class MapaActivity extends AppCompatActivity
-        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener { // Implementa los escuchadores de mapa listo y clic en marcadores
+        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // ------------------------------
     // ENUMS Y CONSTANTES DE CONFIGURACIÓN
     // ------------------------------
-    private enum ModoMapa { TODOS, AVISTADOS } // Enumeración para gestionar los modos de filtro del mapa
-    private ModoMapa modoActual = ModoMapa.TODOS; // Modo de visualización seleccionado inicialmente
+    private enum ModoMapa { TODOS, AVISTADOS } // Filtros disponibles en el mapa
+    private ModoMapa modoActual = ModoMapa.TODOS; // Filtro activo por defecto
 
-    private static final String URL_API_VUELOS = "https://api.adsb.lol/"; // Dirección URL base de la API de tráfico aéreo
-    private static final int RADIO_MAXIMO_NM = 250; // Radio máximo de consulta permitido por la API en millas náuticas
-    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 30f; // Distancia límite en kilómetros para permitir avistar un avión
-    private static final String URL_API_DETALLES = "https://api.adsbdb.com/"; // Dirección URL base de la API de fichas de aeronaves
+    private static final String URL_API_VUELOS = "https://api.adsb.lol/"; // API de tráfico aéreo en vivo
+    private static final int RADIO_MAXIMO_NM = 250; // Radio máximo de consulta en millas náuticas
+    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 30f; // Distancia máxima para permitir avistar
+    private static final String URL_API_DETALLES = "https://api.adsbdb.com/"; // API de fichas técnicas y rutas
 
-    private static final long INTERVALO_ACTUALIZACION_MS = 15000; // Tiempo entre descargas automáticas de tráfico (15 segundos)
-    private static final long INTERVALO_ANIMACION_MS = 300; // Frecuencia de recalculación de movimiento suave (300 milisegundos)
-    private static final float ZOOM_MINIMO_ANIMACION = 7f; // Zoom mínimo requerido para ejecutar animaciones de movimiento
-    private static final double RADIO_TIERRA = 6371000.0; // Radio medio constante del planeta Tierra expresado en metros
-    private static final long INTERVALO_PUNTO_TRAYECTORIA_MS = 5000; // Tiempo entre capturas de puntos para el camino del avión (5s)
+    private static final long INTERVALO_ACTUALIZACION_MS = 15000; // Refresco automático del radar cada 15s
+    private static final long INTERVALO_ANIMACION_MS = 300; // Actualización de movimiento suave cada 300ms
+    private static final float ZOOM_MINIMO_ANIMACION = 7f; // Zoom mínimo para animar aviones en pantalla
+    private static final double RADIO_TIERRA = 6371000.0; // Radio terrestre en metros para cálculos geodésicos
+    private static final long INTERVALO_PUNTO_TRAYECTORIA_MS = 5000; // Frecuencia de puntos en la ruta dibujada (5s)
 
     // ------------------------------
     // COMPONENTES PRINCIPALES Y SERVICIOS
     // ------------------------------
-    private GoogleMap mMap; // Referencia al objeto de control del mapa de Google
-    private AdsbService service; // Instancia del servicio Retrofit para consultar datos de tráfico aéreo
-    private AdsbdbService serviceDetalles; // Instancia del servicio Retrofit para consultar datos técnicos detallados
-    private final Handler handler = new Handler(Looper.getMainLooper()); // Manejador asociado al hilo principal de UI
+    private GoogleMap mMap; // Instancia del mapa de Google
+    private AdsbService service; // Servicio de consulta de vuelos
+    private AdsbdbService serviceDetalles; // Servicio de consulta de detalles técnicos
+    private final Handler handler = new Handler(Looper.getMainLooper()); // Programador de tareas en hilo UI
 
-    private boolean activa = false; // Bandera de estado para controlar si la actividad está en primer plano
-    private boolean descargando = false; // Bandera para evitar peticiones de red simultáneas o duplicadas
-    private boolean avisoLimiteMostrado = false; // Bandera para evitar repetir la alerta por exceso de peticiones a la API
-    private long ultimaDescargaManual = 0; // Marca de tiempo para controlar el cooldown entre peticiones manuales y evitar baneos
+    private boolean activa = false; // Controla si la actividad está visible
+    private boolean descargando = false; // Evita solapar peticiones de red simultáneas
+    private boolean avisoLimiteMostrado = false; // Evita repetir alertas de límite de API (HTTP 429)
+    private long ultimaDescargaManual = 0; // Control de tiempo mínimo entre refrescos manuales
 
     // ------------------------------
     // TAREAS PROGRAMADAS (RUNNABLES)
     // ------------------------------
 
-    // Tarea periódica para solicitar la descarga de datos de vuelos y reprogramar su ejecución
+    // Descarga periódicamente el tráfico aéreo de la zona visible
     private final Runnable tareaActualizar = new Runnable() {
         @Override
         public void run() {
-            descargar(false); // Descargar datos de vuelos de forma silenciosa sin avisos de zoom
-            handler.postDelayed(this, INTERVALO_ACTUALIZACION_MS); // Programar la siguiente descarga en 15 segundos
+            descargar(false);
+            handler.postDelayed(this, INTERVALO_ACTUALIZACION_MS);
         }
     };
 
-    // Tarea periódica para recalcular la ubicación proyectada de los aviones y moverlos suavemente
+    // Recalcula periódicamente la posición estimada de los aviones para moverlos con fluidez
     private final Runnable tareaAnimar = new Runnable() {
         @Override
         public void run() {
-            animarMarcadores(); // Mover marcadores a la coordenada interpolada en base a su velocidad
-            handler.postDelayed(this, INTERVALO_ANIMACION_MS); // Programar la siguiente recalculación en 300ms
+            animarMarcadores();
+            handler.postDelayed(this, INTERVALO_ANIMACION_MS);
         }
     };
 
     // ------------------------------
     // COMPONENTES DE INTERFAZ Y COLECCIONES
     // ------------------------------
-    private CardView panel; // Contenedor tipo tarjeta que muestra la información del avión seleccionado
-    private TextView txtModelo, txtDatos; // Campos de texto para mostrar nombre, fabricante y telemetría del avión
-    private Button btnAvistar, btnTodos, btnAvistados; // Botones para realizar el avistamiento y cambiar filtros
+    private CardView panel; // Tarjeta inferior con información del vuelo seleccionado
+    private TextView txtModelo, txtDatos; // Textos de título y telemetría del panel
+    private Button btnAvistar, btnTodos, btnAvistados; // Botones de acción y filtrado
+    private ImageButton btnVolverMapa; // Botón flotante para regresar a la pantalla principal
 
-    private final List<Avion> miColeccion = new ArrayList<>(); // Lista local con los aviones capturados por el usuario
-    private final Map<String, Avion> coleccionPorIcao = new HashMap<>(); // Mapa de acceso rápido para buscar aviones capturados por su ICAO
-    private final Map<String, Marker> marcadores = new HashMap<>(); // Mapa para asociar cada código ICAO con su Marker en el mapa
-    private final Map<Integer, BitmapDescriptor> cacheIconos = new HashMap<>(); // Caché para almacenar y reutilizar los iconos generados
-    private final Map<String, EstadoVuelo> estados = new HashMap<>(); // Mapa para guardar el último estado de telemetría de cada vuelo
-    private final List<LatLng> puntosTrayectoria = new ArrayList<>(); // Lista de puntos de coordenadas que forman la ruta del avión activo
+    private final List<Avion> miColeccion = new ArrayList<>(); // Lista de aviones capturados por el usuario
+    private final Map<String, Avion> coleccionPorIcao = new HashMap<>(); // Índice rápido por código ICAO
+    private final Map<String, Marker> marcadores = new HashMap<>(); // Marcadores activos en el mapa por ICAO
+    private final Map<Integer, BitmapDescriptor> cacheIconos = new HashMap<>(); // Caché de iconos generados
+    private final Map<String, EstadoVuelo> estados = new HashMap<>(); // Telemetría base de cada vuelo para interpolación
+    private final List<LatLng> puntosTrayectoria = new ArrayList<>(); // Coordenadas de la estela del avión seleccionado
 
-    private Polyline lineaHistorial; // Objeto Polyline para dibujar el tramo histórico recorrido por el avión
-    private Polyline lineaActual; // Objeto Polyline para conectar la posición anterior del historial con la posición viva
-    private long ultimoPuntoTrayectoria = 0; // Registro temporal del instante en que se añadió el último punto a la trayectoria
+    private Polyline lineaHistorial; // Línea azul del recorrido histórico
+    private Polyline lineaActual; // Tramo final entre el último punto fijo y el icono en movimiento
+    private long ultimoPuntoTrayectoria = 0; // Timestamp del último punto añadido a la ruta
 
-    private String icaoSeleccionado = null; // Código ICAO del avión seleccionado en el mapa
-    private String tipoSeleccionado = null; // Código ICAO de tipo de aeronave del avión seleccionado
-    private String matriculaSeleccionada = null; // Matrícula de la aeronave seleccionada
-    private Location ultimaUbicacion = null; // Última posición GPS del usuario obtenida en el sistema
-    private Vuelo vueloSeleccionado = null; // Objeto Vuelo asociado al avión seleccionado actualmente
-    private Avion avistadoSeleccionado = null; // Objeto Avion de la colección local coincidente si ya fue avistado
+    private String icaoSeleccionado = null; // ICAO del avión seleccionado
+    private String tipoSeleccionado = null; // Código de tipo ICAO del avión seleccionado
+    private String matriculaSeleccionada = null; // Matrícula del avión seleccionado
+    private Location ultimaUbicacion = null; // Última posición GPS conocida del dispositivo
+    private Vuelo vueloSeleccionado = null; // Datos de vuelo de la aeronave seleccionada
+    private Avion avistadoSeleccionado = null; // Datos de colección si el avión ya fue avistado
 
-    private final Map<String, AdsbdbResponse.Aeronave> cacheAeronaves = new HashMap<>(); // Caché en memoria para almacenar fichas de aeronaves
-    private final Map<String, AdsbdbResponse.RutaVuelo> cacheRutas = new HashMap<>(); // Caché en memoria para almacenar rutas de vuelos
-    private final Set<String> aeronavesNoDisponibles = new HashSet<>(); // Conjunto de códigos ICAO no encontrados en la API para omitir reintentos
-    private final Set<String> rutasNoDisponibles = new HashSet<>(); // Conjunto de indicativos no encontrados en la API para omitir reintentos
+    private final Map<String, AdsbdbResponse.Aeronave> cacheAeronaves = new HashMap<>(); // Caché de fichas técnicas
+    private final Map<String, AdsbdbResponse.RutaVuelo> cacheRutas = new HashMap<>(); // Caché de rutas comerciales
+    private final Set<String> aeronavesNoDisponibles = new HashSet<>(); // ICAOs sin ficha para evitar reintentos
+    private final Set<String> rutasNoDisponibles = new HashSet<>(); // Indicativos sin ruta para evitar reintentos
 
-    // Lanzador para solicitar los permisos de ubicación en tiempo de ejecución
+    // Gestiona la respuesta del usuario al solicitar permisos de ubicación GPS
     private final ActivityResultLauncher<String[]> permisoUbicacionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 boolean concedido =
                         Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))
-                                || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION)); // Validar si se aceptó al menos un permiso
+                                || Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
                 if (concedido) {
-                    activarUbicacion(); // Activar capa de posición si se concede el permiso
+                    activarUbicacion();
                 } else {
-                    Toast.makeText(this, "Sin permiso no se puede mostrar tu ubicación", Toast.LENGTH_SHORT).show(); // Informar en caso de rechazo
+                    Toast.makeText(this, "Sin permiso no se puede mostrar tu ubicación", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -181,13 +187,15 @@ public class MapaActivity extends AppCompatActivity
     // CLASE INTERNA DE ESTADO DE VUELO
     // ------------------------------
 
-    // Estructura interna para almacenar la velocidad, rumbo y tiempo de lectura de un avión y proyectar su movimiento
+    /**
+     * Guarda la última lectura real de un vuelo para proyectar su avance entre actualizaciones.
+     */
     private static class EstadoVuelo {
-        final double lat; // Última latitud real reportada por la API
-        final double lon; // Última longitud real reportada por la API
-        final double velocidad; // Velocidad del avión medida en metros por segundo
-        final double rumbo; // Rumbo del avión medido en grados sexagesimales
-        final long tiempoBase; // Marca de tiempo en milisegundos de la recepción del dato
+        final double lat;
+        final double lon;
+        final double velocidad;
+        final double rumbo;
+        final long tiempoBase;
 
         EstadoVuelo(double lat, double lon, double velocidad, double rumbo, long tiempoBase) {
             this.lat = lat;
@@ -197,16 +205,18 @@ public class MapaActivity extends AppCompatActivity
             this.tiempoBase = tiempoBase;
         }
 
-        // Estima y devuelve la posición geográfica esperada del avión en función del tiempo transcurrido
+        /**
+         * Calcula la coordenada proyectada del avión en el instante indicado.
+         */
         LatLng posicionEn(long ahora) {
-            double segundos = Math.min((ahora - tiempoBase) / 1000.0, 60); // Limitar la estimación a un máximo de 60 segundos
-            double distancia = velocidad * segundos; // Calcular la distancia estimada en metros
-            double rumboRad = Math.toRadians(rumbo); // Convertir el rumbo sexagesimal a radianes
+            double segundos = Math.min((ahora - tiempoBase) / 1000.0, 60);
+            double distancia = velocidad * segundos;
+            double rumboRad = Math.toRadians(rumbo);
 
-            double dLat = (distancia * Math.cos(rumboRad)) / RADIO_TIERRA; // Desplazamiento estimado en latitud (radianes)
-            double dLon = (distancia * Math.sin(rumboRad)) / (RADIO_TIERRA * Math.cos(Math.toRadians(lat))); // Desplazamiento estimado en longitud (radianes)
+            double dLat = (distancia * Math.cos(rumboRad)) / RADIO_TIERRA;
+            double dLon = (distancia * Math.sin(rumboRad)) / (RADIO_TIERRA * Math.cos(Math.toRadians(lat)));
 
-            return new LatLng(lat + Math.toDegrees(dLat), lon + Math.toDegrees(dLon)); // Devolver la coordenada geográfica interpolada
+            return new LatLng(lat + Math.toDegrees(dLat), lon + Math.toDegrees(dLon));
         }
     }
 
@@ -214,208 +224,367 @@ public class MapaActivity extends AppCompatActivity
     // MÉTODOS DEL CICLO DE VIDA
     // ------------------------------
 
+    /**
+     * Inicializa la vista, los clientes Retrofit y los eventos de los botones.
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) { // Método invocado al crear la actividad
-        super.onCreate(savedInstanceState); // Ejecutar código base del padre
-        setContentView(R.layout.activity_mapa); // Cargar el diseño XML de la pantalla del mapa
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_mapa);
 
-        // Asociar las variables de la clase con los componentes del XML
-        panel = findViewById(R.id.card_info_vuelo); // Tarjeta desplegable del vuelo
-        txtModelo = findViewById(R.id.txt_modelo_panel); // Texto de modelo del panel
-        txtDatos = findViewById(R.id.txt_datos_panel); // Texto de datos técnicos del panel
-        btnAvistar = findViewById(R.id.btn_avistar); // Botón para registrar el avistamiento
-        btnTodos = findViewById(R.id.btn_todos); // Botón de filtro para ver todos los vuelos
-        btnAvistados = findViewById(R.id.btn_avistados); // Botón de filtro para ver solo avistados
+        panel = findViewById(R.id.card_info_vuelo);
+        txtModelo = findViewById(R.id.txt_modelo_panel);
+        txtDatos = findViewById(R.id.txt_datos_panel);
+        btnAvistar = findViewById(R.id.btn_avistar);
+        btnTodos = findViewById(R.id.btn_todos);
+        btnAvistados = findViewById(R.id.btn_avistados);
+        btnVolverMapa = findViewById(R.id.btn_volver_mapa);
 
-        cargarColeccion(); // Leer la colección local guardada en SharedPreferences
+        btnVolverMapa.setOnClickListener(v -> finish());
 
-        // Configurar el cliente Retrofit para las consultas a la API de tráfico aéreo
+        cargarColeccion();
+
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(URL_API_VUELOS) // Asignar la URL base de vuelos
-                .addConverterFactory(GsonConverterFactory.create()) // Añadir conversor JSON
+                .baseUrl(URL_API_VUELOS)
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        service = retrofit.create(AdsbService.class); // Crear instancia de la interfaz
+        service = retrofit.create(AdsbService.class);
 
-        // Configurar el cliente Retrofit para las consultas a la API de fichas de aeronaves
         Retrofit retrofitDetalles = new Retrofit.Builder()
-                .baseUrl(URL_API_DETALLES) // Asignar la URL base de fichas
-                .addConverterFactory(GsonConverterFactory.create()) // Añadir conversor JSON
+                .baseUrl(URL_API_DETALLES)
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        serviceDetalles = retrofitDetalles.create(AdsbdbService.class); // Crear instancia de la interfaz
+        serviceDetalles = retrofitDetalles.create(AdsbdbService.class);
 
-        // Obtener la referencia al fragmento del mapa y suscribir el callback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
-            mapFragment.getMapAsync(this); // Iniciar la carga del mapa asíncronamente
+            mapFragment.getMapAsync(this);
         }
 
-        // Configurar acción al pulsar el botón de ver todos los vuelos
         btnTodos.setOnClickListener(v -> {
-            modoActual = ModoMapa.TODOS; // Cambiar el filtro a modo TODOS
-            refrescarMapa(); // Limpiar y volver a pedir datos
-            btnAvistar.setVisibility(View.VISIBLE); // Hacer visible el botón de avistar
+            modoActual = ModoMapa.TODOS;
+            refrescarMapa();
+            btnAvistar.setVisibility(View.VISIBLE);
         });
 
-        // Configurar acción al pulsar el botón de ver solo aviones avistados
         btnAvistados.setOnClickListener(v -> {
-            modoActual = ModoMapa.AVISTADOS; // Cambiar el filtro a modo AVISTADOS
-            refrescarMapa(); // Limpiar y volver a pedir datos
-            btnAvistar.setVisibility(View.GONE); // Ocultar el botón de avistar
+            modoActual = ModoMapa.AVISTADOS;
+            refrescarMapa();
+            btnAvistar.setVisibility(View.GONE);
         });
 
-        // Configurar acción al pulsar el botón de avistar
-        btnAvistar.setOnClickListener(v -> avistarSeleccionado()); // Procesar la verificación del avistamiento
+        btnAvistar.setOnClickListener(v -> avistarSeleccionado());
+
+        panel.setOnClickListener(v -> abrirDetalleVueloCompleto());
     }
 
+    /**
+     * Reactiva el radar, las animaciones y actualiza el estado si se acaba de capturar un avión.
+     */
     @Override
-    protected void onResume() { // Método invocado cuando la actividad vuelve a estar visible
-        super.onResume(); // Llamada al método base
-        activa = true; // Marcar el estado como activo
-        handler.removeCallbacks(tareaActualizar); // Limpiar ejecuciones pendientes de descargas
-        handler.postDelayed(tareaActualizar, 1000); // Programar la primera descarga tras 1 segundo
-        handler.removeCallbacks(tareaAnimar); // Limpiar ejecuciones pendientes de animación
-        handler.postDelayed(tareaAnimar, INTERVALO_ANIMACION_MS); // Programar el inicio de las animaciones suaves
+    protected void onResume() {
+        super.onResume();
+        activa = true;
+        cargarColeccion();
+
+        if (icaoSeleccionado != null) {
+            Avion recienAvistado = buscarPorIcao(icaoSeleccionado);
+            if (recienAvistado != null) {
+                avistadoSeleccionado = recienAvistado;
+                Marker m = marcadores.get(icaoSeleccionado);
+                if (m != null) {
+                    m.setIcon(iconoSegunRareza(recienAvistado.getRareza()));
+                    m.setTag(new Object[]{vueloSeleccionado, recienAvistado});
+                }
+                btnAvistar.setVisibility(View.GONE);
+                if (panel.getVisibility() == View.VISIBLE) pintarPanel();
+            }
+        }
+
+        handler.removeCallbacks(tareaActualizar);
+        handler.postDelayed(tareaActualizar, 1000);
+        handler.removeCallbacks(tareaAnimar);
+        handler.postDelayed(tareaAnimar, INTERVALO_ANIMACION_MS);
     }
 
+    /**
+     * Pausa las tareas de red y animación cuando la pantalla pasa a segundo plano.
+     */
     @Override
-    protected void onPause() { // Método invocado cuando la actividad pasa a segundo plano
-        super.onPause(); // Llamada al método base
-        activa = false; // Marcar el estado como inactivo
-        handler.removeCallbacks(tareaActualizar); // Cancelar las descargas en segundo plano para ahorrar datos
-        handler.removeCallbacks(tareaAnimar); // Cancelar la animación de los marcadores para ahorrar procesador
+    protected void onPause() {
+        super.onPause();
+        activa = false;
+        handler.removeCallbacks(tareaActualizar);
+        handler.removeCallbacks(tareaAnimar);
     }
 
     // ------------------------------
     // CONFIGURACIÓN Y CALLBACKS DEL MAPA
     // ------------------------------
 
+    /**
+     * Configura los escuchadores y controles una vez que el mapa está listo.
+     */
     @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) { // Callback invocado cuando el mapa está completamente cargado
-        mMap = googleMap; // Almacenar la referencia al objeto GoogleMap
-        mMap.setOnMarkerClickListener(this); // Asignar la propia clase como escuchadora de clics en marcadores
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
 
-        // Configurar el evento de toque en una zona vacía del mapa
         mMap.setOnMapClickListener(latLng -> {
-            panel.setVisibility(View.GONE); // Ocultar el panel inferior de información
-            ajustarPaddingMapa(false); // Restablecer la posición original de los botones del mapa
-            borrarTrayectoria(); // Eliminar las líneas de ruta dibujadas
+            panel.setVisibility(View.GONE);
+            ajustarPaddingMapa(false);
+            borrarTrayectoria();
         });
 
-        mMap.getUiSettings().setZoomControlsEnabled(true); // Habilitar los controles de Zoom visuales (+ / -)
-        pedirOActivarUbicacion(); // Verificar permisos de GPS y activar la capa de posición si procede
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        pedirOActivarUbicacion();
 
-        // Centrar la vista inicial del mapa con un nivel de zoom adecuado
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(48.0, 10.0), 7));
-
-        if (activa) { // Si la pantalla está activa al completar la carga
-            handler.removeCallbacks(tareaActualizar); // Limpiar tareas pendientes
-            handler.postDelayed(tareaActualizar, 1000); // Disparar actualización de vuelos tras 1s
+        if (activa) {
+            handler.removeCallbacks(tareaActualizar);
+            handler.postDelayed(tareaActualizar, 1000);
         }
     }
 
-    // Comprueba el estado de los permisos de GPS e inicia la solicitud o la activación según corresponda
+    /**
+     * Comprueba los permisos de ubicación o lanza la solicitud si aún no se han concedido.
+     */
     private void pedirOActivarUbicacion() {
-        boolean fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED; // Comprobar GPS preciso
-        boolean coarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED; // Comprobar GPS de red
+        boolean fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean coarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (fine || coarse) {
-            activarUbicacion(); // Si se cuenta con algún permiso, activar la capa de usuario
+            activarUbicacion();
         } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4168, -3.7038), 6f));
             permisoUbicacionLauncher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
-            }); // Solicitar permisos mediante el lanzador estándar
+            });
         }
     }
 
-    // Activa la capa del punto azul del mapa que señala la ubicación GPS del usuario
+    /**
+     * Activa el punto azul de posición, escucha cambios GPS y centra la cámara en el usuario.
+     */
     @SuppressLint("MissingPermission")
     @SuppressWarnings("deprecation")
     private void activarUbicacion() {
-        if (mMap == null) return; // Salir si la instancia del mapa no existe
-        mMap.setMyLocationEnabled(true); // Habilitar el punto azul de ubicación
-        mMap.getUiSettings().setMyLocationButtonEnabled(true); // Habilitar el botón para centrar la cámara en el usuario
-        mMap.setOnMyLocationChangeListener(location -> ultimaUbicacion = location); // Registrar los cambios de posición del usuario
+        if (mMap == null) return;
+        mMap.setMyLocationEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnMyLocationChangeListener(location -> ultimaUbicacion = location);
+
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (lm != null) {
+            Location gps = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location net = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            ultimaUbicacion = gps != null ? gps : net;
+
+            LocationListener locListener = location -> ultimaUbicacion = location;
+            if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10f, locListener);
+            }
+            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10f, locListener);
+            }
+        }
+
+        centrarEnUbicacionActual();
+    }
+
+    /**
+     * Centra la cámara del mapa en la última ubicación conocida o solicita una lectura puntual.
+     */
+    @SuppressLint("MissingPermission")
+    private void centrarEnUbicacionActual() {
+        if (mMap == null) return;
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4168, -3.7038), 6f));
+            return;
+        }
+
+        if (ultimaUbicacion != null) {
+            LatLng miPosicion = new LatLng(ultimaUbicacion.getLatitude(), ultimaUbicacion.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+            return;
+        }
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null) return;
+
+        Location ubicacion = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (ubicacion == null) {
+            ubicacion = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+
+        if (ubicacion != null) {
+            ultimaUbicacion = ubicacion;
+            LatLng miPosicion = new LatLng(ubicacion.getLatitude(), ubicacion.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4168, -3.7038), 6f));
+            String proveedor = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    ? LocationManager.GPS_PROVIDER
+                    : LocationManager.NETWORK_PROVIDER;
+
+            locationManager.requestSingleUpdate(proveedor, location -> {
+                ultimaUbicacion = location;
+                LatLng miPosicion = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+            }, null);
+        }
     }
 
     // ------------------------------
     // LÓGICA DE AVISTAMIENTO Y DISTANCIAS
     // ------------------------------
 
-    // Calcula la distancia en kilómetros entre el usuario y el avión seleccionado actualmente
+    /**
+     * Calcula la distancia en kilómetros entre el usuario y el avión seleccionado.
+     */
     private Float distanciaAlAvionKm() {
-        if (ultimaUbicacion == null || icaoSeleccionado == null) return null; // Retornar nulo si no hay GPS o avión elegido
-        Marker m = marcadores.get(icaoSeleccionado); // Obtener el marcador activo del avión
-        if (m == null) return null; // Retornar nulo si el avión ya no existe en el mapa
+        if (ultimaUbicacion == null || icaoSeleccionado == null) return null;
+        Marker m = marcadores.get(icaoSeleccionado);
+        if (m == null) return null;
 
-        float[] resultado = new float[1]; // Arreglo para almacenar la distancia calculada en metros
+        float[] resultado = new float[1];
         Location.distanceBetween(
                 ultimaUbicacion.getLatitude(), ultimaUbicacion.getLongitude(),
-                m.getPosition().latitude, m.getPosition().longitude, resultado); // Calcular distancia geodésica
-        return resultado[0] / 1000f; // Convertir y devolver el resultado en kilómetros
+                m.getPosition().latitude, m.getPosition().longitude, resultado);
+        return resultado[0] / 1000f;
     }
 
-    // Valida la proximidad física del usuario y registra un avistamiento verificado pendiente de guardado
+    /**
+     * Valida la distancia al avión, guarda sus datos temporales y abre AddAvionActivity directamente.
+     */
     private void avistarSeleccionado() {
-        if (icaoSeleccionado == null || vueloSeleccionado == null) { // Comprobar selección activa
-            Toast.makeText(this, "Selecciona un avión primero", Toast.LENGTH_SHORT).show(); // Avisar al usuario
-            return; // Interrumpir ejecución
+        if (icaoSeleccionado == null || vueloSeleccionado == null) {
+            Toast.makeText(this, "Selecciona un avión primero", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        Float distancia = distanciaAlAvionKm(); // Obtener la distancia actual en kilómetros
-        if (distancia == null) { // Comprobar disponibilidad de ubicación GPS
+        Float distancia = distanciaAlAvionKm();
+        if (distancia == null) {
             Toast.makeText(this, "No se puede comprobar tu ubicación. Activa la ubicación y concede el permiso para avistar aviones", Toast.LENGTH_LONG).show();
-            return; // Interrumpir ejecución
+            return;
         }
 
-        if (distancia > DISTANCIA_MAXIMA_AVISTAMIENTO_KM) { // Comprobar si el usuario supera el límite de distancia
+        if (distancia > DISTANCIA_MAXIMA_AVISTAMIENTO_KM) {
             Toast.makeText(this, "Estás a " + Math.round(distancia) + " km del avión. Acércate a menos de " + Math.round(DISTANCIA_MAXIMA_AVISTAMIENTO_KM) + " km para avistarlo", Toast.LENGTH_LONG).show();
-            return; // Interrumpir ejecución
+            return;
         }
 
-        Marker m = marcadores.get(icaoSeleccionado); // Obtener marcador actual
-        LatLng posAvion = m != null ? m.getPosition() : new LatLng(vueloSeleccionado.latitude, vueloSeleccionado.longitude); // Obtener coordenadas vivas
+        Marker m = marcadores.get(icaoSeleccionado);
+        LatLng posAvion = m != null ? m.getPosition() : new LatLng(vueloSeleccionado.latitude, vueloSeleccionado.longitude);
 
-        String nombre = modeloCompleto(cacheAeronaves.get(icaoSeleccionado)); // Obtener nombre desde la caché técnica
-        if (nombre == null) nombre = vueloSeleccionado.descripcion; // Usar descripción básica si no hay ficha técnica
+        String nombre = modeloCompleto(cacheAeronaves.get(icaoSeleccionado));
+        if (nombre == null) nombre = vueloSeleccionado.descripcion;
 
-        // Escribir los datos del avistamiento validado en SharedPreferences como pendiente
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
                 .edit()
-                .putString("icao_seleccionado", icaoSeleccionado) // Guardar identificador ICAO
-                .putString("tipo_seleccionado", tipoSeleccionado) // Guardar tipo de avión
-                .putString("matricula_seleccionada", matriculaSeleccionada) // Guardar matrícula de la aeronave
-                .putString("descripcion_seleccionada", nombre) // Guardar descripción o modelo
-                .putLong("fecha_seleccionada", System.currentTimeMillis()) // Guardar fecha y hora actual
-                .putFloat("distancia_seleccionada", distancia) // Guardar distancia registrada
-                .putFloat("lat_avion_seleccionado", (float) posAvion.latitude) // Guardar latitud del avión
-                .putFloat("lon_avion_seleccionado", (float) posAvion.longitude) // Guardar longitud del avión
-                .apply(); // Confirmar escritura asíncrona
+                .putString("icao_seleccionado", icaoSeleccionado)
+                .putString("tipo_seleccionado", tipoSeleccionado)
+                .putString("matricula_seleccionada", matriculaSeleccionada)
+                .putString("descripcion_seleccionada", nombre)
+                .putLong("fecha_seleccionada", System.currentTimeMillis())
+                .putFloat("distancia_seleccionada", distancia)
+                .putFloat("lat_avion_seleccionado", (float) posAvion.latitude)
+                .putFloat("lon_avion_seleccionado", (float) posAvion.longitude)
+                .apply();
 
-        Toast.makeText(this, "Avión avistado a " + Math.round(distancia) + " km. Pulsa + para añadirlo", Toast.LENGTH_LONG).show(); // Informar de éxito
+        Intent intent = new Intent(MapaActivity.this, AddAvionActivity.class);
+        startActivity(intent);
     }
 
-    // Limpia los componentes del mapa y reanuda la descarga de nuevos datos
+    /**
+     * Abre la pantalla completa con la carta, especificaciones y foto de catálogo
+     * del avión seleccionado actualmente en el radar, respetando su apodo si ya fue capturado.
+     */
+    private void abrirDetalleVueloCompleto() {
+        if (icaoSeleccionado == null || vueloSeleccionado == null) return;
+
+        AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(icaoSeleccionado);
+        AdsbdbResponse.RutaVuelo ruta = vueloSeleccionado.callsign != null ? cacheRutas.get(vueloSeleccionado.callsign) : null;
+
+        // Obtener siempre el nombre oficial del modelo para localizar su ilustración en el catálogo
+        String modeloOficial = modeloCompleto(aeronave);
+        if (modeloOficial == null && vueloSeleccionado.descripcion != null) {
+            modeloOficial = vueloSeleccionado.descripcion;
+        }
+
+        // Comprobar si el usuario ya avistó este avión y le asignó un apodo personalizado
+        String apodoUsuario = null;
+        if (avistadoSeleccionado != null && avistadoSeleccionado.getModelo() != null
+                && !avistadoSeleccionado.getModelo().trim().isEmpty()) {
+            apodoUsuario = avistadoSeleccionado.getModelo().trim();
+        }
+
+        String empresa = null;
+        if (ruta != null && ruta.airline != null && ruta.airline.name != null) {
+            empresa = ruta.airline.name;
+        } else if (aeronave != null && aeronave.registeredOwner != null) {
+            empresa = formatearNombre(aeronave.registeredOwner);
+        } else if (avistadoSeleccionado != null) {
+            empresa = avistadoSeleccionado.getFabricante();
+        }
+
+        String origen = ruta != null ? describirAeropuerto(ruta.origin) : null;
+        String destino = ruta != null ? describirAeropuerto(ruta.destination) : null;
+        String lineaRuta = (origen != null && destino != null) ? origen + " → " + destino : null;
+
+        int velKmh = vueloSeleccionado.velocity != null ? (int) (vueloSeleccionado.velocity * 3.6) : 0;
+        String altitud = vueloSeleccionado.enTierra ? "En tierra"
+                : (vueloSeleccionado.altitude != null ? Math.round(vueloSeleccionado.altitude) + " m" : "—");
+
+        Float distancia = distanciaAlAvionKm();
+        Marker m = marcadores.get(icaoSeleccionado);
+        double lat = m != null ? m.getPosition().latitude : vueloSeleccionado.latitude;
+        double lon = m != null ? m.getPosition().longitude : vueloSeleccionado.longitude;
+
+        Intent intent = new Intent(this, DetalleVueloRadarActivity.class);
+        intent.putExtra("icao", icaoSeleccionado);
+        intent.putExtra("tipo", tipoSeleccionado);
+        intent.putExtra("matricula", matriculaSeleccionada);
+        intent.putExtra("modelo", modeloOficial);
+        intent.putExtra("apodo", apodoUsuario);
+        intent.putExtra("empresa", empresa);
+        intent.putExtra("ruta", lineaRuta);
+        intent.putExtra("velocidad_kmh", velKmh);
+        intent.putExtra("altitud", altitud);
+        intent.putExtra("distancia_km", distancia != null ? distancia : -1f);
+        intent.putExtra("lat_avion", lat);
+        intent.putExtra("lon_avion", lon);
+        intent.putExtra("ya_avistado", avistadoSeleccionado != null);
+        startActivity(intent);
+    }
+
+    /**
+     * Limpia los marcadores y trayectorias actuales y fuerza una nueva descarga.
+     */
     private void refrescarMapa() {
-        for (Marker m : marcadores.values()) m.remove(); // Eliminar individualmente todos los marcadores del mapa
-        marcadores.clear(); // Limpiar el mapa de marcadores de memoria
-        estados.clear(); // Limpiar las estructuras de telemetría de movimiento
-        borrarTrayectoria(); // Eliminar las líneas de ruta trazadas
-        panel.setVisibility(View.GONE); // Ocultar la tarjeta de datos
-        ajustarPaddingMapa(false); // Restablecer margen inferior del mapa
-        descargar(true); // Forzar la descarga con alertas visibles
+        for (Marker m : marcadores.values()) m.remove();
+        marcadores.clear();
+        estados.clear();
+        borrarTrayectoria();
+        panel.setVisibility(View.GONE);
+        ajustarPaddingMapa(false);
+        descargar(true);
     }
 
-    // Modifica los márgenes del mapa para que los controles de Google no queden tapados por el panel
+    /**
+     * Ajusta el margen inferior del mapa para que el panel no tape los controles de Google.
+     */
     private void ajustarPaddingMapa(boolean panelVisible) {
-        if (mMap == null) return; // Salir si el mapa no ha sido creado
+        if (mMap == null) return;
         if (panelVisible) {
-            panel.post(() -> { // Esperar al cálculo de dimensiones de la tarjeta
-                int margen = (int) (16 * getResources().getDisplayMetrics().density); // Convertir 16dp a píxeles
-                mMap.setPadding(0, 0, 0, panel.getHeight() + margen * 2); // Desplazar controles por encima del panel
+            panel.post(() -> {
+                int margen = (int) (16 * getResources().getDisplayMetrics().density);
+                mMap.setPadding(0, 0, 0, panel.getHeight() + margen * 2);
             });
         } else {
-            mMap.setPadding(0, 0, 0, 0); // Restablecer margen nulo
+            mMap.setPadding(0, 0, 0, 0);
         }
     }
 
@@ -423,61 +592,73 @@ public class MapaActivity extends AppCompatActivity
     // COLECCIÓN LOCAL Y DESCARGA API
     // ------------------------------
 
-    // Carga la colección de aviones del usuario almacenada previamente en SharedPreferences
+    /**
+     * Devuelve la clave de SharedPreferences correspondiente a la lista del usuario activo.
+     */
+    private String getClaveListaUsuario() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo";
+    }
+
+    /**
+     * Carga en memoria la colección de aviones capturados por el usuario actual.
+     */
     private void cargarColeccion() {
-        miColeccion.clear(); // Vaciar la lista en memoria
-        coleccionPorIcao.clear(); // Vaciar el índice por código ICAO
+        miColeccion.clear();
+        coleccionPorIcao.clear();
 
-        String json = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE).getString("lista_aviones", null); // Leer JSON
-        if (json == null) return; // Salir si no hay colección registrada
+        String json = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE).getString(getClaveListaUsuario(), null);
+        if (json == null) return;
 
-        List<Avion> lista = new Gson().fromJson(json, new TypeToken<ArrayList<Avion>>() {}.getType()); // Deserializar lista
-        if (lista != null) miColeccion.addAll(lista); // Añadir a la colección principal
+        List<Avion> lista = new Gson().fromJson(json, new TypeToken<ArrayList<Avion>>() {}.getType());
+        if (lista != null) miColeccion.addAll(lista);
 
-        for (Avion a : miColeccion) { // Indexar cada avión por su ICAO en minúsculas
+        for (Avion a : miColeccion) {
             if (a.getIcao24() != null) {
                 coleccionPorIcao.put(a.getIcao24().toLowerCase(), a);
             }
         }
     }
 
-    // Busca si un código ICAO específico ya pertenece a la colección de avistados
+    /**
+     * Comprueba si un código ICAO pertenece a un avión ya avistado por el usuario.
+     */
     private Avion buscarPorIcao(String icao) {
-        if (icao == null) return null; // Devolver nulo si el código es inválido
-        return coleccionPorIcao.get(icao.toLowerCase()); // Consultar en el índice O(1) de memoria
+        if (icao == null) return null;
+        return coleccionPorIcao.get(icao.toLowerCase());
     }
 
-    // Solicita a la API de tráfico aéreo los vuelos presentes dentro de la ventana visible del mapa
+    /**
+     * Descarga de la API los vuelos activos dentro de la región visible en pantalla.
+     */
     private void descargar(boolean avisar) {
-        if (mMap == null || descargando) return; // Salir si el mapa no está listo o ya hay una petición en curso
+        if (mMap == null || descargando) return;
 
-        // PROTECCIÓN ANTI-BANEO API: Si es petición manual, exigir intervalo mínimo de 10 segundos
         if (avisar) {
-            long ahora = SystemClock.elapsedRealtime(); // Marca de tiempo actual
-            if (ahora - ultimaDescargaManual < 10000) { // Si han transcurrido menos de 10 segundos
-                Toast.makeText(this, "Espera unos segundos para refrescar", Toast.LENGTH_SHORT).show(); // Notificar cooldown
-                return; // Cancelar llamada a la API
+            long ahora = SystemClock.elapsedRealtime();
+            if (ahora - ultimaDescargaManual < 10000) {
+                Toast.makeText(this, "Espera unos segundos para refrescar", Toast.LENGTH_SHORT).show();
+                return;
             }
-            ultimaDescargaManual = ahora; // Actualizar registro del último refresco manual
+            ultimaDescargaManual = ahora;
         }
 
-        LatLngBounds zona = mMap.getProjection().getVisibleRegion().latLngBounds; // Obtener límites de la pantalla activa
-        LatLng centro = zona.getCenter(); // Calcular coordenada central
+        LatLngBounds zona = mMap.getProjection().getVisibleRegion().latLngBounds;
+        LatLng centro = zona.getCenter();
 
-        float[] distancia = new float[1]; // Arreglo para almacenar la distancia en metros
-        Location.distanceBetween(centro.latitude, centro.longitude, zona.northeast.latitude, zona.northeast.longitude, distancia); // Calcular radio visible
-        int radioNm = (int) Math.ceil(distancia[0] / 1852.0); // Convertir metros a millas náuticas
+        float[] distancia = new float[1];
+        Location.distanceBetween(centro.latitude, centro.longitude, zona.northeast.latitude, zona.northeast.longitude, distancia);
+        int radioNm = (int) Math.ceil(distancia[0] / 1852.0);
 
-        if (radioNm > RADIO_MAXIMO_NM) { // Validar que el radio no supere el límite permitido por la API
+        if (radioNm > RADIO_MAXIMO_NM) {
             if (avisar) {
-                Toast.makeText(this, "Acerca el mapa para ver los aviones", Toast.LENGTH_SHORT).show(); // Avisar al usuario
+                Toast.makeText(this, "Acerca el mapa para ver los aviones", Toast.LENGTH_SHORT).show();
             }
-            return; // Cancelar descarga por radio excesivo
+            return;
         }
 
-        descargando = true; // Marcar inicio del proceso de descarga de red
+        descargando = true;
 
-        // Realizar la llamada HTTP a través de Retrofit
         service.getVuelosEnZona(
                 String.format(Locale.US, "%.4f", centro.latitude),
                 String.format(Locale.US, "%.4f", centro.longitude),
@@ -485,131 +666,130 @@ public class MapaActivity extends AppCompatActivity
         ).enqueue(new Callback<AdsbResponse>() {
             @Override
             public void onResponse(Call<AdsbResponse> call, Response<AdsbResponse> response) {
-                descargando = false; // Marcar fin del proceso de descarga
-                if (isDestroyed() || isFinishing()) return; // Cancelar procesamiento si la actividad se está cerrando
+                descargando = false;
+                if (isDestroyed() || isFinishing()) return;
 
-                if (response.code() == 429 && !avisoLimiteMostrado) { // Capturar error por exceso de peticiones (Rate Limit)
-                    avisoLimiteMostrado = true; // Marcar bandera para no saturar con mensajes
+                if (response.code() == 429 && !avisoLimiteMostrado) {
+                    avisoLimiteMostrado = true;
                     Toast.makeText(MapaActivity.this, "Límite de peticiones de la API alcanzado", Toast.LENGTH_LONG).show();
                 }
 
-                if (response.body() == null || response.body().getAviones() == null) return; // Validar cuerpo devuelto
+                if (response.body() == null || response.body().getAviones() == null) return;
 
-                List<Vuelo> vuelos = new ArrayList<>(); // Lista de vuelos convertidos
+                List<Vuelo> vuelos = new ArrayList<>();
                 for (AdsbResponse.AdsbAircraft a : response.body().getAviones()) {
-                    vuelos.add(a.toVuelo()); // Mapear aeronave devuelta al modelo Vuelo de la app
+                    vuelos.add(a.toVuelo());
                 }
-                procesar(vuelos); // Procesar los vuelos obtenidos para colocarlos en el mapa
+                procesar(vuelos);
             }
 
             @Override
             public void onFailure(Call<AdsbResponse> call, Throwable t) {
-                descargando = false; // Restablecer la bandera de descarga en caso de fallo de red
+                descargando = false;
             }
         });
     }
 
-    // Procesa y actualiza en el mapa la lista de vuelos leídos desde la red
+    /**
+     * Actualiza, crea o elimina marcadores en el mapa según los datos recibidos del radar.
+     */
     private void procesar(List<Vuelo> vuelos) {
-        Set<String> visibles = new HashSet<>(); // Conjunto de códigos ICAO que deben permanecer en pantalla
-        long ahora = SystemClock.elapsedRealtime(); // Registrar marca de tiempo actual
+        Set<String> visibles = new HashSet<>();
+        long ahora = SystemClock.elapsedRealtime();
 
-        for (Vuelo api : vuelos) { // Iterar sobre cada vuelo recibido
-            if (api.icao24 == null || api.latitude == null || api.longitude == null) continue; // Ignorar registros incompletos
+        for (Vuelo api : vuelos) {
+            if (api.icao24 == null || api.latitude == null || api.longitude == null) continue;
 
-            Avion avistado = buscarPorIcao(api.icao24); // Verificar si la aeronave ya fue avistada
-            if (modoActual == ModoMapa.AVISTADOS && avistado == null) continue; // Filtrar según el modo activo
+            Avion avistado = buscarPorIcao(api.icao24);
+            if (modoActual == ModoMapa.AVISTADOS && avistado == null) continue;
 
-            visibles.add(api.icao24); // Marcar la aeronave como visible
-            LatLng pos = new LatLng(api.latitude, api.longitude); // Crear coordenada con los nuevos datos
+            visibles.add(api.icao24);
+            LatLng pos = new LatLng(api.latitude, api.longitude);
 
-            // Registrar el nuevo estado de telemetría para interpolaciones de movimiento
             estados.put(api.icao24, new EstadoVuelo(
                     api.latitude, api.longitude,
                     api.velocity != null ? api.velocity : 0,
                     api.trueTrack != null ? api.trueTrack : 0,
                     ahora));
 
-            Marker m = marcadores.get(api.icao24); // Buscar el marcador existente en el mapa
-            if (m == null) { // Si el marcador no existía previamente
-                BitmapDescriptor icono = avistado != null ? iconoSegunRareza(avistado.getRareza()) : iconoGenerico(); // Asignar icono según rareza
+            Marker m = marcadores.get(api.icao24);
+            if (m == null) {
+                BitmapDescriptor icono = avistado != null ? iconoSegunRareza(avistado.getRareza()) : iconoGenerico();
                 m = mMap.addMarker(new MarkerOptions()
                         .position(pos)
                         .icon(icono)
                         .rotation(api.trueTrack)
                         .flat(true)
-                        .anchor(0.5f, 0.5f)); // Añadir nuevo marcador plano y centrado
-                marcadores.put(api.icao24, m); // Registrar el marcador en el mapa de memoria
+                        .anchor(0.5f, 0.5f));
+                marcadores.put(api.icao24, m);
             } else {
-                m.setPosition(pos); // Actualizar la posición del marcador existente
-                m.setRotation(api.trueTrack); // Actualizar la rotación del icono según el rumbo
+                m.setPosition(pos);
+                m.setRotation(api.trueTrack);
             }
 
-            m.setTag(new Object[]{api, avistado}); // Vincular los datos del vuelo al marcador mediante la propiedad Tag
+            m.setTag(new Object[]{api, avistado});
 
-            if (api.icao24.equals(icaoSeleccionado)) { // Si la aeronave coincide con la seleccionada por el usuario
-                vueloSeleccionado = api; // Actualizar datos de vuelo activo
-                avistadoSeleccionado = avistado; // Actualizar datos de avión avistado
-                if (panel.getVisibility() == View.VISIBLE) pintarPanel(); // Refrescar los textos del panel
+            if (api.icao24.equals(icaoSeleccionado)) {
+                vueloSeleccionado = api;
+                avistadoSeleccionado = avistado;
+                if (panel.getVisibility() == View.VISIBLE) pintarPanel();
             }
 
-            if (api.icao24.equals(icaoSeleccionado) && lineaHistorial != null) { // Si es la aeronave activa y su ruta está dibujada
-                puntosTrayectoria.add(pos); // Insertar la posición real en el historial de ruta
-                dibujarTrayectoria(); // Redibujar la línea en el mapa
+            if (api.icao24.equals(icaoSeleccionado) && lineaHistorial != null) {
+                puntosTrayectoria.add(pos);
+                dibujarTrayectoria();
             }
         }
 
-        // Eliminar del mapa los marcadores de aeronaves que salieron del campo de visión o del filtro
-        Iterator<Map.Entry<String, Marker>> it = marcadores.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Marker> e = it.next();
-            if (!visibles.contains(e.getKey())) {
-                e.getValue().remove(); // Remover el marcador visualmente del mapa
-                estados.remove(e.getKey()); // Remover la telemetría asociada
-                it.remove(); // Remover la clave de la lista en memoria
+        for (String icao : new ArrayList<>(marcadores.keySet())) {
+            if (!visibles.contains(icao)) {
+                Marker marcador = marcadores.remove(icao);
+                if (marcador != null) marcador.remove();
+                estados.remove(icao);
             }
         }
     }
 
-    // Interpola suavemente la posición de los aviones marcados en pantalla en función del tiempo transcurrido
+    /**
+     * Mueve suavemente los marcadores visibles en función de su velocidad y rumbo.
+     */
     private void animarMarcadores() {
-        if (mMap == null || marcadores.isEmpty()) return; // Salir si el mapa no está disponible o no hay marcadores
+        if (mMap == null || marcadores.isEmpty()) return;
 
-        long ahora = SystemClock.elapsedRealtime(); // Obtener la marca temporal exacta de la ejecución
+        long ahora = SystemClock.elapsedRealtime();
 
-        // Mover prioritariamente la aeronave seleccionada independientemente del nivel de Zoom
         if (icaoSeleccionado != null && lineaHistorial != null) {
-            Marker seleccionado = marcadores.get(icaoSeleccionado); // Obtener marcador del seleccionado
-            EstadoVuelo estadoSel = estados.get(icaoSeleccionado); // Obtener telemetría del seleccionado
+            Marker seleccionado = marcadores.get(icaoSeleccionado);
+            EstadoVuelo estadoSel = estados.get(icaoSeleccionado);
 
             if (seleccionado != null && estadoSel != null && estadoSel.velocidad >= 1) {
-                LatLng posSel = estadoSel.posicionEn(ahora); // Calcular posición estimada
-                seleccionado.setPosition(posSel); // Actualizar coordenada del marcador
+                LatLng posSel = estadoSel.posicionEn(ahora);
+                seleccionado.setPosition(posSel);
 
                 if (ahora - ultimoPuntoTrayectoria >= INTERVALO_PUNTO_TRAYECTORIA_MS) {
-                    ultimoPuntoTrayectoria = ahora; // Actualizar timestamp del último punto
-                    puntosTrayectoria.add(posSel); // Añadir el nuevo punto a la ruta
-                    dibujarTrayectoria(); // Redibujar Polyline
+                    ultimoPuntoTrayectoria = ahora;
+                    puntosTrayectoria.add(posSel);
+                    dibujarTrayectoria();
                 } else {
-                    actualizarTramoActual(posSel); // Ajustar el tramo dinámico con el avión
+                    actualizarTramoActual(posSel);
                 }
             }
         }
 
-        if (mMap.getCameraPosition().zoom < ZOOM_MINIMO_ANIMACION) return; // Omitir la animación de aviones lejanos a Zoom bajo
+        if (mMap.getCameraPosition().zoom < ZOOM_MINIMO_ANIMACION) return;
 
-        LatLngBounds zona = mMap.getProjection().getVisibleRegion().latLngBounds; // Obtener marco de visión activa
+        LatLngBounds zona = mMap.getProjection().getVisibleRegion().latLngBounds;
 
-        for (Map.Entry<String, Marker> e : marcadores.entrySet()) { // Iterar sobre los marcadores
-            if (e.getKey().equals(icaoSeleccionado)) continue; // Omitir el ya procesado
+        for (Map.Entry<String, Marker> e : marcadores.entrySet()) {
+            if (e.getKey().equals(icaoSeleccionado)) continue;
 
-            EstadoVuelo estado = estados.get(e.getKey()); // Obtener telemetría del vuelo
-            if (estado == null || estado.velocidad < 1) continue; // Ignorar aviones sin velocidad o parados
+            EstadoVuelo estado = estados.get(e.getKey());
+            if (estado == null || estado.velocidad < 1) continue;
 
-            LatLng pos = estado.posicionEn(ahora); // Calcular coordenada interpolada
-            if (!zona.contains(pos)) continue; // Ignorar aeronaves situadas fuera de la pantalla
+            LatLng pos = estado.posicionEn(ahora);
+            if (!zona.contains(pos)) continue;
 
-            e.getValue().setPosition(pos); // Actualizar la posición del marcador en pantalla
+            e.getValue().setPosition(pos);
         }
     }
 
@@ -617,155 +797,176 @@ public class MapaActivity extends AppCompatActivity
     // LÓGICA DE DIBUJO DE TRAYECTORIAS
     // ------------------------------
 
-    // Inicializa la captura y representación visual de la ruta histórica de un avión seleccionado
+    /**
+     * Inicia el trazado de trayectoria para un avión seleccionado.
+     */
     private void mostrarTrayectoria(String icao) {
-        borrarTrayectoria(); // Borrar cualquier trazado anterior
-        Marker m = marcadores.get(icao); // Obtener el marcador del avión
-        if (m != null) puntosTrayectoria.add(m.getPosition()); // Iniciar la lista de puntos con la coordenada actual
-        ultimoPuntoTrayectoria = SystemClock.elapsedRealtime(); // Guardar timestamp inicial
-        dibujarTrayectoria(); // Dibujar sobre el mapa
+        borrarTrayectoria();
+        Marker m = marcadores.get(icao);
+        if (m != null) puntosTrayectoria.add(m.getPosition());
+        ultimoPuntoTrayectoria = SystemClock.elapsedRealtime();
+        dibujarTrayectoria();
     }
 
-    // Actualiza o genera los objetos Polyline que componen la ruta en el mapa
+    /**
+     * Dibuja el historial de ruta y el tramo dinámico hasta la posición actual del avión.
+     */
     private void dibujarTrayectoria() {
-        if (lineaHistorial == null) lineaHistorial = mMap.addPolyline(estiloLinea()); // Generar línea si no existe
-        lineaHistorial.setPoints(new ArrayList<>(puntosTrayectoria)); // Actualizar puntos del historial
+        if (lineaHistorial == null) lineaHistorial = mMap.addPolyline(estiloLinea());
+        lineaHistorial.setPoints(new ArrayList<>(puntosTrayectoria));
 
-        if (lineaActual == null) lineaActual = mMap.addPolyline(estiloLinea()); // Generar tramo dinámico si no existe
+        if (lineaActual == null) lineaActual = mMap.addPolyline(estiloLinea());
 
         Marker m = icaoSeleccionado != null ? marcadores.get(icaoSeleccionado) : null;
-        if (m != null) actualizarTramoActual(m.getPosition()); // Conectar la línea con el icono en movimiento
+        if (m != null) actualizarTramoActual(m.getPosition());
     }
 
-    // Actualiza el tramo dinámico entre el último punto fijo del historial y el icono en movimiento
+    /**
+     * Conecta el último punto registrado de la estela con la posición interpolada actual.
+     */
     private void actualizarTramoActual(LatLng posActual) {
-        if (lineaActual == null || puntosTrayectoria.isEmpty()) return; // Validar la existencia de datos
-        LatLng ultimo = puntosTrayectoria.get(puntosTrayectoria.size() - 1); // Extraer el último punto registrado
-        lineaActual.setPoints(Arrays.asList(ultimo, posActual)); // Dibujar línea entre el último punto y la posición viva
+        if (lineaActual == null || puntosTrayectoria.isEmpty()) return;
+        LatLng ultimo = puntosTrayectoria.get(puntosTrayectoria.size() - 1);
+        lineaActual.setPoints(Arrays.asList(ultimo, posActual));
     }
 
-    // Elimina completamente del mapa las líneas de ruta trazadas
+    /**
+     * Elimina las polilíneas de trayectoria del mapa y limpia sus puntos.
+     */
     private void borrarTrayectoria() {
         if (lineaHistorial != null) {
-            lineaHistorial.remove(); // Quitar línea del historial del mapa
-            lineaHistorial = null; // Liberar referencia
+            lineaHistorial.remove();
+            lineaHistorial = null;
         }
         if (lineaActual != null) {
-            lineaActual.remove(); // Quitar tramo dinámico del mapa
-            lineaActual = null; // Liberar referencia
+            lineaActual.remove();
+            lineaActual = null;
         }
-        puntosTrayectoria.clear(); // Limpiar la lista de puntos registrados
+        puntosTrayectoria.clear();
     }
 
-    // Define la configuración visual (estilo, ancho y color) para las líneas de trayectoria
+    /**
+     * Define el color y grosor de las líneas de trayectoria.
+     */
     private PolylineOptions estiloLinea() {
         return new PolylineOptions()
-                .color(Color.parseColor("#1E88E5")) // Asignar color azul para la línea
-                .width(8f) // Definir el grosor en 8 píxeles
-                .geodesic(false); // Dibujar como líneas planas simples
+                .color(Color.parseColor("#1E88E5"))
+                .width(8f)
+                .geodesic(false);
     }
 
     // ------------------------------
     // INTERACCIÓN Y PANEL DE INFORMACIÓN
     // ------------------------------
 
+    /**
+     * Muestra la tarjeta inferior con datos del vuelo al pulsar sobre su marcador.
+     */
     @Override
-    public boolean onMarkerClick(@NonNull Marker marker) { // Evento al pulsar sobre un marcador del mapa
-        Object[] data = (Object[]) marker.getTag(); // Extraer el objeto adjunto en el Tag
-        if (data == null) return false; // Salir si el marcador no incluye datos
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        if (!(marker.getTag() instanceof Object[])) return false;
+        Object[] data = (Object[]) marker.getTag();
+        if (data.length < 2 || !(data[0] instanceof Vuelo)) return false;
 
-        Vuelo api = (Vuelo) data[0]; // Extraer el objeto de vuelo
-        Avion a = (Avion) data[1]; // Extraer el objeto de avión de la colección local
+        Vuelo api = (Vuelo) data[0];
+        Avion a = data[1] instanceof Avion ? (Avion) data[1] : null;
 
-        boolean cambioDeAvion = !api.icao24.equals(icaoSeleccionado) || lineaHistorial == null; // Comprobar si se seleccionó una aeronave nueva
-        icaoSeleccionado = api.icao24; // Actualizar código ICAO activo
-        tipoSeleccionado = api.tipo; // Actualizar tipo ICAO activo
-        matriculaSeleccionada = api.matricula; // Actualizar matrícula activa
-        vueloSeleccionado = api; // Actualizar referencia de vuelo activo
-        avistadoSeleccionado = a; // Actualizar referencia de avión avistado
+        boolean cambioDeAvion = !api.icao24.equals(icaoSeleccionado) || lineaHistorial == null;
+        icaoSeleccionado = api.icao24;
+        tipoSeleccionado = api.tipo;
+        matriculaSeleccionada = api.matricula;
+        vueloSeleccionado = api;
+        avistadoSeleccionado = a;
 
-        if (cambioDeAvion) mostrarTrayectoria(api.icao24); // Inicializar la ruta si es una nueva selección
+        if (cambioDeAvion) mostrarTrayectoria(api.icao24);
 
-        pintarPanel(); // Actualizar componentes visuales del panel
-        pedirDetalles(api); // Disparar la búsqueda de detalles técnicos extendidos
+        pintarPanel();
+        pedirDetalles(api);
 
-        panel.setVisibility(View.VISIBLE); // Mostrar la tarjeta desplegable
-        ajustarPaddingMapa(true); // Levantar botones de Google Maps por encima del panel
-        btnAvistar.setVisibility(a == null && modoActual == ModoMapa.TODOS ? View.VISIBLE : View.GONE); // Determinar la visibilidad del botón de avistar
+        panel.setVisibility(View.VISIBLE);
+        ajustarPaddingMapa(true);
+        btnAvistar.setVisibility(a == null && modoActual == ModoMapa.TODOS ? View.VISIBLE : View.GONE);
 
-        return true; // Devolver verdadero para indicar que el evento fue procesado
+        return true;
     }
 
-    // Solicita de forma independiente la información técnica y la ruta de un vuelo a las APIs secundarias
+    /**
+     * Lanza las peticiones secundarias de ficha de aeronave y ruta comercial.
+     */
     private void pedirDetalles(Vuelo api) {
-        pedirAeronave(api.icao24); // Solicitar modelo y propietario por el código ICAO
-        if (api.callsign != null && !api.callsign.isEmpty()) pedirRuta(api.callsign); // Solicitar origen/destino por el indicativo (Callsign)
+        pedirAeronave(api.icao24);
+        if (api.callsign != null && !api.callsign.isEmpty()) pedirRuta(api.callsign);
     }
 
-    // Realiza la llamada de red a la API de fichas de aeronaves por su ICAO (Mode S)
+    /**
+     * Consulta en adsbdb el modelo exacto y propietario de la aeronave por ICAO.
+     */
     private void pedirAeronave(String icao) {
-        if (icao == null || cacheAeronaves.containsKey(icao) || aeronavesNoDisponibles.contains(icao)) return; // Omitir si ya existe en caché o se sabe indisponible
+        if (icao == null || cacheAeronaves.containsKey(icao) || aeronavesNoDisponibles.contains(icao)) return;
 
         serviceDetalles.getAeronave(icao).enqueue(new Callback<AdsbdbResponse>() {
             @Override
             public void onResponse(Call<AdsbdbResponse> call, Response<AdsbdbResponse> response) {
-                if (isDestroyed() || isFinishing()) return; // Cancelar si la actividad se está cerrando
+                if (isDestroyed() || isFinishing()) return;
 
-                AdsbdbResponse body = response.body(); // Extraer el cuerpo devuelto
+                AdsbdbResponse body = response.body();
                 if (!response.isSuccessful() || body == null || body.getRespuesta() == null || body.getRespuesta().aircraft == null) {
-                    aeronavesNoDisponibles.add(icao); // Marcar como indisponible para omitir futuras consultas
+                    aeronavesNoDisponibles.add(icao);
                     return;
                 }
 
-                cacheAeronaves.put(icao, body.getRespuesta().aircraft); // Guardar respuesta en la caché de aeronaves
-                if (icao.equals(icaoSeleccionado)) pintarPanel(); // Refrescar el panel si la aeronave sigue activa en pantalla
+                cacheAeronaves.put(icao, body.getRespuesta().aircraft);
+                if (icao.equals(icaoSeleccionado)) pintarPanel();
             }
 
             @Override
             public void onFailure(Call<AdsbdbResponse> call, Throwable t) {
-                Log.d("SkyCollector", "adsbdb aeronave fallo: " + t.getMessage()); // Registrar en consola en caso de fallo
+                Log.d("SkyCollector", "adsbdb aeronave fallo: " + t.getMessage());
             }
         });
     }
 
-    // Realiza la llamada de red a la API de fichas para obtener la aerolínea y origen/destino de un vuelo
+    /**
+     * Consulta en adsbdb la aerolínea y aeropuertos de origen/destino por indicativo.
+     */
     private void pedirRuta(String indicativo) {
-        if (cacheRutas.containsKey(indicativo) || rutasNoDisponibles.contains(indicativo)) return; // Omitir si ya fue procesado
+        if (cacheRutas.containsKey(indicativo) || rutasNoDisponibles.contains(indicativo)) return;
 
         serviceDetalles.getRuta(indicativo).enqueue(new Callback<AdsbdbResponse>() {
             @Override
             public void onResponse(Call<AdsbdbResponse> call, Response<AdsbdbResponse> response) {
-                if (isDestroyed() || isFinishing()) return; // Cancelar si la actividad se está cerrando
+                if (isDestroyed() || isFinishing()) return;
 
-                AdsbdbResponse body = response.body(); // Extraer cuerpo devuelto
+                AdsbdbResponse body = response.body();
                 if (!response.isSuccessful() || body == null || body.getRespuesta() == null || body.getRespuesta().flightroute == null) {
-                    rutasNoDisponibles.add(indicativo); // Marcar como indisponible para omitir futuras consultas
+                    rutasNoDisponibles.add(indicativo);
                     return;
                 }
 
-                cacheRutas.put(indicativo, body.getRespuesta().flightroute); // Guardar respuesta en la caché de rutas
-                if (vueloSeleccionado != null && indicativo.equals(vueloSeleccionado.callsign)) pintarPanel(); // Refrescar el panel si sigue activo
+                cacheRutas.put(indicativo, body.getRespuesta().flightroute);
+                if (vueloSeleccionado != null && indicativo.equals(vueloSeleccionado.callsign)) pintarPanel();
             }
 
             @Override
             public void onFailure(Call<AdsbdbResponse> call, Throwable t) {
-                Log.d("SkyCollector", "adsbdb ruta fallo: " + t.getMessage()); // Registrar error en consola
+                Log.d("SkyCollector", "adsbdb ruta fallo: " + t.getMessage());
             }
         });
     }
 
-    // Construye las cadenas de información y refresca el panel sólo si los datos han cambiado para ahorrar CPU
+    /**
+     * Formatea y actualiza los textos del panel inferior solo si han cambiado.
+     */
     private void pintarPanel() {
-        Vuelo api = vueloSeleccionado; // Obtener vuelo activo
-        Avion a = avistadoSeleccionado; // Obtener avión de colección coincidente
-        if (api == null) return; // Salir si no hay vuelo activo
+        Vuelo api = vueloSeleccionado;
+        Avion a = avistadoSeleccionado;
+        if (api == null) return;
 
-        AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(api.icao24); // Consultar caché de aeronave
-        AdsbdbResponse.RutaVuelo ruta = api.callsign != null ? cacheRutas.get(api.callsign) : null; // Consultar caché de ruta
+        AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(api.icao24);
+        AdsbdbResponse.RutaVuelo ruta = api.callsign != null ? cacheRutas.get(api.callsign) : null;
+        Avion modeloCatalogo = a == null ? AvionGenerator.getAvionPorTipoIcao(api.tipo) : null;
 
-        Avion modeloCatalogo = a == null ? AvionGenerator.getAvionPorTipoIcao(api.tipo) : null; // Consultar catálogo estático por tipo ICAO
-
-        String modelo = modeloCompleto(aeronave); // Determinar la denominación de modelo más precisa disponible
+        String modelo = modeloCompleto(aeronave);
         if (modelo == null) {
             if (a != null) {
                 modelo = a.getModelo();
@@ -778,31 +979,30 @@ public class MapaActivity extends AppCompatActivity
             }
         }
 
-        String empresa = null; // Determinar la operadora o fabricante del vuelo
+        String empresa = null;
         if (ruta != null && ruta.airline != null && ruta.airline.name != null && !ruta.airline.name.isEmpty()) {
-            empresa = ruta.airline.name; // Usar nombre de aerolínea comercial
+            empresa = ruta.airline.name;
         } else if (aeronave != null && aeronave.registeredOwner != null && !aeronave.registeredOwner.isEmpty()) {
-            empresa = formatearNombre(aeronave.registeredOwner); // Usar propietario registrado
+            empresa = formatearNombre(aeronave.registeredOwner);
         } else if (a != null) {
-            empresa = a.getFabricante(); // Usar fabricante de la colección
+            empresa = a.getFabricante();
         } else if (modeloCatalogo != null) {
-            empresa = modeloCatalogo.getFabricante(); // Usar fabricante del catálogo estático
+            empresa = modeloCatalogo.getFabricante();
         }
 
-        String nuevoModelo = (empresa != null && !empresa.isEmpty()) ? modelo + " | " + empresa : modelo; // Construir el título combinado del panel
+        String nuevoModelo = (empresa != null && !empresa.isEmpty()) ? modelo + " | " + empresa : modelo;
 
-        int vel = api.velocity != null ? (int) (api.velocity * 3.6) : 0; // Convertir velocidad de m/s a km/h
-        String rareza = a != null ? a.getRareza() : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null); // Extraer categoría de rareza
-        String altitud = api.enTierra ? "En tierra" : (api.altitude != null ? Math.round(api.altitude) + " m" : "—"); // Formatear altitud
+        int vel = api.velocity != null ? (int) (api.velocity * 3.6) : 0;
+        String rareza = a != null ? a.getRareza() : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null);
+        String altitud = api.enTierra ? "En tierra" : (api.altitude != null ? Math.round(api.altitude) + " m" : "—");
 
-        Float distancia = distanciaAlAvionKm(); // Calcular la distancia GPS al usuario
+        Float distancia = distanciaAlAvionKm();
         String lineaDistancia = distancia == null ? "" : "Distancia: " + Math.round(distancia) + " km" + (distancia > DISTANCIA_MAXIMA_AVISTAMIENTO_KM ? " (demasiado lejos para avistarlo)" : "") + "\n";
 
-        String origen = ruta != null ? describirAeropuerto(ruta.origin) : null; // Obtener origen formateado
-        String destino = ruta != null ? describirAeropuerto(ruta.destination) : null; // Obtener destino formateado
-        String lineaRuta = (origen != null && destino != null) ? "Ruta: " + origen + " → " + destino + "\n" : ""; // Construir línea de ruta completa
+        String origen = ruta != null ? describirAeropuerto(ruta.origin) : null;
+        String destino = ruta != null ? describirAeropuerto(ruta.destination) : null;
+        String lineaRuta = (origen != null && destino != null) ? "Ruta: " + origen + " → " + destino + "\n" : "";
 
-        // Construir el bloque completo de detalles técnicos para el panel
         String nuevosDatos = lineaRuta +
                 "ICAO: " + api.icao24 + "\n" +
                 "Matrícula: " + (api.matricula != null ? api.matricula : "—") + "\n" +
@@ -812,7 +1012,6 @@ public class MapaActivity extends AppCompatActivity
                 "Velocidad: " + vel + " km/h\n" +
                 "Altitud: " + altitud;
 
-        // Optimización de interfaz: Aplicar el texto al componente sólo si ha variado con respecto al mostrado actualmente
         if (!nuevoModelo.equals(txtModelo.getText().toString())) {
             txtModelo.setText(nuevoModelo);
         }
@@ -821,83 +1020,95 @@ public class MapaActivity extends AppCompatActivity
         }
     }
 
-    // Normaliza y genera el nombre formal completo del modelo de una aeronave (Ej. Airbus A320-214)
+    /**
+     * Combina fabricante y modelo normalizado (Ej. Airbus A320-214).
+     */
     private String modeloCompleto(AdsbdbResponse.Aeronave aeronave) {
-        if (aeronave == null || aeronave.type == null || aeronave.type.trim().isEmpty()) return null; // Validar campos vacíos
-        String tipo = aeronave.type.trim().replaceFirst("^(A\\d{3})\\s+(\\d{3}[A-Z]?)$", "$1-$2"); // Formatear designadores Airbus con guiones
-        String fabricante = formatearNombre(aeronave.manufacturer); // Limpiar y formatear fabricante
+        if (aeronave == null || aeronave.type == null || aeronave.type.trim().isEmpty()) return null;
+        String tipo = aeronave.type.trim().replaceFirst("^(A\\d{3})\\s+(\\d{3}[A-Z]?)$", "$1-$2");
+        String fabricante = formatearNombre(aeronave.manufacturer);
         if (fabricante == null || fabricante.isEmpty() || tipo.toLowerCase().contains(fabricante.toLowerCase())) {
-            return tipo; // Evitar duplicar la marca si ya está en el tipo
+            return tipo;
         }
-        return fabricante + " " + tipo; // Devolver fabricante y tipo concatenados
+        return fabricante + " " + tipo;
     }
 
-    // Convierte cadenas de texto en MAYÚSCULAS fijas a formato de Capitalización de Título estándar
+    /**
+     * Formatea cadenas escritas íntegramente en mayúsculas a estilo Título.
+     */
     private String formatearNombre(String texto) {
-        if (texto == null) return null; // Salir si el texto es nulo
-        texto = texto.trim(); // Limpiar espacios laterales
-        if (texto.isEmpty() || !texto.equals(texto.toUpperCase())) return texto; // Omitir si no viene completamente en mayúsculas
+        if (texto == null) return null;
+        texto = texto.trim();
+        if (texto.isEmpty() || !texto.equals(texto.toUpperCase())) return texto;
 
-        StringBuilder sb = new StringBuilder(); // Objeto para construir la cadena limpia
-        for (String palabra : texto.split(" ")) { // Separar la cadena por palabras
+        StringBuilder sb = new StringBuilder();
+        for (String palabra : texto.split(" ")) {
             if (palabra.isEmpty()) continue;
             if (sb.length() > 0) sb.append(' ');
             if (palabra.length() <= 3) {
-                sb.append(palabra); // Mantener siglas cortas en mayúsculas (ATR, BAE, etc.)
+                sb.append(palabra);
             } else {
-                sb.append(Character.toUpperCase(palabra.charAt(0))).append(palabra.substring(1).toLowerCase()); // Primera mayúscula y resto minúscula
+                sb.append(Character.toUpperCase(palabra.charAt(0))).append(palabra.substring(1).toLowerCase());
             }
         }
-        return sb.toString(); // Devolver la cadena reformateada
+        return sb.toString();
     }
 
-    // Devuelve la representación legible de un objeto Aeropuerto agregando su código IATA si existe
+    /**
+     * Devuelve el nombre o ciudad de un aeropuerto junto con su código IATA.
+     */
     private String describirAeropuerto(AdsbdbResponse.Aeropuerto ap) {
-        if (ap == null) return null; // Salir si el objeto es nulo
-        String ciudad = (ap.municipality != null && !ap.municipality.isEmpty()) ? ap.municipality : ap.name; // Usar ciudad o nombre
-        if (ciudad == null) return ap.iataCode; // Usar únicamente IATA si no hay datos de nombre
-        return (ap.iataCode != null && !ap.iataCode.isEmpty()) ? ciudad + " (" + ap.iataCode + ")" : ciudad; // Devolver formato Ciudad (IATA)
+        if (ap == null) return null;
+        String ciudad = (ap.municipality != null && !ap.municipality.isEmpty()) ? ap.municipality : ap.name;
+        if (ciudad == null) return ap.iataCode;
+        return (ap.iataCode != null && !ap.iataCode.isEmpty()) ? ciudad + " (" + ap.iataCode + ")" : ciudad;
     }
 
     // ------------------------------
     // GENERACIÓN Y CACHÉ DE ICONOS
     // ------------------------------
 
-    // Genera el descriptor del icono por defecto para aviones sin rareza especificada
+    /**
+     * Devuelve el icono estándar para aviones aún no avistados.
+     */
     private BitmapDescriptor iconoGenerico() {
-        return iconoDesdeDrawable(R.drawable.avioncomun); // Cargar icono de tipo común
+        return iconoDesdeDrawable(R.drawable.avioncomun);
     }
 
-    // Determina y genera el icono de marcador apropiado según la categoría de rareza
+    /**
+     * Selecciona el icono de marcador correspondiente a la rareza del avión capturado.
+     */
     private BitmapDescriptor iconoSegunRareza(String rareza) {
-        int res; // Variable para almacenar el ID del recurso drawable
-        switch (rareza != null ? rareza.toUpperCase() : "") { // Evaluar rareza ignorando mayúsculas
-            case "RARE": res = R.drawable.avionraro; break; // Icono para raros
-            case "EPIC": res = R.drawable.avionepico; break; // Icono para épicos
+        int res;
+        switch (rareza != null ? rareza.toUpperCase() : "") {
+            case "RARE": res = R.drawable.avionraro; break;
+            case "EPIC": res = R.drawable.avionepico; break;
             case "LEGENDARY":
-            case "MYTHIC": res = R.drawable.avionlegendario; break; // Icono para legendarios o míticos
-            default: res = R.drawable.avioncomun; // Icono por defecto para comunes
+            case "MYTHIC": res = R.drawable.avionlegendario; break;
+            default: res = R.drawable.avioncomun;
         }
-        return iconoDesdeDrawable(res); // Generar y devolver el BitmapDescriptor
+        return iconoDesdeDrawable(res);
     }
 
-    // Convierte un recurso Drawable a un icono BitmapDescriptor para Google Maps reutilizando el resultado en memoria
+    /**
+     * Convierte un Drawable a BitmapDescriptor de 64x64px y lo guarda en caché.
+     */
     private BitmapDescriptor iconoDesdeDrawable(int res) {
-        BitmapDescriptor cacheado = cacheIconos.get(res); // Buscar el icono en la caché de memoria
-        if (cacheado != null) return cacheado; // Devolver el icono existente sin volver a crearlo
+        BitmapDescriptor cacheado = cacheIconos.get(res);
+        if (cacheado != null) return cacheado;
 
-        Drawable d = ContextCompat.getDrawable(this, res); // Obtener el drawable desde los recursos del sistema
-        int size = 64; // Definir el tamaño en píxeles del icono en el mapa (64x64)
+        Drawable d = ContextCompat.getDrawable(this, res);
+        int size = 64;
 
-        Bitmap b = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888); // Crear la imagen Bitmap vacía en memoria
-        Canvas c = new Canvas(b); // Inicializar un lienzo asociado al Bitmap
+        Bitmap b = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
         if (d != null) {
-            d.setBounds(0, 0, size, size); // Asignar el tamaño al recurso dibujable
-            d.draw(c); // Dibujar el recurso gráfico dentro del lienzo del Bitmap
+            d.setBounds(0, 0, size, size);
+            d.draw(c);
         }
 
-        BitmapDescriptor icono = BitmapDescriptorFactory.fromBitmap(b); // Convertir el Bitmap en un objeto BitmapDescriptor
-        cacheIconos.put(res, icono); // Guardar en la caché para reutilizaciones posteriores
-        return icono; // Devolver la referencia al nuevo icono generado
+        BitmapDescriptor icono = BitmapDescriptorFactory.fromBitmap(b);
+        cacheIconos.put(res, icono);
+        return icono;
     }
 }

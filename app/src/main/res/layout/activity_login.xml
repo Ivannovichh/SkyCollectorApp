@@ -10,73 +10,99 @@
     android:background="#0B1021"
     android:padding="30dp">
 
-    <!-- Imagen decorativa superior que representa la temática de mapas o ubicación -->
+    <!-- Imagen decorativa superior con icono de mapa y tinte cian -->
     <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:src="@android:drawable/ic_dialog_map"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="12dp"
         app:tint="#00E5FF" />
 
-    <!-- Texto principal con el nombre de la aplicación -->
+    <!-- Título principal de la aplicación en color blanco y negrita -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/sky_collector"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
+        android:textSize="30sp"
         android:textStyle="bold"
-        android:layout_marginBottom="50dp"/>
+        android:layout_marginBottom="24dp"/>
 
-    <!-- Campo de texto para introducir el correo electrónico -->
+    <!-- Campo de entrada de texto configurado para direcciones de correo electrónico -->
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:hint="@string/correo_electr_nico"
         android:textColor="#FFFFFF"
         android:textColorHint="#90A4AE"
         android:inputType="textEmailAddress"
         android:backgroundTint="#00E5FF"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="12dp"/>
 
-    <!-- Campo de texto para introducir la contraseña -->
+    <!-- Campo de entrada de texto oculto para introducir la contraseña -->
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:hint="@string/contrase_a"
         android:textColor="#FFFFFF"
         android:textColorHint="#90A4AE"
         android:inputType="textPassword"
         android:backgroundTint="#00E5FF"
-        android:layout_marginBottom="40dp"/>
+        android:layout_marginBottom="22dp"/>
 
-    <!-- Botón para iniciar sesión con las credenciales introducidas -->
+    <!-- Botón principal para iniciar sesión mediante correo y contraseña -->
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:text="@string/iniciar_sesi_n"
         android:backgroundTint="#00E5FF"
         android:textColor="#000000"
         android:textSize="16sp"
         android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+
+    <!-- Botón de Material Design para iniciar sesión con una cuenta de Google -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGoogleLogin"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Continuar con Google"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+
+    <!-- Botón con borde cian para iniciar sesión mediante verificación por SMS -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSmsLogin"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Continuar con SMS"
+        android:backgroundTint="#151E32"
+        android:textColor="#00E5FF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:strokeColor="#00E5FF"
+        app:strokeWidth="1dp"
         android:layout_marginBottom="20dp"/>
 
-    <!-- Texto informativo que invita a crear una cuenta nueva -->
+    <!-- Etiqueta informativa que pregunta si el usuario aún no tiene cuenta -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/no_tienes_cuenta"
         android:textColor="#B0BEC5"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="8dp"/>
 
-    <!-- Botón para acceder al registro de un nuevo usuario -->
+    <!-- Botón azul para registrar una cuenta nueva con correo y contraseña -->
     <Button
         android:id="@+id/btnRegistro"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
         android:text="@string/crear_cuenta_nueva"
         android:backgroundTint="#2979FF"
         android:textColor="#FFFFFF"

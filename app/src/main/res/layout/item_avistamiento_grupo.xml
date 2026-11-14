@@ -1,47 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor horizontal de cada fila individual dentro de un grupo -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:background="#0B1021"
     android:gravity="center_vertical"
-    android:background="?attr/selectableItemBackground">
+    android:orientation="horizontal"
+    android:padding="12dp">
 
-    <ImageView
-        android:id="@+id/imgTieneFoto"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@android:drawable/ic_menu_camera"
-        android:visibility="gone"
-        android:layout_marginEnd="12dp" />
+    <!-- Casilla de selección situada a la izquierda para marcar el avión a eliminar -->
+    <CheckBox
+        android:id="@+id/cbSeleccionarAvistamiento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:buttonTint="#00E5FF"
+        android:visibility="gone" />
 
+    <!-- Bloque vertical central con la matrícula y la fecha de captura -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- Texto que muestra la matrícula o el código ICAO24 del ejemplar -->
         <TextView
             android:id="@+id/txtMatricula"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Matrícula"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:textColor="#E0E0E0"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
+        <!-- Texto que muestra la fecha y hora exacta del avistamiento -->
         <TextView
             android:id="@+id/txtFecha"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Fecha"
-            android:textSize="12sp"
-            android:textColor="#B0BEC5" />
+            android:layout_marginTop="2dp"
+            android:textColor="#90A4AE"
+            android:textSize="12sp" />
     </LinearLayout>
 
+    <!-- Etiqueta que indica la distancia en kilómetros a la que se avistó -->
     <TextView
         android:id="@+id/txtDistancia"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0 km"
-        android:textColor="#03DAC6" />
+        android:layout_marginEnd="10dp"
+        android:textColor="#00E5FF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <!-- Icono indicador de que el avistamiento dispone de fotografía adjunta -->
+    <ImageView
+        android:id="@+id/imgTieneFoto"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="Foto adjunta"
+        android:src="@android:drawable/ic_menu_camera" />
+
 </LinearLayout>

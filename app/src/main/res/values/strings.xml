@@ -72,4 +72,7 @@
     <string name="avistados">AVISTADOS</string>
     <string name="todos">TODOS</string>
 
+    <!-- ID de cliente web OAuth para el inicio de sesión con Google -->
+    <string name="default_web_client_id" translatable="false">122299812994-dpjmoffk7qsh5hd31mnqcbhv8glc0ltt.apps.googleusercontent.com</string>
+
 </resources>

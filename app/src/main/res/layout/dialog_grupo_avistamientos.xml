@@ -1,25 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!-- Contenedor principal vertical del panel deslizante inferior -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#151E32"
     android:orientation="vertical"
-    android:background="#1F2937"
-    android:padding="16dp">
+    android:padding="20dp">
 
-    <TextView
-        android:id="@+id/txtTituloGrupo"
+    <!-- Cabecera horizontal con el título del modelo y el selector masivo -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Avistamientos"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp"
-        android:gravity="center"/>
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
 
+        <!-- Etiqueta que muestra el nombre del modelo y el progreso del asistente -->
+        <TextView
+            android:id="@+id/txtTituloGrupo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#00E5FF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Casilla superior para marcar o desmarcar todos los avistamientos del grupo -->
+        <CheckBox
+            android:id="@+id/cbSeleccionarTodos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="#00E5FF"
+            android:text="Todos"
+            android:textColor="#E0E0E0"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Lista desplazable con los avistamientos individuales del modelo -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerAvistamientos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="400dp" />
+        android:maxHeight="360dp" />
+
+    <!-- Botonera inferior visible únicamente durante el asistente de borrado -->
+    <LinearLayout
+        android:id="@+id/layoutBotonesBorradoGrupo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <!-- Botón para abortar el asistente de eliminación -->
+        <Button
+            android:id="@+id/btnCancelarSeleccionGrupo"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancelar"
+            android:textColor="#90A4AE" />
+
+        <!-- Botón para confirmar la selección actual y avanzar o finalizar -->
+        <Button
+            android:id="@+id/btnConfirmarSeleccionGrupo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#00E5FF"
+            android:text="Aceptar"
+            android:textColor="#0B1021"
+            android:textStyle="bold" />
+    </LinearLayout>
+
 </LinearLayout>

@@ -6,14 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Barra superior que contiene los botones de cambio de modo -->
+    <!-- Barra superior que contiene únicamente los botones de cambio de modo -->
     <LinearLayout
         android:id="@+id/layout_modos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="#FFFFFF"
+        android:background="#0B132B"
         android:elevation="6dp">
 
         <!-- Botón para mostrar todos los aviones -->
@@ -22,6 +22,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:backgroundTint="#1C2541"
+            android:textColor="#FFFFFF"
             android:text="@string/todos" />
 
         <!-- Botón para mostrar solo los avistados -->
@@ -31,6 +33,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
+            android:backgroundTint="#1C2541"
+            android:textColor="#FFFFFF"
             android:text="@string/avistados" />
     </LinearLayout>
 
@@ -42,6 +46,31 @@
         android:layout_height="match_parent"
         android:layout_below="@id/layout_modos" />
 
+    <!-- Botón flotante hacia atrás alineado a la izquierda a la misma altura que el de ubicación -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_volver_mapa"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_below="@id/layout_modos"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#D9FFFFFF"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="3dp">
+
+        <ImageButton
+            android:id="@+id/btn_volver_mapa"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Volver atrás"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="#555555" />
+    </androidx.cardview.widget.CardView>
+
     <!-- Panel inferior tipo CardView para mostrar información del avión seleccionado -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_info_vuelo"
@@ -52,7 +81,7 @@
         android:visibility="gone"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="@android:color/white">
+        app:cardBackgroundColor="#1C2541">
 
         <!-- Contenedor vertical para organizar los elementos dentro del CardView -->
         <LinearLayout
@@ -69,7 +98,7 @@
                 android:text="@string/modelo"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="#FFFFFF" />
 
             <!-- Línea divisoria horizontal entre modelo y datos -->
             <View
@@ -77,7 +106,7 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:background="#E0E0E0" />
+                android:background="#3A506B" />
 
             <!-- TextView que muestra datos del vuelo como ICAO, país, velocidad y altitud -->
             <TextView
@@ -87,15 +116,18 @@
                 android:text="@string/datos_del_vuelo"
                 android:textSize="14sp"
                 android:lineSpacingExtra="4dp"
-                android:textColor="#555555" />
+                android:textColor="#B0BEC5" />
 
             <!-- Botón para marcar como avistado el avión seleccionado -->
             <Button
                 android:id="@+id/btn_avistar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/avistar_este_avi_n"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#00E5FF"
+                android:textColor="#0B132B"
+                android:textStyle="bold"
+                android:text="@string/avistar_este_avi_n" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

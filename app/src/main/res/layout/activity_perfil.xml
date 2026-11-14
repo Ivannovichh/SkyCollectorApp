@@ -1,127 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Contenedor principal vertical para la pantalla de perfil -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Contenedor con scroll vertical para asegurar accesibilidad en pantallas pequeñas -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
     android:background="#0B1021"
-    android:gravity="center_horizontal"
-    tools:context=".activities.PerfilActivity">
+    android:fillViewport="true">
 
-    <!-- Título de la pantalla Perfil -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/mi_perfil"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="30dp"/>
-
-    <!-- Tarjeta circular que muestra la imagen de perfil del usuario -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        app:cardCornerRadius="75dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="#333333"
-        android:layout_marginBottom="16dp">
-
-        <!-- Imagen de perfil grande centrada en la tarjeta -->
-        <ImageView
-            android:id="@+id/imgPerfilGrande"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_camera" />
-    </androidx.cardview.widget.CardView>
-
-    <!-- Botón para cambiar la foto de perfil -->
-    <Button
-        android:id="@+id/btnCambiarFoto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/cambiar_foto"
-        android:backgroundTint="#03DAC6"
-        android:textColor="#000000"
-        android:layout_marginBottom="32dp"/>
-
-    <!-- Contenedor vertical para los datos del perfil -->
+    <!-- Contenedor vertical principal de la pantalla de perfil -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:background="@android:color/transparent"
-        android:padding="10dp">
+        android:padding="24dp">
 
-        <!-- Etiqueta para el correo electrónico -->
-        <TextView
-            android:text="@string/correo_electronico"
-            android:textSize="14sp"
-            android:textColor="#B0BEC5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!-- Texto fijo que muestra el correo electrónico del usuario -->
-        <TextView
-            android:id="@+id/txtEmailFijo"
+        <!-- Cabecera horizontal con botón de retroceso y título de la pantalla -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/cargando"
+            android:layout_marginBottom="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Botón de flecha hacia atrás para regresar al menú principal -->
+            <ImageButton
+                android:id="@+id/btnVolverPerfil"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Volver"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="#00E5FF" />
+
+            <!-- Título de la pantalla de perfil -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Perfil de Piloto"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Tarjeta circular contenedora de la fotografía de perfil -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardFotoPerfil"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="#151E32"
+            app:cardCornerRadius="55dp"
+            app:cardElevation="6dp">
+
+            <!-- Vista de imagen para mostrar el avatar del piloto -->
+            <ImageView
+                android:id="@+id/imgFotoPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Foto de perfil"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_myplaces" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Texto indicativo bajo la foto de perfil -->
+        <TextView
+            android:id="@+id/txtCambiarFoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="Toca la imagen para cambiar foto"
+            android:textColor="#00E5FF"
+            android:textSize="13sp" />
+
+        <!-- Tarjeta contenedora de los campos editables de identidad y contacto -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#151E32"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp">
+
+            <!-- Contenedor vertical interno para los campos de texto -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Etiqueta del nombre de usuario público -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Nombre de usuario (público en rankings)"
+                    android:textColor="#00E5FF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <!-- Campo editable para el indicativo público del piloto -->
+                <EditText
+                    android:id="@+id/etNombrePerfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#0B1021"
+                    android:hint="Tu nombre de usuario"
+                    android:inputType="textPersonName"
+                    android:maxLength="20"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#90A4AE" />
+
+                <!-- Etiqueta del correo electrónico privado -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Correo electrónico (privado)"
+                    android:textColor="#B0BEC5"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <!-- Campo editable para visualizar o añadir el correo electrónico -->
+                <EditText
+                    android:id="@+id/etCorreoPerfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#0B1021"
+                    android:hint="Añadir correo electrónico"
+                    android:inputType="textEmailAddress"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#90A4AE" />
+
+                <!-- Etiqueta del número de teléfono privado -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Número de teléfono (privado)"
+                    android:textColor="#B0BEC5"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <!-- Campo editable para visualizar o añadir el teléfono de contacto -->
+                <EditText
+                    android:id="@+id/etTelefonoPerfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="#0B1021"
+                    android:hint="Añadir teléfono (ej. +34600112233)"
+                    android:inputType="phone"
+                    android:paddingHorizontal="14dp"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#90A4AE" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Botón principal para guardar todos los cambios del perfil -->
+        <Button
+            android:id="@+id/btnGuardarPerfil"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="14dp"
+            android:backgroundTint="#00E5FF"
+            android:text="Guardar cambios"
+            android:textColor="#0B1021"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:paddingVertical="10dp"
-            android:layout_marginBottom="16dp"/>
+            android:textStyle="bold" />
 
-        <!-- Etiqueta para el nombre de usuario -->
-        <TextView
-            android:text="@string/nombre_de_usuario"
-            android:textSize="14sp"
-            android:textColor="#03DAC6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!-- Campo de texto editable para modificar el nombre de usuario -->
-        <EditText
-            android:id="@+id/etNombreUsuario"
+        <!-- Botón rojo para cerrar la sesión actual en Firebase -->
+        <Button
+            android:id="@+id/btnCerrarSesion"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/escribe_tu_nombre"
+            android:layout_height="56dp"
+            android:backgroundTint="#D32F2F"
+            android:text="Cerrar sesión"
             android:textColor="#FFFFFF"
-            android:textColorHint="#90A4AE"
-            android:inputType="textPersonName"
-            android:minHeight="48dp"/>
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
     </LinearLayout>
-
-    <!-- Botón para guardar los cambios realizados en el perfil -->
-    <Button
-        android:id="@+id/btnGuardarPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/guardar_cambios"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#6200EE"
-        android:textColor="#FFFFFF"
-        android:padding="14dp"
-        android:layout_marginTop="40dp"/>
-
-    <!-- Botón para cerrar sesión de la cuenta -->
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/cerrar_sesi_n"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#D32F2F"
-        android:textColor="#FFFFFF"
-        android:padding="14dp"
-        android:layout_marginTop="16dp"/>
-
-</LinearLayout>
+</ScrollView>

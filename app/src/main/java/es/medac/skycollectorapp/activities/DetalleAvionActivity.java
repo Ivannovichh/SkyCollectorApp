@@ -29,6 +29,7 @@ import androidx.core.content.FileProvider; // Proveedor seguro para compartir ar
 import com.bumptech.glide.Glide; // Carga y procesamiento eficiente de imágenes
 import com.bumptech.glide.load.engine.DiskCacheStrategy; // Estrategias de caché en disco para Glide
 import com.google.firebase.auth.FirebaseAuth; // Gestor de autenticación de usuarios de Firebase
+import com.google.firebase.auth.FirebaseUser; // Objeto de usuario autenticado en Firebase
 import com.google.firebase.firestore.FirebaseFirestore; // Gestor de la base de datos Firestore en la nube
 import com.google.gson.Gson; // Motor de conversión de objetos Java a formato JSON
 import com.google.gson.reflect.TypeToken; // Preservación de tipos genéricos en Gson
@@ -80,7 +81,7 @@ public class DetalleAvionActivity extends AppCompatActivity {
             new ActivityResultContracts.TakePicture(), // Contrato para tomar foto
             exito -> {
                 if (exito && uriFotoTemporal != null) { // Si la captura fue correcta
-                    mostrarFotoUsuario(uriFotoTemporal); // Cargar y visualizar la foto tomada
+                    mostrarFotoUsuario(uriFotoTemporal, true); // Cargar foto y marcarla como verificada de cámara
                 }
             }
     );
@@ -106,9 +107,9 @@ public class DetalleAvionActivity extends AppCompatActivity {
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                         );
                     } catch (Exception e) {
-                        e.printStackTrace(); // Registrar excepciones si el proveedor no soporta persistencia
+                        Log.w("URI_PERM", "El proveedor no soporta persistencia de URI", e); // Registrar aviso
                     }
-                    mostrarFotoUsuario(uri); // Cargar y mostrar la imagen en la vista
+                    mostrarFotoUsuario(uri, false); // Cargar foto y desmarcar verificación por ser de galería
                 }
             }
     );
@@ -132,7 +133,7 @@ public class DetalleAvionActivity extends AppCompatActivity {
             return;
         }
 
-        avion = buscarAvionPorId(avionId); // Búsqueda del objeto dentro de la colección local
+        avion = buscarAvionPorId(avionId); // Búsqueda del objeto dentro de la colección local del usuario
 
         if (avion == null) { // Validar si el objeto existe
             Toast.makeText(this, "Error: avión no encontrado en la colección", Toast.LENGTH_SHORT).show(); // Avisar de error
@@ -142,6 +143,12 @@ public class DetalleAvionActivity extends AppCompatActivity {
 
         cargarDatos(); // Poblar las etiquetas con la información técnica del avión
         setupListeners(); // Configurar los eventos de clic en los botones
+    }
+
+    // Genera la clave de almacenamiento local asociada al UID del usuario autenticado
+    private String getClaveListaUsuario() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Obtener el usuario actual
+        return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo"; // Devolver clave única por cuenta
     }
 
     // Vincula las referencias de los componentes del archivo XML con las variables locales
@@ -172,7 +179,10 @@ public class DetalleAvionActivity extends AppCompatActivity {
         btnCancelar.setOnClickListener(v -> finish()); // Cerrar la actividad sin guardar cambios
 
         btnGuardar.setOnClickListener(v -> {
-            avion.setApodo(etNombreAvion.getText().toString().trim()); // Actualizar apodo en el objeto
+            String nuevoApodo = etNombreAvion.getText().toString().trim(); // Leer apodo introducido
+            if (!nuevoApodo.isEmpty()) { // Evitar guardar un nombre vacío
+                avion.setApodo(nuevoApodo); // Actualizar apodo en el objeto
+            }
 
             guardarCambiosEnPreferencias(avion); // Persistir cambios localmente en SharedPreferences
             guardarCambiosEnFirestore(avion); // Sincronizar los cambios actualizados en la nube Firestore
@@ -223,9 +233,10 @@ public class DetalleAvionActivity extends AppCompatActivity {
         }
     }
 
-    // Refresca la vista y asigna la nueva foto seleccionada al objeto Avion
-    private void mostrarFotoUsuario(Uri uri) {
+    // Refresca la vista, asigna la nueva foto al objeto Avion y actualiza su estado de verificación
+    private void mostrarFotoUsuario(Uri uri, boolean esDesdeCamara) {
         avion.setUriFotoUsuario(uri.toString()); // Asignar la nueva cadena de URI al objeto
+        avion.setEsFotoVerificada(esDesdeCamara); // Marcar verificada solo si proviene de la cámara
         layoutFotoUsuario.setVisibility(View.VISIBLE); // Asegurar visibilidad del contenedor
 
         Glide.with(this)
@@ -261,10 +272,10 @@ public class DetalleAvionActivity extends AppCompatActivity {
     // PERSISTENCIA Y SINCRONIZACIÓN
     // ------------------------------
 
-    // Busca una aeronave dentro del almacenamiento JSON local por su identificador ID
+    // Busca una aeronave dentro del almacenamiento JSON local del usuario por su identificador ID
     private Avion buscarAvionPorId(String id) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
-        String json = prefs.getString("lista_aviones", null); // Leer la cadena JSON
+        String json = prefs.getString(getClaveListaUsuario(), null); // Leer la cadena JSON del usuario activo
         if (json == null) return null; // Salir si está vacía
 
         Gson gson = new Gson(); // Instanciar conversor Gson
@@ -280,12 +291,13 @@ public class DetalleAvionActivity extends AppCompatActivity {
         return null; // Retornar nulo si no se encuentra
     }
 
-    // Actualiza la versión modificada del avión en la lista de SharedPreferences local
+    // Actualiza la versión modificada del avión en la lista de SharedPreferences local del usuario
     private void guardarCambiosEnPreferencias(Avion avionActualizado) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
         Gson gson = new Gson(); // Instanciar conversor
+        String clave = getClaveListaUsuario(); // Obtener clave única del usuario
 
-        String json = prefs.getString("lista_aviones", null); // Obtener JSON existente
+        String json = prefs.getString(clave, null); // Obtener JSON existente
         if (json == null) return;
 
         Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir el tipo
@@ -299,7 +311,7 @@ public class DetalleAvionActivity extends AppCompatActivity {
             }
         }
 
-        prefs.edit().putString("lista_aviones", gson.toJson(lista)).apply(); // Guardar la lista actualizada en JSON
+        prefs.edit().putString(clave, gson.toJson(lista)).apply(); // Guardar la lista actualizada en JSON
     }
 
     // Sincroniza las modificaciones del avión en la base de datos Firestore en la nube

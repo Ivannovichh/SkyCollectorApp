@@ -93,6 +93,10 @@
         <!-- Actividad que gestiona el perfil del usuario -->
         <activity android:name=".activities.PerfilActivity" android:exported="false"/>
 
+        <activity
+            android:name=".activities.DetalleVueloRadarActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

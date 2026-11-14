@@ -12,7 +12,20 @@
           "package_name": "es.medac.skycollectorapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "122299812994-0081oqe1b2fmb1qcochnosr71ir7rnv4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "es.medac.skycollectorapp",
+            "certificate_hash": "657f1c550bd9827327b8b340098437b5168b5fb5"
+          }
+        },
+        {
+          "client_id": "122299812994-dpjmoffk7qsh5hd31mnqcbhv8glc0ltt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBAhv2T3JUUQRDk74SyT_73Iob9vPOTGhM"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "122299812994-dpjmoffk7qsh5hd31mnqcbhv8glc0ltt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

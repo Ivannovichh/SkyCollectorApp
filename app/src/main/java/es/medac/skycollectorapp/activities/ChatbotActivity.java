@@ -4,6 +4,7 @@ package es.medac.skycollectorapp.activities;
 // Importaciones de Android necesarias
 import android.os.Bundle; // Pases de estado de la actividad
 import android.os.Handler; // Programación de tareas con retardo en el hilo principal
+import android.os.Looper; // Bucle de mensajes asociado al hilo principal de interfaz
 import android.widget.EditText; // Entrada de texto editable
 import android.widget.ImageButton; // Botón con imagen
 import androidx.appcompat.app.AppCompatActivity; // Clase base para actividades
@@ -18,10 +19,12 @@ import com.android.volley.toolbox.JsonObjectRequest; // Peticiones con respuesta
 import com.android.volley.toolbox.Volley; // Clase fábrica de la librería Volley
 
 // Importaciones para procesamiento de JSON
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.JSONArray; // Arreglo de elementos en formato JSON
+import org.json.JSONObject; // Objeto clave-valor en formato JSON
 
 // Importaciones estándar de Java
+import java.net.URLEncoder; // Codificador seguro de parámetros para URLs HTTP
+import java.nio.charset.StandardCharsets; // Definición estándar de codificación UTF-8
 import java.text.Normalizer; // Utilidad para normalización de tildes y diacríticos
 import java.util.ArrayList; // Lista dinámica
 import java.util.Iterator; // Iterador de claves JSON
@@ -41,9 +44,11 @@ public class ChatbotActivity extends AppCompatActivity {
     private RecyclerView recyclerChat; // Lista visual para la conversación
     private EditText etMensaje; // Caja de texto para escribir la consulta
     private ImageButton btnEnviar; // Botón para mandar el mensaje
+    private ImageButton btnVolverChat; // Botón superior para regresar a la pantalla anterior
     private ChatAdapter adapter; // Adaptador que conecta los mensajes con la vista
     private List<Mensaje> mensajes; // Colección de mensajes en memoria
     private RequestQueue requestQueue; // Cola de procesamiento de peticiones de red Volley
+    private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Manejador vinculado al hilo principal
 
     // ------------------------------
     // MÉTODOS DEL CICLO DE VIDA
@@ -58,6 +63,10 @@ public class ChatbotActivity extends AppCompatActivity {
         recyclerChat = findViewById(R.id.recyclerChat);
         etMensaje = findViewById(R.id.etMensaje);
         btnEnviar = findViewById(R.id.btnEnviar);
+        btnVolverChat = findViewById(R.id.btnVolverChat); // Enlazar botón de retroceso superior
+
+        // Configurar acción del botón de retroceso para cerrar la pantalla y volver atrás
+        btnVolverChat.setOnClickListener(v -> finish());
 
         // Inicializar la lista dinámica y el adaptador
         mensajes = new ArrayList<>();
@@ -79,9 +88,18 @@ public class ChatbotActivity extends AppCompatActivity {
             if (!texto.isEmpty()) {
                 enviarMensaje(texto); // Mostrar mensaje del usuario
                 etMensaje.setText(""); // Limpiar la caja de texto
-                new Handler().postDelayed(() -> cerebroDelBot(texto), 500); // Procesar consulta con 0.5s de retardo
+                mainHandler.postDelayed(() -> cerebroDelBot(texto), 500); // Procesar consulta con 0.5s de retardo
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() { // Limpieza de recursos al destruir la pantalla
+        super.onDestroy();
+        mainHandler.removeCallbacksAndMessages(null); // Cancelar tareas pendientes en el hilo principal
+        if (requestQueue != null) {
+            requestQueue.cancelAll(req -> true); // Cancelar todas las peticiones de red activas
+        }
     }
 
     // ------------------------------
@@ -97,6 +115,7 @@ public class ChatbotActivity extends AppCompatActivity {
 
     // Añade un mensaje recibido del bot a la lista visual
     private void recibirMensaje(String texto) {
+        if (isDestroyed() || isFinishing()) return; // Evitar actualizar vistas si la actividad ya cerró
         mensajes.add(new Mensaje(texto, false)); // Crear mensaje del bot (esMio = false)
         adapter.notifyItemInserted(mensajes.size() - 1); // Notificar al adaptador
         recyclerChat.scrollToPosition(mensajes.size() - 1); // Desplazar lista automáticamente al final
@@ -128,8 +147,8 @@ public class ChatbotActivity extends AppCompatActivity {
                 .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
                 .toLowerCase();
 
-        // 2. Sustituir caracteres especiales y signos de puntuación por espacios
-        String limpio = sinTildes.replaceAll("[^a-z0-9\\s]", " ");
+        // 2. Sustituir caracteres especiales y signos de puntuación por espacios manteniendo guiones
+        String limpio = sinTildes.replaceAll("[^a-z0-9\\s-]", " ");
 
         // 3. Colección de expresiones irrelevantes para aislar el término de búsqueda
         String[] basura = {
@@ -153,63 +172,77 @@ public class ChatbotActivity extends AppCompatActivity {
 
     // Consulta el título oficial del artículo en Wikipedia utilizando la API OpenSearch
     private void buscarTituloOficial(String termino) {
-        String terminoUrl = termino.replace(" ", "%20"); // Codificar espacios para la URL
-        String url = "https://es.wikipedia.org/w/api.php?action=opensearch&search=" + terminoUrl + "&limit=1&format=json";
+        try {
+            String terminoUrl = URLEncoder.encode(termino, StandardCharsets.UTF_8.name()); // Codificar parámetros de URL
+            String url = "https://es.wikipedia.org/w/api.php?action=opensearch&search=" + terminoUrl + "&limit=1&format=json";
 
-        // Crear la petición de array JSON con Volley
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        JSONArray titulos = response.getJSONArray(1); // Extraer lista de títulos encontrados
+            // Crear la petición de array JSON con Volley
+            JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+                    response -> {
+                        try {
+                            JSONArray titulos = response.getJSONArray(1); // Extraer lista de títulos encontrados
 
-                        if (titulos.length() > 0) {
-                            String tituloOficial = titulos.getString(0); // Tomar la primera coincidencia
-                            descargarContenido(tituloOficial); // Descargar el resumen del artículo
-                        } else {
-                            recibirMensaje("No encuentro ningún avión llamado '" + termino + "'. Prueba con el nombre completo.");
+                            if (titulos.length() > 0) {
+                                String tituloOficial = titulos.getString(0); // Tomar la primera coincidencia
+                                descargarContenido(tituloOficial); // Descargar el resumen del artículo
+                            } else {
+                                recibirMensaje("No encuentro ningún avión llamado '" + termino + "'. Prueba con el nombre completo.");
+                            }
+                        } catch (Exception e) {
+                            recibirMensaje("Error al identificar el avión.");
                         }
-                    } catch (Exception e) {
-                        recibirMensaje("Error al identificar el avión.");
-                    }
-                },
-                error -> recibirMensaje("Error de conexión a internet.")
-        );
-        requestQueue.add(request); // Añadir petición a la cola de Volley
+                    },
+                    error -> recibirMensaje("Error de conexión a internet.")
+            );
+            requestQueue.add(request); // Añadir petición a la cola de Volley
+        } catch (Exception e) {
+            recibirMensaje("Error al codificar la búsqueda.");
+        }
     }
 
     // Descarga el extracto introductorio del artículo localizado en Wikipedia
     private void descargarContenido(String tituloOficial) {
-        String tituloUrl = tituloOficial.replace(" ", "%20"); // Codificar título para la URL
-        String url = "https://es.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=" + tituloUrl + "&format=json&redirects=1";
+        try {
+            String tituloUrl = URLEncoder.encode(tituloOficial, StandardCharsets.UTF_8.name()); // Codificar título para la URL
+            String url = "https://es.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=" + tituloUrl + "&format=json&redirects=1";
 
-        // Crear la petición de objeto JSON con Volley
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        JSONObject query = response.getJSONObject("query"); // Obtener bloque query
-                        JSONObject pages = query.getJSONObject("pages"); // Obtener bloque pages
-                        Iterator<String> keys = pages.keys(); // Iterar sobre las claves dinámicas de las páginas
-                        String pageId = keys.next(); // Obtener la primera clave de página
+            // Crear la petición de objeto JSON con Volley
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                    response -> {
+                        try {
+                            JSONObject query = response.getJSONObject("query"); // Obtener bloque query
+                            JSONObject pages = query.getJSONObject("pages"); // Obtener bloque pages
+                            Iterator<String> keys = pages.keys(); // Iterar sobre las claves dinámicas de las páginas
 
-                        if (!pageId.equals("-1")) { // Verificar que la página exista
-                            JSONObject page = pages.getJSONObject(pageId);
-                            String extracto = page.getString("extract"); // Extraer el texto introductorio
-                            String tituloReal = page.getString("title"); // Extraer el título formateado
-
-                            if (extracto != null && !extracto.isEmpty()) {
-                                recibirMensaje("INFORME: " + tituloReal.toUpperCase() + "\n\n" + extracto);
-                            } else {
-                                recibirMensaje("He encontrado el artículo '" + tituloReal + "' pero parece estar vacío.");
+                            if (!keys.hasNext()) { // Evitar excepción si el JSON viene sin páginas
+                                recibirMensaje("No se encontraron detalles para este modelo.");
+                                return;
                             }
-                        } else {
-                            recibirMensaje("Error al recuperar los datos.");
+
+                            String pageId = keys.next(); // Obtener la primera clave de página
+
+                            if (!pageId.equals("-1")) { // Verificar que la página exista
+                                JSONObject page = pages.getJSONObject(pageId);
+                                String extracto = page.optString("extract", ""); // Extraer el texto introductorio de forma segura
+                                String tituloReal = page.optString("title", tituloOficial); // Extraer el título formateado
+
+                                if (!extracto.isEmpty()) {
+                                    recibirMensaje("INFORME: " + tituloReal.toUpperCase() + "\n\n" + extracto);
+                                } else {
+                                    recibirMensaje("He encontrado el artículo '" + tituloReal + "' pero parece estar vacío.");
+                                }
+                            } else {
+                                recibirMensaje("Error al recuperar los datos.");
+                            }
+                        } catch (Exception e) {
+                            recibirMensaje("Error al leer el informe.");
                         }
-                    } catch (Exception e) {
-                        recibirMensaje("Error al leer el informe.");
-                    }
-                },
-                error -> recibirMensaje("Error de red.")
-        );
-        requestQueue.add(request); // Registrar la petición final en la cola de red
+                    },
+                    error -> recibirMensaje("Error de red.")
+            );
+            requestQueue.add(request); // Registrar la petición final en la cola de red
+        } catch (Exception e) {
+            recibirMensaje("Error al solicitar el informe.");
+        }
     }
 }

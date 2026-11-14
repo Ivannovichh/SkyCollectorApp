@@ -1,69 +1,74 @@
+// Plugins principales para compilar la aplicación Android y conectar los servicios de Firebase
 plugins {
-    id 'com.android.application'
-    id 'com.google.gms.google-services'
+    id 'com.android.application' // Plugin principal de aplicación Android
+    id 'com.google.gms.google-services' // Plugin encargado de leer google-services.json
 }
 
+// Bloque principal de configuración de compilación de Android
 android {
-    namespace 'es.medac.skycollectorapp'
-    compileSdk 34
+    namespace 'es.medac.skycollectorapp' // Espacio de nombres base del proyecto
+    compileSdk 34 // Versión del SDK de Android usada para compilar
 
+    // Parámetros por defecto de la aplicación
     defaultConfig {
-        applicationId "es.medac.skycollectorapp"
-        minSdk 24
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        applicationId "es.medac.skycollectorapp" // Identificador único de la app
+        minSdk 24 // Versión mínima de Android soportada (Android 7.0)
+        targetSdk 34 // Versión objetivo de Android
+        versionCode 1 // Código numérico interno de versión
+        versionName "1.0" // Nombre visible de la versión
     }
 
-    // Habilitar ViewBinding
+    // Habilitar ViewBinding para vincular vistas XML de forma segura
     buildFeatures {
-        viewBinding true
+        viewBinding true // Activa la generación automática de clases Binding
     }
 
     // IMPORTANTE: Necesario para Retrofit y otras librerías modernas
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de código fuente con Java 8
+        targetCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de bytecode destino con Java 8
     }
 }
 
+// Declaración de dependencias y librerías externas del módulo
 dependencies {
     // --- ANDROID BÁSICO ---
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.appcompat:appcompat:1.6.1' // Compatibilidad de componentes visuales
+    implementation 'com.google.android.material:material:1.11.0' // Componentes de Material Design
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // Contenedor flexible de restricciones
 
     // --- ALMACENAMIENTO Y RED ---
-    implementation "androidx.datastore:datastore-preferences:1.0.0"
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.android.volley:volley:1.2.1'
+    implementation "androidx.datastore:datastore-preferences:1.0.0" // Almacenamiento de preferencias
+    implementation 'com.google.code.gson:gson:2.10.1' // Serialización y deserialización JSON
+    implementation 'com.android.volley:volley:1.2.1' // Peticiones HTTP para el chatbot y APIs
 
-    // --- MAPAS ---
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    // --- MAPAS Y ACCESO CON GOOGLE ---
+    implementation 'com.google.android.gms:play-services-maps:18.2.0' // SDK de Google Maps
+    implementation 'com.google.android.gms:play-services-auth:21.0.0' // SDK para iniciar sesión con cuentas de Google
 
     // --- GLIDE (IMÁGENES) ---
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation 'com.github.bumptech.glide:glide:4.16.0' // Carga y caché eficiente de imágenes
     // Esta línea es la que te faltaba para que Glide compile bien:
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0' // Procesador de anotaciones de Glide
 
     // --- RETROFIT (API) ---
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0' // Cliente REST para APIs
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0' // Conversor JSON para Retrofit
 
     // --- PHOTOVIEW (ZOOM) ---
-    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0' // Visor de imágenes con zoom táctil
 
     // --- FIREBASE (MODO BOM - GESTIÓN AUTOMÁTICA) ---
     // El BOM gestiona las versiones para que no choquen entre sí
-    implementation platform('com.google.firebase:firebase-bom:32.7.1')
+    implementation platform('com.google.firebase:firebase-bom:32.7.1') // Plataforma BOM de Firebase
 
     // Al usar el BOM, no hace falta poner versiones aquí
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth' // Autenticación de usuarios
+    implementation 'com.google.firebase:firebase-firestore' // Base de datos en la nube Firestore
+    implementation 'com.google.firebase:firebase-analytics' // Analíticas básicas de Firebase
 
     // --- TESTING ---
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    testImplementation 'junit:junit:4.13.2' // Pruebas unitarias locales
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5' // Extensiones de JUnit para Android
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1' // Pruebas de interfaz de usuario
 }
