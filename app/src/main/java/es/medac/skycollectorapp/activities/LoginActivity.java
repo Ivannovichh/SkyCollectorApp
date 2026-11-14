@@ -1,160 +1,137 @@
-// Definición del paquete de la clase
+// Declaración del paquete donde se ubica la actividad de autenticación
 package es.medac.skycollectorapp.activities;
 
-// Importación para la gestión de navegación entre actividades
-import android.content.Intent;
-// Importación para el manejo de estados y datos de la actividad
-import android.os.Bundle;
-// Importación para el componente de botón de la interfaz
-import android.widget.Button;
-// Importación para el componente de campo de texto editable
-import android.widget.EditText;
-// Importación para la visualización de avisos rápidos en pantalla
-import android.widget.Toast;
-// Importación de la clase base para actividades con soporte de compatibilidad
-import androidx.appcompat.app.AppCompatActivity;
-// Importación para la gestión de servicios de identidad de Firebase
-import com.google.firebase.auth.FirebaseAuth;
-// Importación para la representación del perfil de usuario autenticado
-import com.google.firebase.auth.FirebaseUser;
+// Importaciones de Android necesarias
+import android.content.Intent; // Navegación entre actividades
+import android.os.Bundle; // Manejo del estado de la actividad
+import android.util.Patterns; // Utilidad para validación de patrones de expresiones regulares (emails, URLs)
+import android.widget.Button; // Componente de interfaz tipo botón
+import android.widget.EditText; // Componente de campo de texto editable
+import android.widget.Toast; // Mensajes emergentes cortos
+import androidx.appcompat.app.AppCompatActivity; // Clase base para compatibilidad
 
-// Importación de los recursos generados del proyecto
+// Importaciones de servicios de Firebase
+import com.google.firebase.auth.FirebaseAuth; // Autenticación en la nube de Firebase
+import com.google.firebase.auth.FirebaseUser; // Objeto que representa al usuario actual
+
+// Importaciones del proyecto
 import es.medac.skycollectorapp.R;
 
-// Declaración de la clase que gestiona el acceso y registro de usuarios
+// Clase principal que gestiona el acceso y registro de nuevos usuarios
 public class LoginActivity extends AppCompatActivity {
 
-    // Variable para la entrada de texto del correo electrónico
-    private EditText etEmail, etPassword;
-    // Variable para el motor de autenticación de la plataforma en la nube
-    private FirebaseAuth mAuth;
+    // ------------------------------
+    // VARIABLES DE INTERFAZ Y AUTH
+    // ------------------------------
+    private EditText etEmail, etPassword; // Campos de entrada para correo y clave
+    private FirebaseAuth mAuth; // Instancia principal del servicio de autenticación
 
-    // Método que inicializa la actividad y configura la vista
+    // ------------------------------
+    // MÉTODOS DEL CICLO DE VIDA
+    // ------------------------------
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // Ejecución de la lógica de creación de la clase padre
-        super.onCreate(savedInstanceState);
-        // Vinculación del archivo de diseño visual correspondiente
-        setContentView(R.layout.activity_login);
+    protected void onCreate(Bundle savedInstanceState) { // Método de creación de la actividad
+        super.onCreate(savedInstanceState); // Llamada al método de la clase padre
+        setContentView(R.layout.activity_login); // Asignar el diseño XML de login
 
-        // Obtención de la instancia activa del servicio de seguridad
+        // Inicializar la instancia de autenticación de Firebase
         mAuth = FirebaseAuth.getInstance();
 
-        // Localización del campo de correo en la interfaz
-        etEmail = findViewById(R.id.etEmail);
-        // Localización del campo de contraseña en la interfaz
-        etPassword = findViewById(R.id.etPassword);
-        // Localización del botón de inicio de sesión
-        Button btnLogin = findViewById(R.id.btnLogin);
-        // Localización del botón de registro de nuevos usuarios
-        Button btnRegistro = findViewById(R.id.btnRegistro);
+        // Localizar las referencias de los componentes en el layout XML
+        etEmail = findViewById(R.id.etEmail); // Campo del correo
+        etPassword = findViewById(R.id.etPassword); // Campo de la contraseña
+        Button btnLogin = findViewById(R.id.btnLogin); // Botón para iniciar sesión
+        Button btnRegistro = findViewById(R.id.btnRegistro); // Botón para registrarse
 
-        // Configuración de la respuesta al pulsar el botón de entrada
+        // Configuración del escuchador de clic para el botón de inicio de sesión
         btnLogin.setOnClickListener(v -> {
-            // Captura y limpieza de espacios en blanco del correo
-            String email = etEmail.getText().toString().trim();
-            // Captura y limpieza de espacios en blanco de la clave
-            String pass = etPassword.getText().toString().trim();
+            String email = etEmail.getText().toString().trim(); // Limpiar espacios extras del correo
+            String pass = etPassword.getText().toString().trim(); // Limpiar espacios extras de la clave
 
-            // Verificación de que los datos introducidos sean correctos formalmente
-            if (validarCampos(email, pass)) {
-                // Invocación del proceso de validación en el servidor
-                loginUsuario(email, pass);
+            if (validarCampos(email, pass)) { // Validar los datos antes de hacer la petición
+                loginUsuario(email, pass); // Proceder con la autenticación
             }
         });
 
-        // Configuración de la respuesta al pulsar el botón de creación de cuenta
+        // Configuración del escuchador de clic para el botón de registro
         btnRegistro.setOnClickListener(v -> {
-            // Extracción del correo del componente de texto
-            String email = etEmail.getText().toString().trim();
-            // Extracción de la clave del componente de texto
-            String pass = etPassword.getText().toString().trim();
+            String email = etEmail.getText().toString().trim(); // Limpiar espacios del correo
+            String pass = etPassword.getText().toString().trim(); // Limpiar espacios de la clave
 
-            // Verificación de que los datos cumplen los requisitos mínimos
-            if (validarCampos(email, pass)) {
-                // Invocación del proceso de creación de usuario en el servidor
-                crearUsuario(email, pass);
+            if (validarCampos(email, pass)) { // Validar requisitos mínimos
+                crearUsuario(email, pass); // Proceder con la creación del nuevo perfil
             }
         });
     }
 
-    // Método que verifica el estado de la sesión al volver a la actividad
     @Override
-    public void onStart() {
-        // Ejecución del procedimiento de inicio de la clase padre
+    public void onStart() { // Método llamado al poner la actividad en primer plano
         super.onStart();
-        // Consulta del usuario que se encuentra actualmente identificado
+        // Comprobar si ya existe una sesión abierta previamente
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        // Comprobación de si existe una sesión activa persistente
-        if(currentUser != null){
-            // Salto automático a la pantalla principal si el usuario ya entró
-            irAMain();
+        if (currentUser != null) {
+            irAMain(); // Redirigir directamente a la pantalla principal sin pedir credenciales
         }
     }
 
-    // Método que gestiona el acceso con credenciales existentes
+    // ------------------------------
+    // LÓGICA DE AUTENTICACIÓN
+    // ------------------------------
+
+    // Intenta iniciar sesión con correo y contraseña en Firebase
     private void loginUsuario(String email, String password) {
-        // Intento de conexión mediante correo y clave en el servicio remoto
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    // Evaluación del resultado de la petición de acceso
-                    if (task.isSuccessful()) {
-                        // Notificación de éxito al usuario
+                    if (task.isSuccessful()) { // Acceso correcto
                         Toast.makeText(LoginActivity.this, "¡Bienvenido de nuevo!", Toast.LENGTH_SHORT).show();
-                        // Redirección a la pantalla de inicio de la aplicación
-                        irAMain();
-                    } else {
-                        // Notificación en caso de error en la identificación
+                        irAMain(); // Navegar a la pantalla principal
+                    } else { // Acceso denegado
                         Toast.makeText(LoginActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    // Método que gestiona el alta de nuevos usuarios en el sistema
+    // Registra un nuevo usuario en la plataforma Firebase Auth
     private void crearUsuario(String email, String password) {
-        // Solicitud de creación de nuevo perfil en el servidor de seguridad
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    // Evaluación del éxito de la creación de la cuenta
-                    if (task.isSuccessful()) {
-                        // Notificación de registro completado correctamente
+                    if (task.isSuccessful()) { // Registro completado
                         Toast.makeText(LoginActivity.this, "¡Cuenta creada! Entrando...", Toast.LENGTH_SHORT).show();
-                        // Redirección inmediata a la actividad principal
-                        irAMain();
-                    } else {
-                        // Notificación detallada sobre el fallo en el registro
+                        irAMain(); // Entrar directamente a la app
+                    } else { // Fallo durante el registro
                         Toast.makeText(LoginActivity.this, "Fallo al registrar: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    // Método para validar que los datos de entrada no estén vacíos o sean cortos
+    // Comprueba que los datos introducidos no estén vacíos y cumplan con el formato formal de correo y seguridad
     private boolean validarCampos(String email, String pass) {
-        // Comprobación de que ninguno de los campos esté en blanco
+        // Verificar que no haya campos vacíos
         if (email.isEmpty() || pass.isEmpty()) {
-            // Aviso de obligatoriedad de los datos
             Toast.makeText(this, "Por favor, rellena correo y contraseña", Toast.LENGTH_SHORT).show();
-            // Retorno negativo de la validación
             return false;
         }
-        // Comprobación de que la clave tenga una longitud de seguridad mínima
+
+        // Validar que la cadena tenga una estructura de correo electrónico válida (ejemplo@dominio.com)
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Por favor, introduce un correo electrónico válido", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Comprobar longitud mínima requerida por Firebase para la clave
         if (pass.length() < 6) {
-            // Aviso sobre el requisito de longitud de la contraseña
             Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show();
-            // Retorno negativo de la validación
             return false;
         }
-        // Retorno positivo si se superan todas las comprobaciones
-        return true;
+
+        return true; // Todos los filtros superados
     }
 
-    // Método para realizar la transición a la pantalla principal
+    // Realiza la transición a la actividad principal
     private void irAMain() {
-        // Definición de la intención de cambio entre Login y Main
-        Intent intent = new Intent(this, MainActivity.class);
-        // Inicio de la nueva actividad definida
-        startActivity(intent);
-        // Finalización de la actividad actual para evitar que quede en segundo plano
-        finish();
+        Intent intent = new Intent(this, MainActivity.class); // Definir la intención de cambio de pantalla
+        startActivity(intent); // Iniciar MainActivity
+        finish(); // Finalizar LoginActivity para sacarla de la pila de navegación
     }
 }

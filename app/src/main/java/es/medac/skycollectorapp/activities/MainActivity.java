@@ -1,416 +1,362 @@
-// Definición del paquete donde se ubica la clase
+// Declaración del paquete al que pertenece la actividad principal
 package es.medac.skycollectorapp.activities;
 
-// Importación para el acceso al contexto de la aplicación
-import android.content.Context;
-// Importación para la gestión de navegación entre pantallas
-import android.content.Intent;
-// Importación para el manejo de persistencia de datos ligera
-import android.content.SharedPreferences;
-// Importación para el manejo de rutas de recursos y archivos
-import android.net.Uri;
-// Importación para la gestión del estado de la actividad
-import android.os.Bundle;
-// Importación para el registro de mensajes en la consola de depuración
-import android.util.Log;
-// Importación para la gestión de propiedades de las vistas
-import android.view.View;
-// Importación para mostrar mensajes emergentes rápidos
-import android.widget.Toast;
+// Importaciones de contexto y utilidades de navegación de Android
+import android.content.Context; // Contexto de la aplicación
+import android.content.Intent; // Objeto para la navegación entre actividades
+import android.content.SharedPreferences; // Almacenamiento persistente ligero
+import android.net.Uri; // Representación de direcciones URI para archivos o imágenes
+import android.os.Bundle; // Pases de datos durante el ciclo de vida de la actividad
+import android.util.Log; // Registro de logs en la consola Logcat
+import android.view.LayoutInflater; // Conversor de archivos XML a objetos de vista en Java
+import android.view.View; // Componente base de vistas de interfaz
+import android.view.ViewGroup; // Contenedor padre de vistas
+import android.widget.ImageView; // Componente para mostrar imágenes
+import android.widget.TextView; // Componente para mostrar texto
+import android.widget.Toast; // Notificaciones emergentes cortas
 
-// Importación de la clase base para actividades de compatibilidad
-import androidx.appcompat.app.AppCompatActivity;
-// Importación para mostrar cuadros de diálogo
-import androidx.appcompat.app.AlertDialog;
-// Importación para la disposición de elementos en cuadrícula dentro de una lista
-import androidx.recyclerview.widget.GridLayoutManager;
+// Importaciones de AndroidX
+import androidx.annotation.NonNull; // Marcador para parámetros que no pueden ser nulos
+import androidx.appcompat.app.AlertDialog; // Cuadros de diálogo emergentes de confirmación
+import androidx.appcompat.app.AppCompatActivity; // Clase base con compatibilidad para ActionBar
+import androidx.recyclerview.widget.GridLayoutManager; // Gestor de diseño en cuadrícula para listas RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager; // Gestor de diseño lineal para el diálogo
+import androidx.recyclerview.widget.RecyclerView; // Componente eficiente para listas de elementos
 
-// Importación de la librería para la gestión y carga de imágenes
-import com.bumptech.glide.Glide;
-// Importación de la herramienta de autenticación de Firebase
-import com.google.firebase.auth.FirebaseAuth;
-// Importación del modelo de usuario autenticado en Firebase
-import com.google.firebase.auth.FirebaseUser;
-// Importación del motor de base de datos en la nube de Firestore
-import com.google.firebase.firestore.FirebaseFirestore;
-// Importación de la librería para conversión de objetos a formato JSON
-import com.google.gson.Gson;
-// Importación para la gestión de tipos de datos en colecciones genéricas
-import com.google.gson.reflect.TypeToken;
+// Importaciones de librerías de Material Design y externas
+import com.bumptech.glide.Glide; // Carga y procesado eficiente de imágenes
+import com.google.android.material.bottomsheet.BottomSheetDialog; // Diálogo deslizante desde la parte inferior
+import com.google.firebase.auth.FirebaseAuth; // Servicio de autenticación de usuario con Firebase
+import com.google.firebase.auth.FirebaseUser; // Objeto de usuario autenticado en Firebase
+import com.google.firebase.firestore.FirebaseFirestore; // Servicio de la base de datos Firestore en la nube
+import com.google.gson.Gson; // Motor de conversión de objetos Java a formato JSON
+import com.google.gson.reflect.TypeToken; // Preservación de tipos de colecciones genéricas para Gson
 
-// Importación para el uso de reflexión en tipos de datos
-import java.lang.reflect.Type;
-// Importación para dar formato a las fechas
-import java.text.SimpleDateFormat;
-// Importación para el uso de listas de tamaño dinámico
-import java.util.ArrayList;
-// Importación para guardar el orden de aparición de los modelos
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-// Importación para la definición de interfaces de listas
-import java.util.List;
+// Importaciones estándar de Java
+import java.lang.reflect.Type; // Manejo de tipos de datos mediante reflexión
+import java.text.SimpleDateFormat; // Formateador de fechas a cadenas de texto
+import java.util.ArrayList; // Colección de lista dinámica
+import java.util.Date; // Objeto para instantes temporales
+import java.util.LinkedHashMap; // Mapa que conserva el orden de inserción de elementos
+import java.util.List; // Interfaz para listas
+import java.util.Locale; // Configuración regional de lenguaje
+import java.util.Map; // Interfaz para mapas
 
-// Importación del adaptador para la visualización de aviones
-import es.medac.skycollectorapp.adapters.AvionAdapter;
-// Importación de la clase generada para la vinculación de vistas
-import es.medac.skycollectorapp.databinding.ActivityMainBinding;
-// Importación del modelo de datos de Avión
-import es.medac.skycollectorapp.models.Avion;
-// Importación del modelo que agrupa los avistamientos de un mismo modelo
-import es.medac.skycollectorapp.models.GrupoAvion;
-// Importación de la actividad para añadir nuevos aviones
-import es.medac.skycollectorapp.activities.AddAvionActivity;
+// Importaciones de modelos, adaptadores y recursos del proyecto
+import es.medac.skycollectorapp.R; // Recursos del proyecto
+import es.medac.skycollectorapp.adapters.AvionAdapter; // Adaptador para la lista de tarjetas de aviones
+import es.medac.skycollectorapp.databinding.ActivityMainBinding; // Clase de vinculación de vistas ViewBinding generada
+import es.medac.skycollectorapp.models.Avion; // Modelo de datos del objeto Avión
+import es.medac.skycollectorapp.models.GrupoAvion; // Modelo de agrupación por modelo de avión
 
-// Clase principal que gestiona la pantalla de inicio y el listado de la colección
+// Clase principal que representa la pantalla de inicio y catálogo personal del usuario
 public class MainActivity extends AppCompatActivity {
 
-    // Variable para acceder a los componentes del diseño sin usar findViewById
-    private ActivityMainBinding binding;
-    // Variable para gestionar el puente entre los datos y la lista visual
-    private AvionAdapter adapter;
-    // Lista en memoria que contiene todos los avistamientos de la colección
-    private List<Avion> listaAviones;
-    // Lista en memoria con los avistamientos agrupados por modelo para mostrarlos
-    private List<GrupoAvion> grupos;
+    // ------------------------------
+    // VARIABLES Y ADAPTADORES
+    // ------------------------------
+    private ActivityMainBinding binding; // Referencia para el acceso directo a los elementos del XML mediante ViewBinding
+    private AvionAdapter adapter; // Adaptador para gestionar la visualización de los grupos de aviones
+    private List<Avion> listaAviones; // Lista completa en memoria de todos los avistamientos del usuario
+    private List<GrupoAvion> grupos; // Lista de avistamientos agrupados por modelo para la interfaz
 
-    // Método que se ejecuta al iniciar la creación de la actividad
+    // ------------------------------
+    // MÉTODOS DEL CICLO DE VIDA
+    // ------------------------------
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // Ejecución de la lógica de creación de la clase superior
-        super.onCreate(savedInstanceState);
-        // Inicialización de la vinculación de vistas mediante el inflador
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        // Establecimiento del contenido visual de la actividad
-        setContentView(binding.getRoot());
+    protected void onCreate(Bundle savedInstanceState) { // Inicialización de la actividad
+        super.onCreate(savedInstanceState); // Llamada al método padre
+        binding = ActivityMainBinding.inflate(getLayoutInflater()); // Inflar la vista mediante ViewBinding
+        setContentView(binding.getRoot()); // Establecer la vista raíz del layout en pantalla
 
-        // Instanciación de la lista dinámica de aviones
-        listaAviones = new ArrayList<>();
+        listaAviones = new ArrayList<>(); // Inicializar la lista dinámica de avistamientos individuales
+        grupos = new ArrayList<>(); // Inicializar la lista dinámica de grupos de avistamientos
 
-        // Instanciación de la lista de grupos de aviones
-        grupos = new ArrayList<>();
-
-        // Inicialización del adaptador con la lista de grupos y los eventos de clic
+        // Inicializar el adaptador pasando los grupos y configurando los eventos de clic
         adapter = new AvionAdapter(grupos,
                 (grupo, position) -> {
-                    // Apertura directa del detalle si el modelo tiene un solo avistamiento
+                    // Si el grupo contiene un único avistamiento, abrir directamente la pantalla de detalle
                     if (grupo.getCantidad() == 1) abrirDetalle(grupo.getRepresentante());
-                        // Si hay varios avistamientos se deja elegir cuál abrir
+                        // Si existen varios avistamientos del mismo modelo, desplegar menú deslizante para elegir cuál ver
                     else mostrarAvistamientos(grupo);
                 },
-                // Referencia al método que gestiona la visibilidad del botón de borrado
-                this::actualizarPapelera
+                this::actualizarPapelera // Pasar la referencia del método para gestionar el botón de eliminación
         );
 
-        // Configuración de la lista para mostrarse en dos columnas
+        // Configurar el RecyclerView con una disposición en cuadrícula de dos columnas
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        // Vinculación del adaptador con el componente de lista visual
-        binding.recyclerView.setAdapter(adapter);
+        binding.recyclerView.setAdapter(adapter); // Conectar el adaptador al RecyclerView
 
-        // Definición de la acción al pulsar el botón de añadir avión
+        // Asignar los escuchadores de clic a los botones principales de la interfaz
         binding.btnAddAvion.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, AddAvionActivity.class))
+                startActivity(new Intent(MainActivity.this, AddAvionActivity.class)) // Abrir la pantalla de añadir
         );
 
-        // Definición de la acción al pulsar el botón de eliminación masiva
-        binding.btnPapelera.setOnClickListener(v -> borrarSeleccionados());
+        binding.btnPapelera.setOnClickListener(v -> borrarSeleccionados()); // Ejecutar el borrado de elementos marcados
 
-        // Definición de la acción al pulsar sobre el área del perfil
         binding.cardPerfil.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, PerfilActivity.class))
+                startActivity(new Intent(MainActivity.this, PerfilActivity.class)) // Abrir la pantalla de perfil
         );
 
-        // Definición de la acción al pulsar el botón del asistente virtual
         binding.btnChat.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, ChatbotActivity.class))
+                startActivity(new Intent(MainActivity.this, ChatbotActivity.class)) // Abrir el asistente virtual
         );
 
-        // Definición de la acción al pulsar el botón de visualización del mapa
         binding.btnMap.setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, MapaActivity.class))
+                startActivity(new Intent(MainActivity.this, MapaActivity.class)) // Abrir el mapa interactivo
         );
     }
 
-    // Método que se ejecuta cada vez que la pantalla vuelve a primer plano
     @Override
-    protected void onResume() {
-        // Ejecución de la lógica de reanudación superior
-        super.onResume();
-        // Recarga de la colección de aviones desde el almacenamiento
-        cargarListaDeAviones();
-        // Actualización de la imagen de perfil en la interfaz
-        cargarFotoPerfilMini();
-        // Actualización del nombre de usuario en la interfaz
-        cargarNombreUsuario();
+    protected void onResume() { // Método invocado cada vez que la pantalla vuelve a primer plano
+        super.onResume(); // Llamada al método base
+        cargarListaDeAviones(); // Recargar la colección local desde SharedPreferences
+        cargarFotoPerfilMini(); // Cargar la foto de perfil en miniatura
+        cargarNombreUsuario(); // Cargar el nombre personalizado del usuario
     }
 
-    // Método para recuperar y mostrar la imagen de perfil reducida
+    // ------------------------------
+    // CARGA Y SINCRONIZACIÓN DE DATOS
+    // ------------------------------
+
+    // Carga la miniatura de la foto de perfil guardada para el usuario activo
     private void cargarFotoPerfilMini() {
-        // Obtención del usuario autenticado actualmente
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        // Interrupción si no hay una sesión de usuario activa
-        if (user == null) return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Obtener el usuario autenticado
+        if (user == null) return; // Salir si no hay una sesión activa
 
-        // Recuperación del identificador único del usuario
-        String userId = user.getUid();
-        // Acceso al fichero de preferencias del perfil de usuario
-        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE);
-        // Recuperación de la ruta de la foto asociada al identificador
-        String fotoGuardada = prefs.getString("foto_" + userId, null);
+        String userId = user.getUid(); // Obtener el UID del usuario
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE); // Leer preferencias
+        String fotoGuardada = prefs.getString("foto_" + userId, null); // Obtener la URI de la foto guardada
 
-        // Verificación de existencia de una ruta de foto válida
         if (fotoGuardada != null) {
-            // Carga de la imagen con recorte circular en el componente visual
             Glide.with(this)
-                    .load(Uri.parse(fotoGuardada))
-                    .circleCrop()
-                    .into(binding.imgPerfilMini);
+                    .load(Uri.parse(fotoGuardada)) // Cargar la imagen desde la URI
+                    .circleCrop() // Aplicar corte circular
+                    .into(binding.imgPerfilMini); // Insertar en la vista previa del perfil
         }
     }
 
-    // Método para sincronizar la lista visual con los datos guardados
+    // Carga el nombre del usuario desde las preferencias locales o usa uno por defecto
+    private void cargarNombreUsuario() {
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE); // Leer preferencias
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Obtener el usuario activo
+        if (user == null) return; // Salir si no hay sesión iniciada
+
+        String userId = user.getUid(); // Obtener UID
+        String nombreUsuario = prefs.getString("nombre_" + userId, "usuario"); // Recuperar nombre o valor por defecto
+        binding.txtNombreUsuario.setText(nombreUsuario); // Asignar el nombre en el TextView
+    }
+
+    // Lee los avistamientos guardados en SharedPreferences y reconstruye los grupos
     private void cargarListaDeAviones() {
-        // Acceso al almacenamiento de datos de la colección
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
-        // Recuperación de la cadena JSON con la información de los aviones
-        String json = prefs.getString("lista_aviones", null);
+        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE); // Obtener preferencias
+        String json = prefs.getString("lista_aviones", null); // Leer la cadena JSON de avistamientos
 
-        // Limpieza de la lista actual en memoria
-        listaAviones.clear();
+        listaAviones.clear(); // Limpiar la lista de avistamientos en memoria
 
-        // Procesamiento de los datos si el archivo JSON no está vacío
         if (json != null) {
-            // Inicialización del motor de conversión de datos
-            Gson gson = new Gson();
-            // Definición del tipo de colección para la conversión
-            Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
-            // Transformación del texto JSON en una lista de objetos
-            List<Avion> avionesGuardados = gson.fromJson(json, type);
-            // Inserción de los objetos recuperados en la lista de trabajo
-            if (avionesGuardados != null) listaAviones.addAll(avionesGuardados);
+            Gson gson = new Gson(); // Instanciar conversor Gson
+            Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir el tipo para deserializar
+            List<Avion> avionesGuardados = gson.fromJson(json, type); // Deserializar la lista desde JSON
+            if (avionesGuardados != null) listaAviones.addAll(avionesGuardados); // Agregar los elementos recuperados
         }
 
-        // Agrupación de los avistamientos por modelo para no mostrar tarjetas repetidas
-        construirGrupos();
+        construirGrupos(); // Agrupar los avistamientos por modelo técnico
 
-        // Gestión de la visibilidad de los componentes según si hay datos
+        // Controlar la visibilidad de la interfaz según si existen datos o no
         if (listaAviones.isEmpty()) {
-            // Muestra el mensaje informativo de lista vacía
-            binding.txtVacio.setVisibility(View.VISIBLE);
-            // Oculta el componente de la lista
-            binding.recyclerView.setVisibility(View.GONE);
+            binding.txtVacio.setVisibility(View.VISIBLE); // Mostrar el mensaje de colección vacía
+            binding.recyclerView.setVisibility(View.GONE); // Ocultar el RecyclerView
         } else {
-            // Oculta el mensaje de lista vacía
-            binding.txtVacio.setVisibility(View.GONE);
-            // Muestra el componente de la lista
-            binding.recyclerView.setVisibility(View.VISIBLE);
+            binding.txtVacio.setVisibility(View.GONE); // Ocultar el mensaje de colección vacía
+            binding.recyclerView.setVisibility(View.VISIBLE); // Mostrar el RecyclerView
         }
 
-        // Notificación al adaptador para refrescar toda la interfaz de la lista
-        adapter.notifyDataSetChanged();
-        // Actualización del estado visual del botón de borrado
-        actualizarPapelera();
+        adapter.notifyDataSetChanged(); // Notificar al adaptador para refrescar la vista
+        actualizarPapelera(); // Actualizar la visibilidad del botón de borrado
     }
 
-    // Método para eliminar los grupos marcados por el usuario
-    private void borrarSeleccionados() {
-        // Creación de una lista temporal para identificar los grupos a eliminar
-        List<GrupoAvion> gruposABorrar = new ArrayList<>();
-        // Contador del total de avistamientos que se eliminarían
-        int totalAvistamientos = 0;
+    // Organiza la lista de avistamientos individuales en grupos ordenados por modelo
+    private void construirGrupos() {
+        grupos.clear(); // Limpiar los grupos anteriores
+        Map<String, GrupoAvion> porModelo = new LinkedHashMap<>(); // Mapa ordenado por el nombre del modelo
 
-        // Recorrido de los grupos buscando los que tienen la marca de selección
+        for (Avion a : listaAviones) { // Iterar sobre cada avistamiento guardado
+            String clave = a.getModelo() != null ? a.getModelo() : ""; // Obtener la clave del modelo
+            GrupoAvion g = porModelo.get(clave); // Buscar si ya existe un grupo creado para este modelo
+            if (g == null) {
+                g = new GrupoAvion(clave); // Crear un nuevo grupo si es el primer avistamiento del modelo
+                porModelo.put(clave, g);
+            }
+            g.agregar(a); // Agregar el avistamiento al grupo correspondiente
+        }
+
+        grupos.addAll(porModelo.values()); // Trasvasar los grupos construidos a la lista principal
+    }
+
+    // ------------------------------
+    // LÓGICA DE BORRADO Y ACCIONES
+    // ------------------------------
+
+    // Muestra una confirmación y elimina los grupos marcados por el usuario
+    private void borrarSeleccionados() {
+        List<GrupoAvion> gruposABorrar = new ArrayList<>(); // Lista de grupos seleccionados para eliminar
+        int totalAvistamientos = 0; // Contador de avistamientos totales contenidos
+
+        // Identificar cuáles grupos están marcados con el CheckBox de selección
         for (GrupoAvion g : grupos) {
             if (g.isSeleccionado()) {
-                gruposABorrar.add(g); // Adición del grupo a la lista de borrado
-                totalAvistamientos += g.getCantidad(); // Suma de sus avistamientos
+                gruposABorrar.add(g); // Añadir a la lista de borrado
+                totalAvistamientos += g.getCantidad(); // Sumar la cantidad de avistamientos
             }
         }
 
-        // Interrupción si no se ha marcado ningún grupo para borrar
-        if (gruposABorrar.isEmpty()) return;
+        if (gruposABorrar.isEmpty()) return; // Salir si no hay nada seleccionado
 
-        // Si se van a borrar varios avistamientos de un mismo modelo se pide confirmación
+        // Si se van a eliminar múltiples avistamientos acumulados, solicitar confirmación
         if (totalAvistamientos > gruposABorrar.size()) {
             final int total = totalAvistamientos;
             new AlertDialog.Builder(this)
-                    .setTitle("Eliminar avistamientos")
-                    .setMessage("Se eliminarán " + total + " avistamientos. ¿Continuar?")
-                    .setPositiveButton("Eliminar", (d, w) -> eliminarGrupos(gruposABorrar))
-                    .setNegativeButton("Cancelar", null)
+                    .setTitle("Eliminar avistamientos") // Título del diálogo de confirmación
+                    .setMessage("Se eliminarán " + total + " avistamientos de la colección. ¿Deseas continuar?") // Mensaje
+                    .setPositiveButton("Eliminar", (d, w) -> eliminarGrupos(gruposABorrar)) // Confirmar eliminación
+                    .setNegativeButton("Cancelar", null) // Cancelar borrado
                     .show();
         } else {
-            // Borrado directo si cada grupo tiene un solo avistamiento
-            eliminarGrupos(gruposABorrar);
+            eliminarGrupos(gruposABorrar); // Eliminar directamente si es un solo avistamiento por grupo
         }
     }
 
-    // Método que elimina los grupos indicados junto con todos sus avistamientos
+    // Procesa la eliminación física local y en Firestore de los grupos indicados
     private void eliminarGrupos(List<GrupoAvion> gruposABorrar) {
-        // Recorrido de cada grupo y de cada uno de sus avistamientos
         for (GrupoAvion g : gruposABorrar) {
             for (Avion a : g.getAvistamientos()) {
-                // Invocación del borrado en la base de datos de la nube
-                borrarAvionEnFirestore(a);
-                // Eliminación del avistamiento de la lista local
-                listaAviones.remove(a);
+                borrarAvionEnFirestore(a); // Borrar el registro correspondiente en la base de datos de la nube
+                listaAviones.remove(a); // Borrar el avistamiento de la lista en memoria local
             }
         }
 
-        // Apertura del editor para actualizar el almacenamiento local
+        // Guardar la nueva lista de avistamientos en SharedPreferences local
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        // Almacenamiento de la nueva lista de avistamientos en formato JSON
-        editor.putString("lista_aviones", new Gson().toJson(listaAviones));
-        // Aplicación persistente de los cambios
-        editor.apply();
+        prefs.edit().putString("lista_aviones", new Gson().toJson(listaAviones)).apply(); // Serializar y aplicar cambios
 
-        // Reconstrucción de los grupos y refresco de la lista visual
-        construirGrupos();
-        adapter.notifyDataSetChanged();
+        construirGrupos(); // Reconstruir los grupos con los datos actualizados
+        adapter.notifyDataSetChanged(); // Notificar al adaptador para refrescar la pantalla
+        actualizarPapelera(); // Actualizar la visibilidad del botón de papelera
 
-        // Refresco de la visibilidad del botón de papelera
-        actualizarPapelera();
-
-        // Muestra el aviso visual si ya no quedan elementos en la colección
+        // Mostrar el mensaje descriptivo si la colección ha quedado vacía
         if (listaAviones.isEmpty()) {
             binding.txtVacio.setVisibility(View.VISIBLE);
             binding.recyclerView.setVisibility(View.GONE);
         }
 
-        // Notificación final al usuario sobre el éxito del proceso
-        Toast.makeText(this, "Aviones eliminados", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Aviones eliminados de la colección", Toast.LENGTH_SHORT).show(); // Notificar al usuario
     }
 
-    // Método para agrupar los avistamientos por modelo conservando el orden de aparición
-    private void construirGrupos() {
-        // Limpieza de los grupos actuales
-        grupos.clear();
-
-        // Mapa que relaciona cada modelo con su grupo, respetando el orden de inserción
-        Map<String, GrupoAvion> porModelo = new LinkedHashMap<>();
-
-        // Recorrido de todos los avistamientos para repartirlos por modelo
-        for (Avion a : listaAviones) {
-            String clave = a.getModelo() != null ? a.getModelo() : "";
-            GrupoAvion g = porModelo.get(clave);
-            if (g == null) {
-                g = new GrupoAvion(clave); // Creación del grupo si es el primer avistamiento del modelo
-                porModelo.put(clave, g);
-            }
-            g.agregar(a); // Adición del avistamiento al grupo
-        }
-
-        // Paso de los grupos creados a la lista que usa el adaptador
-        grupos.addAll(porModelo.values());
-    }
-
-    // Método para abrir la pantalla de detalles de un avistamiento
-    private void abrirDetalle(Avion avion) {
-        // Creación de una intención para abrir la pantalla de detalles
-        Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class);
-        // Inserción del identificador del avión en la intención
-        intent.putExtra("avion_id", avion.getId());
-        // Inicio de la actividad de destino
-        startActivity(intent);
-    }
-
-    // Método para mostrar la lista de avistamientos de un modelo y elegir cuál abrir
-    private void mostrarAvistamientos(GrupoAvion grupo) {
-        List<Avion> lista = grupo.getAvistamientos();
-        String[] etiquetas = new String[lista.size()];
-        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-
-        // Construcción de una etiqueta por avistamiento, del más reciente al más antiguo
-        for (int i = 0; i < lista.size(); i++) {
-            Avion a = lista.get(lista.size() - 1 - i);
-
-            // Matrícula si existe, si no el ICAO y si no un texto genérico
-            String matricula = (a.getMatricula() != null && !a.getMatricula().isEmpty())
-                    ? a.getMatricula()
-                    : (a.getIcao24() != null ? a.getIcao24() : "Sin matrícula");
-
-            // Fecha del avistamiento si se conoce
-            String fecha = a.getFechaAvistamiento() > 0
-                    ? formato.format(new Date(a.getFechaAvistamiento()))
-                    : "fecha desconocida";
-
-            // Indicación de si el avistamiento tiene foto del usuario
-            String foto = a.getUriFotoUsuario() != null ? " · con foto" : "";
-
-            etiquetas[i] = matricula + " · " + fecha + foto;
-        }
-
-        // Diálogo con la lista de avistamientos del modelo
-        new AlertDialog.Builder(this)
-                .setTitle(grupo.getModelo() + " (" + lista.size() + " avistamientos)")
-                .setItems(etiquetas, (d, which) -> abrirDetalle(lista.get(lista.size() - 1 - which)))
-                .show();
-    }
-
-    // Método para mostrar u ocultar el botón de borrado según la selección
-    private void actualizarPapelera() {
-        // Variable de control para detectar si hay algún elemento marcado
-        boolean haySeleccionados = false;
-        // Recorrido de los grupos en busca de cualquier selección activa
-        for (GrupoAvion g : grupos) {
-            // Comprobación de la marca de selección
-            if (g.isSeleccionado()) {
-                // Activación del estado de detección
-                haySeleccionados = true;
-                // Salida prematura del bucle al encontrar el primero
-                break;
-            }
-        }
-
-        // Modificación de la visibilidad del botón según el estado de selección detectado
-        binding.btnPapelera.setVisibility(haySeleccionados ? View.VISIBLE : View.GONE);
-    }
-
-    // Método para gestionar la eliminación de un registro en el servidor
+    // Borra un documento de la subcolección de aviones en Firestore por su ID
     public void borrarAvionEnFirestore(Avion avion) {
-        // Inicialización de la instancia de la base de datos remota
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        // Obtención de la instancia del gestor de usuarios
-        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance(); // Obtener la instancia de Firestore
+        FirebaseAuth auth = FirebaseAuth.getInstance(); // Obtener la instancia de autenticación
 
-        // Interrupción si no existe una sesión de usuario válida
-        if (auth.getCurrentUser() == null) return;
+        if (auth.getCurrentUser() == null) return; // Salir si no hay una sesión activa
+        String uid = auth.getCurrentUser().getUid(); // Obtener el UID del usuario activo
 
-        // Recuperación del identificador único del usuario
-        String uid = auth.getCurrentUser().getUid();
-
-        // Acceso a la ruta del documento específico para su eliminación
+        // Borrar el documento en la ruta: usuarios / {uid} / aviones / {id}
         db.collection("usuarios")
                 .document(uid)
                 .collection("aviones")
                 .document(avion.getId())
-                .delete() // Ejecución de la orden de borrado
-                .addOnSuccessListener(aVoid -> {
-                    // Registro del éxito de la operación en la consola
-                    Log.d("FIRESTORE", "Avión eliminado: " + avion.getApodo());
-                })
-                .addOnFailureListener(e -> {
-                    // Registro del fallo y la causa del error en la consola
-                    Log.e("FIRESTORE", "Error al borrar avión", e);
-                });
+                .delete() // Ejecutar orden de borrado en la nube
+                .addOnSuccessListener(aVoid -> Log.d("FIRESTORE", "Avión eliminado en Firestore: " + avion.getApodo())) // Log de éxito
+                .addOnFailureListener(e -> Log.e("FIRESTORE", "Error al borrar avión en Firestore", e)); // Log de error
     }
 
-    // Método para sincronizar el nombre del perfil con la interfaz
-    private void cargarNombreUsuario() {
-        // Acceso al fichero de configuración del perfil de usuario
-        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", MODE_PRIVATE);
-        // Obtención del usuario autenticado en la plataforma
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        // Interrupción si no se detecta usuario logueado
-        if (user == null) return;
+    // Abre la actividad de detalle de un avistamiento enviando su ID como argumento
+    private void abrirDetalle(Avion avion) {
+        Intent intent = new Intent(MainActivity.this, DetalleAvionActivity.class); // Definir la intención
+        intent.putExtra("avion_id", avion.getId()); // Pasar el ID único del avión como extra
+        startActivity(intent); // Iniciar la actividad
+    }
 
-        // Recuperación del identificador único del usuario activo
-        String userId = user.getUid();
-        // Obtención del nombre almacenado o un valor por defecto si no existe
-        String nombreUsuario = prefs.getString("nombre_" + userId, "usuario");
-        // Actualización del componente visual de texto con el nombre obtenido
-        binding.txtNombreUsuario.setText(nombreUsuario);
+    // Muestra un panel deslizante (BottomSheet) con la lista detallada de avistamientos individuales de un modelo
+    private void mostrarAvistamientos(GrupoAvion grupo) {
+        // Inflar el diseño XML del panel de diálogo personalizado desde los recursos
+        View vista = getLayoutInflater().inflate(R.layout.dialog_grupo_avistamientos, null);
+
+        // Crear instancia del BottomSheetDialog para mostrar el contenido de forma elegante desde abajo
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(vista); // Establecer la vista inflada dentro del diálogo
+
+        // Localizar los componentes de la interfaz del diálogo
+        TextView txtTitulo = vista.findViewById(R.id.txtTituloGrupo); // Título que indica el modelo y cantidad
+        RecyclerView recycler = vista.findViewById(R.id.recyclerAvistamientos); // Lista para mostrar los avistamientos
+
+        // Establecer el título del diálogo combinando el modelo y el total de capturas
+        txtTitulo.setText(grupo.getModelo() + " (" + grupo.getCantidad() + ")");
+
+        // Configurar el gestor de diseño para la lista interna del diálogo
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+
+        // Implementar un adaptador anónimo para poblar la lista de avistamientos
+        recycler.setAdapter(new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+            @NonNull
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                // Inflar el diseño de cada fila individual de la lista
+                View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avistamiento_grupo, parent, false);
+                return new RecyclerView.ViewHolder(v) {};
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+                // Obtener el avión específico basándose en la posición invertida (del más nuevo al más antiguo)
+                Avion a = grupo.getAvistamientos().get(grupo.getCantidad() - 1 - position);
+
+                // Vincular las vistas del ítem con sus referencias
+                TextView txtMat = holder.itemView.findViewById(R.id.txtMatricula); // Campo para matrícula o ICAO
+                TextView txtFec = holder.itemView.findViewById(R.id.txtFecha); // Campo para la fecha del avistamiento
+                TextView txtDist = holder.itemView.findViewById(R.id.txtDistancia); // Campo para la distancia recorrida
+                ImageView imgFoto = holder.itemView.findViewById(R.id.imgTieneFoto); // Indicador visual de foto adjunta
+
+                // Asignar los valores a cada componente visual
+                txtMat.setText((a.getMatricula() != null && !a.getMatricula().isEmpty() ? a.getMatricula() : a.getIcao24()));
+                txtFec.setText(new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date(a.getFechaAvistamiento())));
+                txtDist.setText(String.format(Locale.getDefault(), "%.1f km", a.getDistanciaKm()));
+
+                // Mostrar un icono de cámara si el usuario añadió una foto personalizada a este avistamiento
+                imgFoto.setVisibility(a.getUriFotoUsuario() != null ? View.VISIBLE : View.GONE);
+
+                // Configurar el evento al pulsar sobre un avistamiento concreto
+                holder.itemView.setOnClickListener(v -> {
+                    abrirDetalle(a); // Abrir la actividad de detalle de este avión
+                    dialog.dismiss(); // Cerrar el diálogo deslizante tras la selección
+                });
+            }
+
+            @Override
+            public int getItemCount() {
+                return grupo.getCantidad(); // Retornar el total de avistamientos contenidos en el grupo
+            }
+        });
+
+        dialog.show(); // Mostrar el diálogo deslizante en pantalla
+    }
+
+    // Muestra u oculta el botón flotante de eliminación masiva según el estado de las selecciones
+    private void actualizarPapelera() {
+        boolean haySeleccionados = false; // Variable de control de estado
+
+        // Verificar si al menos uno de los grupos tiene activada la marca de selección
+        for (GrupoAvion g : grupos) {
+            if (g.isSeleccionado()) {
+                haySeleccionados = true; // Activar bandera
+                break; // Salir del bucle al encontrar el primero
+            }
+        }
+
+        // Ajustar la visibilidad del botón en la interfaz según corresponda
+        binding.btnPapelera.setVisibility(haySeleccionados ? View.VISIBLE : View.GONE);
     }
 }

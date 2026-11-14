@@ -66,6 +66,8 @@ public class Avion implements Serializable {
     private double latAvion;
     private double lonAvion;
 
+    private boolean esFotoVerificada = false;
+
     // Constructor vacío que se ejecuta al crear una instancia sin parámetros
     public Avion() {
         // Generación automática de un identificador aleatorio único
@@ -279,4 +281,7 @@ public class Avion implements Serializable {
             default: return 0xFF808080;
         }
     }
+
+    public boolean isEsFotoVerificada() { return esFotoVerificada; }
+    public void setEsFotoVerificada(boolean esFotoVerificada) { this.esFotoVerificada = esFotoVerificada; }
 }

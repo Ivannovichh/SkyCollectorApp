@@ -1,259 +1,202 @@
-// Definición del paquete de la clase actual
+// Declaración del paquete donde se encuentra ubicada la actividad
 package es.medac.skycollectorapp.activities;
 
-// Importación para la gestión de permisos del sistema
-import android.Manifest;
-// Importación para la comunicación entre componentes de Android
-import android.content.Intent;
-// Importación para el almacenamiento persistente de datos simples
-import android.content.SharedPreferences;
-// Importación para verificar estados de los permisos instalados
-import android.content.pm.PackageManager;
-// Importación para la gestión de identificadores de recursos universales
-import android.net.Uri;
-// Importación para el manejo del estado de la instancia de la actividad
-import android.os.Bundle;
-// Importación para acceder al entorno de almacenamiento externo
-import android.os.Environment;
-// Importación para la manipulación de las propiedades de las vistas
-import android.view.View;
-// Importación para el componente de botón de la interfaz
-import android.widget.Button;
-// Importación para el campo de entrada de texto editable
-import android.widget.EditText;
-// Importación para el componente que visualiza imágenes
-import android.widget.ImageView;
-// Importación para el componente que visualiza texto estático
-import android.widget.TextView;
-// Importación para mostrar notificaciones flotantes breves
-import android.widget.Toast;
+// Importaciones de permisos y utilidades del sistema Android
+import android.Manifest; // Definición de permisos de sistema (Cámara)
+import android.content.Intent; // Objeto para intenciones y paso entre actividades
+import android.content.SharedPreferences; // Almacenamiento persistente clave-valor local
+import android.content.pm.PackageManager; // Gestor para comprobación de permisos de la app
+import android.net.Uri; // Representación de direcciones URI para archivos e imágenes
+import android.os.Bundle; // Pases de datos durante el ciclo de vida de la actividad
+import android.os.Environment; // Directorios estándar del sistema de archivos
+import android.util.Log; // Registro de mensajes de depuración en Logcat
+import android.view.View; // Componente base de las vistas de interfaz
+import android.widget.Button; // Componente de la interfaz tipo botón
+import android.widget.EditText; // Componente de texto editable para apodos
+import android.widget.ImageView; // Componente para mostrar imágenes
+import android.widget.TextView; // Componente para mostrar textos estáticos
+import android.widget.Toast; // Notificaciones emergentes breves en pantalla
 
-// Importación para registrar lanzadores de resultados de actividades
-import androidx.activity.result.ActivityResultLauncher;
-// Importación para contratos estándar de resultados de actividades
-import androidx.activity.result.contract.ActivityResultContracts;
-// Importación base para actividades con soporte de compatibilidad
-import androidx.appcompat.app.AppCompatActivity;
-// Importación para el contenedor visual con diseño de tarjeta
-import androidx.cardview.widget.CardView;
-// Importación para comprobaciones de compatibilidad de contextos
-import androidx.core.content.ContextCompat;
-// Importación para compartir archivos de forma segura entre apps
-import androidx.core.content.FileProvider;
+// Importaciones de librerías de soporte AndroidX
+import androidx.activity.result.ActivityResultLauncher; // Lanzador para recibir resultados de actividades
+import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar para fotos y permisos
+import androidx.appcompat.app.AppCompatActivity; // Clase base para actividades con soporte ActionBar
+import androidx.cardview.widget.CardView; // Tarjeta contenedora con elevación y bordes redondeados
+import androidx.core.content.ContextCompat; // Métodos de compatibilidad para contextos y permisos
+import androidx.core.content.FileProvider; // Proveedor seguro para compartir archivos con la cámara
 
-// Importación principal de la librería de carga de imágenes
-import com.bumptech.glide.Glide;
-// Importación para configurar la estrategia de caché de imágenes
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-// Importación para la conversión de objetos Java a formato JSON
-import com.google.gson.Gson;
-// Importación para preservar información de tipos genéricos en tiempo de ejecución
-import com.google.gson.reflect.TypeToken;
+// Importaciones de librerías externas
+import com.bumptech.glide.Glide; // Carga y procesamiento eficiente de imágenes
+import com.bumptech.glide.load.engine.DiskCacheStrategy; // Estrategias de caché en disco para Glide
+import com.google.firebase.auth.FirebaseAuth; // Gestor de autenticación de usuarios de Firebase
+import com.google.firebase.firestore.FirebaseFirestore; // Gestor de la base de datos Firestore en la nube
+import com.google.gson.Gson; // Motor de conversión de objetos Java a formato JSON
+import com.google.gson.reflect.TypeToken; // Preservación de tipos genéricos en Gson
 
-// Importación para la representación de archivos en el sistema
-import java.io.File;
-// Importación para la gestión de errores de entrada y salida
-import java.io.IOException;
-// Importación para el manejo de tipos de datos mediante reflexión
-import java.lang.reflect.Type;
-// Importación para el formateado de fechas y horas
-import java.text.SimpleDateFormat;
-// Importación para la estructura de lista dinámica
-import java.util.ArrayList;
-// Importación para la representación de instantes temporales
-import java.util.Date;
-// Importación para la configuración regional de datos
-import java.util.Locale;
+// Importaciones estándar de Java
+import java.io.File; // Manipulación de archivos en almacenamiento
+import java.io.IOException; // Manejo de excepciones de entrada/salida
+import java.lang.reflect.Type; // Tipo genérico para la deserialización con Gson
+import java.text.SimpleDateFormat; // Formateador de fechas a cadenas de texto
+import java.util.ArrayList; // Colección de lista dinámicamente redimensionable
+import java.util.Date; // Representación de fecha y hora del sistema
+import java.util.Locale; // Configuración regional de idioma
 
-// Importación de la clase de recursos del proyecto
-import es.medac.skycollectorapp.R;
-// Importación del modelo de datos del objeto Avión
-import es.medac.skycollectorapp.models.Avion;
+// Importaciones de recursos y modelos del proyecto
+import es.medac.skycollectorapp.R; // Recursos del proyecto
+import es.medac.skycollectorapp.models.Avion; // Modelo de datos del objeto Avión
 
-// Clase que gestiona la pantalla de visualización y edición de detalles de un avión
+// Clase principal que gestiona la visualización, edición de apodos y fotos personalizadas de un avión
 public class DetalleAvionActivity extends AppCompatActivity {
 
-    // Referencia para la imagen principal del avión
-    private ImageView imgDetalleGrande;
-    // Referencia para la imagen personalizada cargada por el usuario
-    private ImageView imgFotoUsuario;
-    // Referencia para el campo de edición del apodo del avión
-    private EditText etNombreAvion;
+    // ------------------------------
+    // VARIABLES DE INTERFAZ
+    // ------------------------------
+    private ImageView imgDetalleGrande; // Imagen principal con la silueta o ilustración oficial del avión
+    private ImageView imgFotoUsuario; // Imagen personalizada tomada o cargada por el usuario
+    private EditText etNombreAvion; // Campo editable para cambiar el apodo personalizado de la aeronave
 
-    // Referencias para las etiquetas de información técnica del avión
     private TextView txtDetalleFabricante, txtDetallePais, txtDetalleVelocidad,
-            txtDetalleCapacidad, txtDetallePeso, txtDetalleDimensiones;
+            txtDetalleCapacidad, txtDetallePeso, txtDetalleDimensiones; // Etiquetas de la ficha técnica
 
-    // Referencias para los botones de origen de la fotografía
-    private Button btnCamara, btnGaleria;
-    // Referencias para los botones de control de la pantalla
-    private Button btnGuardar, btnCancelar;
+    private Button btnCamara, btnGaleria; // Botones para capturar o elegir una fotografía
+    private Button btnGuardar, btnCancelar; // Botones de confirmación o cancelación de edición
 
-    // Referencia para el contenedor que agrupa la foto del usuario
-    private CardView layoutFotoUsuario;
+    private CardView layoutFotoUsuario; // Tarjeta contenedora de la fotografía del usuario
 
-    // Objeto que almacena los datos del avión seleccionado
-    private Avion avion;
-    // Referencia temporal para la ruta de la imagen de la cámara
-    private Uri uriFotoTemporal;
+    // ------------------------------
+    // VARIABLES DE DATOS
+    // ------------------------------
+    private Avion avion; // Objeto de tipo Avion cargado para edición
+    private Uri uriFotoTemporal; // URI provisional generada para la toma con la cámara
+    private String avionId; // Identificador único ID del avión seleccionado
 
-    // Variable para identificar el avión de forma única
-    private String avionId;
+    // ------------------------------
+    // LANZADORES DE ACTIVIDADES
+    // ------------------------------
 
-    // Definición del lanzador para capturar fotografías con la cámara
+    // Lanzador para capturar fotografías con la aplicación de cámara del dispositivo
     private final ActivityResultLauncher<Uri> launcherCamara = registerForActivityResult(
-            new ActivityResultContracts.TakePicture(),
+            new ActivityResultContracts.TakePicture(), // Contrato para tomar foto
             exito -> {
-                // Si la captura es exitosa y hay una ruta válida
-                if (exito && uriFotoTemporal != null) {
-                    // Muestra la imagen capturada en la interfaz
-                    mostrarFotoUsuario(uriFotoTemporal);
+                if (exito && uriFotoTemporal != null) { // Si la captura fue correcta
+                    mostrarFotoUsuario(uriFotoTemporal); // Cargar y visualizar la foto tomada
                 }
             }
     );
 
-    // Definición del lanzador para solicitar permisos de hardware al sistema
+    // Lanzador para solicitar permisos de sistema en tiempo de ejecución
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
+            new ActivityResultContracts.RequestPermission(), // Contrato de solicitud de permiso
             isGranted -> {
-                // Si el permiso es concedido, procede a abrir la cámara
-                if (isGranted) abrirCamara();
-                    // Si es denegado, informa al usuario mediante un aviso
-                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
+                if (isGranted) abrirCamara(); // Si el permiso fue otorgado, abrir cámara
+                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show(); // Avisar si fue denegado
             }
     );
 
-    // Definición del lanzador para seleccionar archivos de la galería
+    // Lanzador para seleccionar archivos multimedia desde la galería
     private final ActivityResultLauncher<String> launcherGaleria = registerForActivityResult(
-            new ActivityResultContracts.GetContent(),
+            new ActivityResultContracts.GetContent(), // Contrato para seleccionar contenido
             uri -> {
-                // Si se selecciona una ruta válida
-                if (uri != null) {
+                if (uri != null) { // Si el usuario eligió una imagen
                     try {
-                        // Solicita permiso persistente para leer la ruta de la imagen
+                        // Solicitar permiso de lectura persistente sobre la URI de la galería
                         getContentResolver().takePersistableUriPermission(
                                 uri,
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                         );
                     } catch (Exception e) {
-                        // Registra cualquier error en la obtención de permisos
-                        e.printStackTrace();
+                        e.printStackTrace(); // Registrar excepciones si el proveedor no soporta persistencia
                     }
-                    // Muestra la imagen seleccionada en la interfaz
-                    mostrarFotoUsuario(uri);
+                    mostrarFotoUsuario(uri); // Cargar y mostrar la imagen en la vista
                 }
             }
     );
 
-    // Método principal del ciclo de vida al crear la actividad
+    // ------------------------------
+    // MÉTODOS DEL CICLO DE VIDA
+    // ------------------------------
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // Ejecución de la lógica de inicialización superior
-        super.onCreate(savedInstanceState);
-        // Asignación de la interfaz visual desde el recurso XML
-        setContentView(R.layout.activity_detalle_avion);
+    protected void onCreate(Bundle savedInstanceState) { // Inicialización de la actividad
+        super.onCreate(savedInstanceState); // Llamada al método padre
+        setContentView(R.layout.activity_detalle_avion); // Cargar el diseño XML de detalle
 
-        // Invocación del método que conecta los componentes visuales
-        initViews();
+        initViews(); // Vincular las vistas del layout con las variables locales
 
-        // Recuperación del identificador enviado desde la pantalla anterior
-        avionId = getIntent().getStringExtra("avion_id");
+        avionId = getIntent().getStringExtra("avion_id"); // Recuperar el ID enviado en la intención
 
-        // Verificación de integridad del identificador recibido
-        if (avionId == null) {
-            // Notifica la falta de datos y cierra la pantalla
-            Toast.makeText(this, "Error: no se recibió el ID del avión", Toast.LENGTH_SHORT).show();
-            finish();
+        if (avionId == null) { // Validar la existencia del parámetro
+            Toast.makeText(this, "Error: no se recibió el ID del avión", Toast.LENGTH_SHORT).show(); // Avisar de error
+            finish(); // Cerrar la pantalla
             return;
         }
 
-        // Búsqueda del objeto avión correspondiente en el almacenamiento
-        avion = buscarAvionPorId(avionId);
+        avion = buscarAvionPorId(avionId); // Búsqueda del objeto dentro de la colección local
 
-        // Verificación de que el avión existe en la colección
-        if (avion == null) {
-            // Notifica la ausencia del objeto y cierra la pantalla
-            Toast.makeText(this, "Error: avión no encontrado en la lista", Toast.LENGTH_SHORT).show();
-            finish();
+        if (avion == null) { // Validar si el objeto existe
+            Toast.makeText(this, "Error: avión no encontrado en la colección", Toast.LENGTH_SHORT).show(); // Avisar de error
+            finish(); // Cerrar la pantalla
             return;
         }
 
-        // Carga la información del objeto en los componentes visuales
-        cargarDatos();
-        // Configura los eventos de interacción de los botones
-        setupListeners();
+        cargarDatos(); // Poblar las etiquetas con la información técnica del avión
+        setupListeners(); // Configurar los eventos de clic en los botones
     }
 
-    // Método para inicializar y vincular los elementos de la interfaz
+    // Vincula las referencias de los componentes del archivo XML con las variables locales
     private void initViews() {
-        // Vinculación de la imagen de cabecera
-        imgDetalleGrande = findViewById(R.id.imgDetalleGrande);
-        // Vinculación del campo de texto para el apodo
-        etNombreAvion = findViewById(R.id.etNombreAvion);
+        imgDetalleGrande = findViewById(R.id.imgDetalleGrande); // Imagen oficial grande
+        etNombreAvion = findViewById(R.id.etNombreAvion); // Campo editable del apodo
 
-        // Vinculación de los campos de texto informativos
-        txtDetalleFabricante = findViewById(R.id.txtDetalleFabricante);
-        txtDetallePais = findViewById(R.id.txtDetallePais);
-        txtDetalleVelocidad = findViewById(R.id.txtDetalleVelocidad);
-        txtDetalleCapacidad = findViewById(R.id.txtDetalleCapacidad);
-        txtDetallePeso = findViewById(R.id.txtDetallePeso);
-        txtDetalleDimensiones = findViewById(R.id.txtDetalleDimensiones);
+        txtDetalleFabricante = findViewById(R.id.txtDetalleFabricante); // Etiqueta de fabricante
+        txtDetallePais = findViewById(R.id.txtDetallePais); // Etiqueta de país de origen
+        txtDetalleVelocidad = findViewById(R.id.txtDetalleVelocidad); // Etiqueta de velocidad
+        txtDetalleCapacidad = findViewById(R.id.txtDetalleCapacidad); // Etiqueta de pasajeros
+        txtDetallePeso = findViewById(R.id.txtDetallePeso); // Etiqueta de peso
+        txtDetalleDimensiones = findViewById(R.id.txtDetalleDimensiones); // Etiqueta de dimensiones
 
-        // Vinculación de los botones de acción multimedia
-        btnCamara = findViewById(R.id.btnCamara);
-        btnGaleria = findViewById(R.id.btnGaleria);
+        btnCamara = findViewById(R.id.btnCamara); // Botón para foto de cámara
+        btnGaleria = findViewById(R.id.btnGaleria); // Botón para foto de galería
 
-        // Vinculación de los botones de navegación y guardado
-        btnCancelar = findViewById(R.id.btnCancelar);
-        btnGuardar = findViewById(R.id.btnGuardar);
+        btnCancelar = findViewById(R.id.btnCancelar); // Botón para cancelar
+        btnGuardar = findViewById(R.id.btnGuardar); // Botón para guardar
 
-        // Vinculación del contenedor y marco de la foto de usuario
-        layoutFotoUsuario = findViewById(R.id.layoutFotoUsuario);
-        imgFotoUsuario = findViewById(R.id.imgFotoUsuario);
+        layoutFotoUsuario = findViewById(R.id.layoutFotoUsuario); // Contenedor de la foto del usuario
+        imgFotoUsuario = findViewById(R.id.imgFotoUsuario); // Vista de la foto del usuario
     }
 
-    // Método para definir el comportamiento de los clics
+    // Configura las acciones asociadas a los clics de los botones
     private void setupListeners() {
 
-        // Cierra la actividad actual sin guardar cambios al pulsar cancelar
-        btnCancelar.setOnClickListener(v -> finish());
+        btnCancelar.setOnClickListener(v -> finish()); // Cerrar la actividad sin guardar cambios
 
-        // Procesa el guardado del apodo y los cambios al pulsar guardar
         btnGuardar.setOnClickListener(v -> {
-            // Actualiza el apodo en el objeto con el texto del campo
-            avion.setApodo(etNombreAvion.getText().toString().trim());
+            avion.setApodo(etNombreAvion.getText().toString().trim()); // Actualizar apodo en el objeto
 
-            // Persiste el objeto actualizado en las preferencias locales
-            guardarCambiosEnPreferencias(avion);
+            guardarCambiosEnPreferencias(avion); // Persistir cambios localmente en SharedPreferences
+            guardarCambiosEnFirestore(avion); // Sincronizar los cambios actualizados en la nube Firestore
 
-            // Informa del éxito y cierra la pantalla
-            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show(); // Notificar al usuario
+            finish(); // Cerrar la pantalla
         });
 
-        // Gestiona la lógica de apertura de la cámara con verificación de permisos
         btnCamara.setOnClickListener(v -> {
-            // Comprueba si el permiso ya ha sido otorgado
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED) {
-                // Inicia el procedimiento de cámara
-                abrirCamara();
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                abrirCamara(); // Abrir cámara si se cuenta con el permiso concedido
             } else {
-                // Solicita el permiso formalmente al sistema
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA); // Solicitar permiso de cámara
             }
         });
 
-        // Inicia el selector de imágenes de la galería del dispositivo
-        btnGaleria.setOnClickListener(v -> launcherGaleria.launch("image/*"));
+        btnGaleria.setOnClickListener(v -> launcherGaleria.launch("image/*")); // Lanzar selector de la galería
     }
 
-    // Método para poblar la interfaz con la información del objeto
+    // Rellena la interfaz gráfica con los datos del objeto Avion cargado
     private void cargarDatos() {
-        // Establece el apodo actual en el campo de texto
-        etNombreAvion.setText(avion.getApodo());
+        etNombreAvion.setText(avion.getApodo()); // Mostrar el apodo o modelo actual
 
-        // Asigna el texto formateado a cada etiqueta de detalle técnico
+        // Asignar los textos formateados a las etiquetas técnicas
         txtDetalleFabricante.setText("Fabricante: " + avion.getFabricante());
         txtDetallePais.setText("País: " + avion.getPais());
         txtDetalleVelocidad.setText("Velocidad: " + avion.getVelocidad());
@@ -261,141 +204,119 @@ public class DetalleAvionActivity extends AppCompatActivity {
         txtDetallePeso.setText("Peso: " + avion.getPeso());
         txtDetalleDimensiones.setText("Dimensiones: " + avion.getDimensiones());
 
-        // Carga la imagen predefinida del avión usando la librería Glide
+        // Cargar la imagen o silueta del catálogo base con Glide
         Glide.with(this)
-                .load(avion.getImagenResId())
-                .fitCenter()
-                .into(imgDetalleGrande);
+                .load(avion.getImagenResId()) // Cargar id del recurso
+                .fitCenter() // Ajustar centrado
+                .into(imgDetalleGrande); // Asignar al ImageView principal
 
-        // Verifica si el usuario ya tiene una foto personalizada asignada
+        // Mostrar la foto del usuario si existe previamente guardada
         if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
-            // Hace visible el marco de la fotografía del usuario
-            layoutFotoUsuario.setVisibility(View.VISIBLE);
+            layoutFotoUsuario.setVisibility(View.VISIBLE); // Hacer visible el contenedor
 
-            // Carga la imagen desde la ruta almacenada
             Glide.with(this)
-                    .load(Uri.parse(avion.getUriFotoUsuario()))
-                    .centerCrop()
-                    .into(imgFotoUsuario);
+                    .load(Uri.parse(avion.getUriFotoUsuario())) // Cargar foto desde la URI guardada
+                    .centerCrop() // Recortar centrado
+                    .into(imgFotoUsuario); // Renderizar en la vista de foto de usuario
         } else {
-            // Oculta el marco si no existe una fotografía personalizada
-            layoutFotoUsuario.setVisibility(View.GONE);
+            layoutFotoUsuario.setVisibility(View.GONE); // Ocultar si no hay foto personalizada
         }
     }
 
-    // Método para actualizar y visualizar la nueva foto del usuario
+    // Refresca la vista y asigna la nueva foto seleccionada al objeto Avion
     private void mostrarFotoUsuario(Uri uri) {
-        // Registra la nueva ruta de imagen en el objeto avión
-        avion.setUriFotoUsuario(uri.toString());
+        avion.setUriFotoUsuario(uri.toString()); // Asignar la nueva cadena de URI al objeto
+        layoutFotoUsuario.setVisibility(View.VISIBLE); // Asegurar visibilidad del contenedor
 
-        // Asegura que el marco sea visible en la pantalla
-        layoutFotoUsuario.setVisibility(View.VISIBLE);
-
-        // Carga la nueva imagen omitiendo la caché para reflejar cambios inmediatos
         Glide.with(this)
-                .load(uri)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-                .centerCrop()
-                .into(imgFotoUsuario);
+                .load(uri) // Cargar la nueva URI
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactivar caché en disco para refresco inmediato
+                .skipMemoryCache(true) // Omitir caché en memoria
+                .centerCrop() // Recorte centrado
+                .into(imgFotoUsuario); // Cargar en la vista
     }
 
-    // Método para preparar el entorno y disparar la cámara
+    // Prepara el archivo privado y lanza la aplicación de cámara
     private void abrirCamara() {
         try {
-            // Crea físicamente un archivo para albergar la fotografía
-            File archivo = crearArchivoImagen();
-
-            // Obtiene la dirección segura del archivo para aplicaciones externas
-            uriFotoTemporal = FileProvider.getUriForFile(
-                    this,
-                    getPackageName() + ".fileprovider",
-                    archivo
-            );
-
-            // Lanza el contrato de captura de imagen pasando la ruta de destino
-            launcherCamara.launch(uriFotoTemporal);
-
+            File archivo = crearArchivoImagen(); // Crear archivo temporal seguro en disco
+            uriFotoTemporal = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", archivo); // Generar la URI
+            launcherCamara.launch(uriFotoTemporal); // Disparar la captura de la cámara
         } catch (Exception e) {
-            // Notifica fallos durante la preparación del archivo de imagen
-            Toast.makeText(this,
-                    "Error cámara: " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
-            e.printStackTrace();
+            Toast.makeText(this, "Error cámara: " + e.getMessage(), Toast.LENGTH_LONG).show(); // Informar de error
+            e.printStackTrace(); // Imprimir traza de la excepción
         }
     }
 
-    // Método para generar un archivo temporal único en el almacenamiento
+    // Genera un archivo JPG temporal en el directorio persistente privado
     private File crearArchivoImagen() throws IOException {
-        // Genera un nombre basado en la fecha y hora actual
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        // Crea y devuelve el archivo temporal en el directorio de imágenes privado
-        return File.createTempFile(
-                "JPEG_" + timeStamp + "_",
-                ".jpg",
-                getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        );
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()); // Timestamp único
+        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // Directorio persistente privado
+        if (dir != null && !dir.exists()) dir.mkdirs(); // Crear directorios si no existen
+
+        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", dir); // Devolver el nuevo archivo temporal
     }
 
-    // Método para recuperar un avión específico desde el almacenamiento local
+    // ------------------------------
+    // PERSISTENCIA Y SINCRONIZACIÓN
+    // ------------------------------
+
+    // Busca una aeronave dentro del almacenamiento JSON local por su identificador ID
     private Avion buscarAvionPorId(String id) {
-        // Acceso al fichero de preferencias de la aplicación
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
-        // Obtención de la cadena JSON que representa la lista completa
-        String json = prefs.getString("lista_aviones", null);
-        // Retorna nulo si no hay datos guardados previamente
-        if (json == null) return null;
+        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
+        String json = prefs.getString("lista_aviones", null); // Leer la cadena JSON
+        if (json == null) return null; // Salir si está vacía
 
-        // Inicializa el motor de conversión JSON
-        Gson gson = new Gson();
-        // Define el tipo de dato de la colección para la deserialización
-        Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
-        // Convierte el texto JSON de nuevo a una lista de objetos Java
-        ArrayList<Avion> lista = gson.fromJson(json, type);
-        // Retorna nulo si la conversión falla o la lista está vacía
-        if (lista == null) return null;
+        Gson gson = new Gson(); // Instanciar conversor Gson
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir tipo para la deserialización
+        ArrayList<Avion> lista = gson.fromJson(json, type); // Deserializar la lista
+        if (lista == null) return null; // Salir si la lista es nula
 
-        // Recorre la colección buscando la coincidencia por identificador
-        for (Avion a : lista) {
-            // Si el identificador coincide con el buscado, devuelve el objeto
+        for (Avion a : lista) { // Recorrer los aviones guardados
             if (a.getId() != null && a.getId().equals(id)) {
-                return a;
+                return a; // Devolver el objeto coincidente
             }
         }
-        // Retorna nulo si no se encuentra ningún elemento con ese identificador
-        return null;
+        return null; // Retornar nulo si no se encuentra
     }
 
-    // Método para sincronizar y guardar la versión actualizada del avión
+    // Actualiza la versión modificada del avión en la lista de SharedPreferences local
     private void guardarCambiosEnPreferencias(Avion avionActualizado) {
-        // Acceso al fichero de almacenamiento de preferencias
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
-        // Inicialización del motor de conversión JSON
-        Gson gson = new Gson();
+        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
+        Gson gson = new Gson(); // Instanciar conversor
 
-        // Recuperación de la lista existente
-        String json = prefs.getString("lista_aviones", null);
-        // Detiene el proceso si no hay datos que actualizar
+        String json = prefs.getString("lista_aviones", null); // Obtener JSON existente
         if (json == null) return;
 
-        // Definición del tipo para la conversión de la lista
-        Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
-        // Transformación del texto almacenado a lista dinámica
-        ArrayList<Avion> lista = gson.fromJson(json, type);
-        // Detiene el proceso si la lista no pudo ser recreada
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir el tipo
+        ArrayList<Avion> lista = gson.fromJson(json, type); // Deserializar la lista
         if (lista == null) return;
 
-        // Localiza el objeto antiguo y lo reemplaza por el nuevo en la lista
-        for (int i = 0; i < lista.size(); i++) {
-            // Compara los identificadores para encontrar la posición correcta
+        for (int i = 0; i < lista.size(); i++) { // Recorrer la lista para sustituir el elemento modificado
             if (lista.get(i).getId().equals(avionActualizado.getId())) {
-                // Actualiza el elemento en la posición encontrada
-                lista.set(i, avionActualizado);
+                lista.set(i, avionActualizado); // Reemplazar el objeto antiguo por el actualizado
                 break;
             }
         }
 
-        // Convierte la lista completa de nuevo a JSON y la guarda permanentemente
-        prefs.edit().putString("lista_aviones", gson.toJson(lista)).apply();
+        prefs.edit().putString("lista_aviones", gson.toJson(lista)).apply(); // Guardar la lista actualizada en JSON
+    }
+
+    // Sincroniza las modificaciones del avión en la base de datos Firestore en la nube
+    private void guardarCambiosEnFirestore(Avion avionActualizado) {
+        FirebaseAuth auth = FirebaseAuth.getInstance(); // Obtener la instancia de autenticación
+        if (auth.getCurrentUser() == null) return; // Salir si no hay un usuario autenticado
+
+        String uid = auth.getCurrentUser().getUid(); // Obtener el UID del usuario activo
+
+        // Actualizar el documento en la ruta: usuarios / {uid} / aviones / {id}
+        FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(uid)
+                .collection("aviones")
+                .document(avionActualizado.getId())
+                .set(avionActualizado) // Sobrescribir el documento actualizado en Firestore
+                .addOnSuccessListener(aVoid -> Log.d("FIRESTORE", "Cambios del avión actualizados en Firestore: " + avionActualizado.getApodo())) // Log de éxito
+                .addOnFailureListener(e -> Log.e("FIRESTORE", "Error al actualizar cambios en Firestore", e)); // Log de error
     }
 }

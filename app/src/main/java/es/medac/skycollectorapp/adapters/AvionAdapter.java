@@ -1,245 +1,159 @@
 // Declaración del paquete al que pertenece la clase del adaptador
 package es.medac.skycollectorapp.adapters;
 
-// Importación para la gestión y manipulación de colores en Android
-import android.graphics.Color;
-// Importación para convertir archivos de diseño XML en objetos de vista
-import android.view.LayoutInflater;
-// Importación de la clase base para todos los componentes visuales
-import android.view.View;
-// Importación para el contenedor que agrupa otras vistas
-import android.view.ViewGroup;
-// Importación del componente de casilla de selección
-import android.widget.CheckBox;
-// Importación del componente para visualizar imágenes
-import android.widget.ImageView;
-// Importación del componente para visualizar cadenas de texto
-import android.widget.TextView;
+// Importaciones para gestión de gráficos y formato visual
+import android.graphics.Color; // Utilidades de color
+import android.view.LayoutInflater; // Conversor de XML a objetos de vista Java
+import android.view.View; // Componente base de vista
+import android.view.ViewGroup; // Contenedor padre de vistas
+import android.widget.CheckBox; // Casilla de selección
+import android.widget.ImageView; // Componente para mostrar imágenes
+import android.widget.TextView; // Componente para texto
 
-// Importación para marcar parámetros que no pueden recibir valores nulos
-import androidx.annotation.NonNull;
-// Importación de la clase base para la gestión de listas eficientes
-import androidx.recyclerview.widget.RecyclerView;
+// Importaciones de AndroidX
+import androidx.annotation.NonNull; // Marcador de parámetros no nulos
+import androidx.recyclerview.widget.RecyclerView; // Componente de lista optimizado
 
-// Importación de la librería Glide para la carga y gestión de imágenes
-import com.bumptech.glide.Glide;
-// Importación para configurar la estrategia de almacenamiento en caché de imágenes
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-// Importación del componente de tarjeta con soporte para estilos Material Design
-import com.google.android.material.card.MaterialCardView;
+// Importaciones de librerías externas
+import com.bumptech.glide.Glide; // Gestión y carga eficiente de imágenes
+import com.bumptech.glide.load.engine.DiskCacheStrategy; // Estrategias de caché
+import com.google.android.material.card.MaterialCardView; // Tarjeta con soporte Material Design
 
-// Importación para el uso de listas de tamaño dinámico
-import java.util.ArrayList;
-// Importación de la interfaz base para colecciones de tipo lista
-import java.util.List;
+// Importaciones de Java estándar
+import java.util.List; // Interfaz para manejo de listas
 
-// Importación del acceso a los recursos del proyecto
-import es.medac.skycollectorapp.R;
-// Importación del modelo de datos de tipo Avión
-import es.medac.skycollectorapp.models.Avion;
-// Importación del modelo que agrupa los avistamientos de un mismo modelo
-import es.medac.skycollectorapp.models.GrupoAvion;
+// Importaciones del proyecto
+import es.medac.skycollectorapp.R; // Recursos del proyecto
+import es.medac.skycollectorapp.models.Avion; // Modelo de datos de Avión
+import es.medac.skycollectorapp.models.GrupoAvion; // Modelo de agrupación por modelo
 
-// Definición de la clase del adaptador que vincula datos con la interfaz de lista
+// Adaptador encargado de conectar la lista de grupos de aviones con la interfaz RecyclerView
 public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHolder> {
 
-    // Lista que contiene los grupos de aviones (uno por modelo) a mostrar
-    private final List<GrupoAvion> listaGrupos;
-    // Referencia al gestor de eventos de clic en los elementos
-    private final OnItemClickListener listener;
-    // Referencia al gestor de eventos para cambios en la selección
-    private final OnSelectionChangedListener selectionListener;
+    // ------------------------------
+    // VARIABLES Y LISTENERS
+    // ------------------------------
+    private final List<GrupoAvion> listaGrupos; // Colección de grupos de aviones a mostrar
+    private final OnItemClickListener listener; // Escuchador para eventos de clic en los elementos
+    private final OnSelectionChangedListener selectionListener; // Escuchador para cambios en la selección
 
-    // Interfaz definida para capturar el evento de pulsación en un elemento
+    // Interfaz para gestionar las pulsaciones sobre los elementos de la lista
     public interface OnItemClickListener {
-        // Firma del método para gestionar el clic sobre un grupo de aviones concreto
         void onItemClick(GrupoAvion grupo, int position);
     }
 
-    // Interfaz definida para capturar cambios en el estado de las casillas de selección
+    // Interfaz para notificar cambios en el estado de las casillas de verificación
     public interface OnSelectionChangedListener {
-        // Firma del método para notificar que la selección general ha cambiado
         void onSelectionChanged();
     }
 
-    // Constructor de la clase que inicializa la lista y los escuchadores de eventos
+    // Constructor que inicializa los datos y los escuchadores del adaptador
     public AvionAdapter(List<GrupoAvion> listaGrupos, OnItemClickListener listener, OnSelectionChangedListener selectionListener) {
-        // Asignación de la lista de datos recibida
         this.listaGrupos = listaGrupos;
-        // Asignación del escuchador de clics
         this.listener = listener;
-        // Asignación del escuchador de cambios de selección
         this.selectionListener = selectionListener;
     }
 
-    // Método que se encarga de inflar el diseño XML para cada fila de la lista
+    // ------------------------------
+    // MÉTODOS SOBREESCRITOS DE RECYCLERVIEW
+    // ------------------------------
+
     @NonNull
     @Override
     public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Generación del objeto de vista a partir del recurso de diseño específico
+        // Inflar el diseño XML del elemento individual de la lista
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
-        // Retorno de una nueva instancia del contenedor de vistas
-        return new AvionViewHolder(view);
+        return new AvionViewHolder(view); // Devolver nueva instancia del ViewHolder
     }
 
-    // Método que asocia los datos de un objeto específico con los componentes de la vista
     @Override
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
-        // Recuperación del grupo correspondiente a la posición actual
-        GrupoAvion grupo = listaGrupos.get(position);
-        // Recuperación del avistamiento que representa al grupo
-        Avion avion = grupo.getRepresentante();
+        GrupoAvion grupo = listaGrupos.get(position); // Recuperar el grupo en la posición actual
+        Avion avion = grupo.getRepresentante(); // Obtener el avión representante del grupo
 
-        // Asignación del apodo si hay un solo avistamiento o del modelo si hay varios
+        // Mostrar apodo si hay un único avistamiento o el nombre del modelo si hay varios
         holder.txtModelo.setText(grupo.getCantidad() == 1 ? avion.getApodo() : avion.getModelo());
 
-        // Muestra del contador de avistamientos solo cuando hay más de uno
+        // Configurar la etiqueta con el contador de avistamientos acumulados
         if (grupo.getCantidad() > 1) {
             holder.txtCantidad.setText("×" + grupo.getCantidad());
             holder.txtCantidad.setVisibility(View.VISIBLE);
         } else {
             holder.txtCantidad.setVisibility(View.GONE);
         }
-        // Asignación del texto del fabricante al componente correspondiente
-        holder.txtFabricante.setText(avion.getFabricante());
-        // Asignación del texto que describe la rareza del objeto
-        holder.txtRareza.setText(avion.getRareza());
 
-        // Obtención del código de color asociado a la rareza del avión
+        holder.txtFabricante.setText(avion.getFabricante()); // Asignar fabricante
+        holder.txtRareza.setText(avion.getRareza()); // Asignar categoría de rareza
+
+        // Aplicar el color distintivo según la rareza del avión
         int color = avion.getColorRareza();
-        // Validación para asignar un color gris por defecto si el valor es nulo
-        if (color == 0) color = Color.GRAY;
+        if (color == 0) color = Color.GRAY; // Asignar gris por defecto si es cero
 
-        // Configuración del color del borde de la tarjeta según la rareza
-        holder.cardView.setStrokeColor(color);
-        // Definición del grosor del borde de la tarjeta
-        holder.cardView.setStrokeWidth(4);
+        holder.cardView.setStrokeColor(color); // Ajustar color del borde de la tarjeta
+        holder.cardView.setStrokeWidth(4); // Ajustar grosor del borde
+        holder.txtRareza.setBackgroundColor(color); // Ajustar fondo de la etiqueta de rareza
 
-        // Configuración del color de fondo de la etiqueta de rareza
-        holder.txtRareza.setBackgroundColor(color);
-
-        // Declaración de una variable genérica para la fuente de la imagen
+        // Seleccionar la fuente de la imagen
         Object imagenCarga;
-
-        // Comprobación de si el objeto cuenta con un identificador de recurso oficial
         if (avion.getImagenResId() != 0) {
-            // Asignación del recurso oficial para su carga
-            imagenCarga = avion.getImagenResId();
+            imagenCarga = avion.getImagenResId(); // Usar el recurso drawable
         } else {
-            // Asignación de un icono genérico del sistema como respaldo
-            imagenCarga = android.R.drawable.ic_menu_gallery;
+            imagenCarga = android.R.drawable.ic_menu_gallery; // Imagen de reserva
         }
 
-        // Ejecución de la carga de imagen optimizada mediante Glide
+        // Cargar imagen con la librería Glide de forma optimizada
         Glide.with(holder.itemView.getContext())
-                .load(imagenCarga) // Carga de la fuente de datos
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactivación de caché en disco
-                .skipMemoryCache(true) // Omisión de almacenamiento en memoria
-                .fitCenter() // Ajuste centrado de la imagen al contenedor
-                .placeholder(android.R.drawable.ic_menu_gallery) // Imagen de carga temporal
-                .error(android.R.drawable.ic_delete) // Imagen a mostrar en caso de fallo
-                .into(holder.imgAvion); // Destino final de la imagen
+                .load(imagenCarga)
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactivar caché en disco
+                .skipMemoryCache(true) // Omitir caché en memoria
+                .fitCenter() // Ajustar centrado
+                .placeholder(android.R.drawable.ic_menu_gallery) // Imagen de carga
+                .error(android.R.drawable.ic_delete) // Imagen en caso de error
+                .into(holder.imgAvion); // Contenedor de destino
 
-        // Desvinculación temporal del escuchador de cambios para evitar disparos accidentales
+        // Evitar activaciones accidentales del listener durante la configuración
         holder.chkSeleccion.setOnCheckedChangeListener(null);
-        // Establecimiento del estado visual de la casilla según el modelo de datos
-        holder.chkSeleccion.setChecked(grupo.isSeleccionado());
+        holder.chkSeleccion.setChecked(grupo.isSeleccionado()); // Marcar o desmarcar casilla
 
-        // Configuración de la acción al interactuar con la casilla de selección
+        // Listener de interacción con la casilla de verificación
         holder.chkSeleccion.setOnClickListener(v -> {
-            // Obtención del nuevo estado de la casilla
             boolean isChecked = holder.chkSeleccion.isChecked();
-            // Actualización del estado de selección en el grupo
-            grupo.setSeleccionado(isChecked);
-            // Notificación al escuchador externo si está configurado
-            if (selectionListener != null) selectionListener.onSelectionChanged();
+            grupo.setSeleccionado(isChecked); // Actualizar estado en el modelo
+            if (selectionListener != null) selectionListener.onSelectionChanged(); // Notificar cambio
         });
 
-        // Configuración de la acción al pulsar sobre el elemento completo de la lista
+        // Listener de interacción al hacer clic en cualquier parte de la tarjeta
         holder.itemView.setOnClickListener(v -> {
-            // Invocación del evento de clic pasando el grupo y su posición
-            if (listener != null) listener.onItemClick(grupo, position);
+            if (listener != null) listener.onItemClick(grupo, position); // Notificar clic
         });
     }
 
-    // Método que devuelve la cantidad total de elementos en la lista
     @Override
     public int getItemCount() {
-        // Validación para devolver el tamaño de la lista o cero si es nula
-        return listaGrupos != null ? listaGrupos.size() : 0;
+        return listaGrupos != null ? listaGrupos.size() : 0; // Devolver tamaño de la lista
     }
 
-    // Método para realizar una limpieza masiva de elementos seleccionados
-    public void borrarSeleccionados() {
-        // Interrupción si la lista no ha sido inicializada
-        if (listaGrupos == null) return;
+    // ------------------------------
+    // VIEWHOLDER INTERNO
+    // ------------------------------
 
-        // Creación de una lista temporal para almacenar los elementos que no serán borrados
-        List<GrupoAvion> aConservar = new ArrayList<>();
-        // Recorrido de la lista actual para filtrar por estado de selección
-        for (GrupoAvion a : listaGrupos) {
-            // Inclusión en la lista de permanencia si el avión no está marcado
-            if (!a.isSeleccionado()) {
-                // Adición del objeto a la lista de conservación
-                aConservar.add(a);
-            }
-        }
-
-        // Vaciado total de la lista original
-        listaGrupos.clear();
-        // Inserción de los elementos que se han decidido conservar
-        listaGrupos.addAll(aConservar);
-        // Notificación de cambio general para refrescar toda la vista
-        notifyDataSetChanged();
-    }
-
-    // Clase interna que actúa como contenedor de las referencias visuales de cada fila
+    // Clase interna que mantiene las referencias visuales de los elementos del layout
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
 
-        // Declaración de variables para los componentes de texto
-        TextView txtModelo, txtFabricante, txtRareza, txtCantidad;
-        // Declaración de variable para el componente de imagen
-        ImageView imgAvion;
-        // Declaración de variable para el contenedor de tarjeta
-        MaterialCardView cardView;
-        // Declaración de variable para la casilla de selección
-        CheckBox chkSeleccion;
+        TextView txtModelo, txtFabricante, txtRareza, txtCantidad; // Elementos de texto
+        ImageView imgAvion; // Imagen del avión
+        MaterialCardView cardView; // Contenedor de tarjeta
+        CheckBox chkSeleccion; // Casilla de marcado
 
-        // Constructor del contenedor que asocia las variables con el XML
         public AvionViewHolder(@NonNull View v) {
-            // Llamada al constructor de la clase base
             super(v);
-            // Vinculación del texto del modelo
             txtModelo = v.findViewById(R.id.txtModelo);
-            // Vinculación del texto del fabricante
             txtFabricante = v.findViewById(R.id.txtFabricante);
-            // Vinculación del texto de rareza
             txtRareza = v.findViewById(R.id.txtRareza);
-            // Vinculación del contador de avistamientos
             txtCantidad = v.findViewById(R.id.txtCantidad);
-            // Vinculación de la imagen del avión
             imgAvion = v.findViewById(R.id.imgAvion);
-            // Vinculación de la tarjeta contenedora
             cardView = v.findViewById(R.id.cardContainer);
-            // Vinculación de la casilla de marcado
             chkSeleccion = v.findViewById(R.id.chkSeleccion);
-        }
-    }
-
-    // Método para eliminar secuencialmente los elementos marcados con efecto visual
-    public  void borrarSeleccionadosConAnimacion() {
-        // Interrupción si la lista está vacía o es nula
-        if (listaGrupos == null) return;
-
-        // Recorrido inverso de la lista para gestionar los índices correctamente durante el borrado
-        for (int i = listaGrupos.size() - 1; i >= 0; i--) {
-            // Comprobación de si el elemento en la posición actual está marcado
-            if (listaGrupos.get(i).isSeleccionado()) {
-                // Eliminación física del objeto de la lista en memoria
-                listaGrupos.remove(i);
-                // Notificación específica al sistema para ejecutar la animación de salida
-                notifyItemRemoved(i);
-            }
         }
     }
 }

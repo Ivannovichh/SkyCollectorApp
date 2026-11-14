@@ -1,267 +1,228 @@
-// Definición del paquete donde se encuentra esta actividad
+// Declaración del paquete donde se ubica la actividad de perfil
 package es.medac.skycollectorapp.activities;
 
-// Importación para el acceso al contexto de la aplicación
-import android.content.Context;
-// Importación para gestionar la navegación entre pantallas
-import android.content.Intent;
-// Importación para el almacenamiento persistente de datos del perfil
-import android.content.SharedPreferences;
-// Importación para la gestión de rutas de archivos y recursos
-import android.net.Uri;
-// Importación para el manejo del estado de la actividad
-import android.os.Bundle;
-// Importación para el componente visual de botón
-import android.widget.Button;
-// Importación para el campo de entrada de texto editable
-import android.widget.EditText;
-// Importación para el componente que visualiza imágenes
-import android.widget.ImageView;
-// Importación para el componente que visualiza texto estático
-import android.widget.TextView;
-// Importación para mostrar avisos rápidos al usuario
-import android.widget.Toast;
+// Importaciones de Android necesarias para la gestión de la actividad y permisos
+import android.Manifest; // Permisos del sistema para la cámara
+import android.content.Context; // Contexto de la aplicación
+import android.content.Intent; // Navegación entre actividades
+import android.content.SharedPreferences; // Almacenamiento persistente clave-valor
+import android.content.pm.PackageManager; // Comprobación de permisos concedidos
+import android.net.Uri; // Representación de direcciones URI para recursos e imágenes
+import android.os.Bundle; // Pases de datos durante la creación de la actividad
+import android.os.Environment; // Acceso a directorios estándar del sistema
+import android.widget.Button; // Componente de botón de la interfaz
+import android.widget.EditText; // Componente de campo de texto editable
+import android.widget.ImageView; // Componente para visualizar imágenes
+import android.widget.TextView; // Componente para mostrar texto estático
+import android.widget.Toast; // Notificaciones flotantes breves
 
-// Importación para registrar el manejador de resultados de actividades
-import androidx.activity.result.ActivityResultLauncher;
-// Importación para usar contratos estándar de selección de contenido
-import androidx.activity.result.contract.ActivityResultContracts;
-// Importación para la creación de cuadros de diálogo emergentes
-import androidx.appcompat.app.AlertDialog;
-// Importación base para actividades con soporte de compatibilidad
-import androidx.appcompat.app.AppCompatActivity;
-// Importación para compartir archivos de forma segura mediante un proveedor
-import androidx.core.content.FileProvider;
+// Importaciones de AndroidX
+import androidx.activity.result.ActivityResultLauncher; // Lanzadores de resultados de actividades
+import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar para fotos y galería
+import androidx.appcompat.app.AlertDialog; // Cuadros de diálogo emergentes
+import androidx.appcompat.app.AppCompatActivity; // Clase base para actividades con soporte de ActionBar
+import androidx.core.content.ContextCompat; // Comprobaciones de compatibilidad de contexto
+import androidx.core.content.FileProvider; // Proveedor seguro para compartir archivos entre apps
 
-// Importación de la librería para la gestión eficiente de imágenes
-import com.bumptech.glide.Glide;
-// Importación del motor de autenticación de la plataforma en la nube
-import com.google.firebase.auth.FirebaseAuth;
-// Importación para representar la sesión del usuario activo
-import com.google.firebase.auth.FirebaseUser;
+// Importaciones de librerías externas
+import com.bumptech.glide.Glide; // Carga y procesado eficiente de imágenes
+import com.google.firebase.auth.FirebaseAuth; // Gestor de autenticación de Firebase
+import com.google.firebase.auth.FirebaseUser; // Usuario autenticado en Firebase
 
-// Importación para la representación de archivos en el sistema de ficheros
-import java.io.File;
+// Importaciones estándar de Java
+import java.io.File; // Manipulación de archivos del sistema
 
-// Importación de los recursos del proyecto
+// Importación de recursos del proyecto
 import es.medac.skycollectorapp.R;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.content.ContextCompat;
 
-// Clase que gestiona la edición del perfil de usuario y la foto personalizada
+// Clase que gestiona la edición del perfil de usuario y la foto personalizada de perfil
 public class PerfilActivity extends AppCompatActivity {
 
-    // Variable para la vista de la foto de perfil
-    private ImageView imgPerfil;
-    // Variable para el campo de edición del nombre
-    private EditText etNombre;
-    // Variable para almacenar la dirección final de la foto elegida
-    private Uri uriFotoSeleccionada;
-    // Variable para almacenar la dirección provisional de la cámara
-    private Uri uriFotoCamaraTemporal;
-    // Variable para identificar al usuario actual
-    private String userId;
+    // ------------------------------
+    // VARIABLES DE INTERFAZ
+    // ------------------------------
+    private ImageView imgPerfil; // Vista para mostrar la foto de perfil
+    private EditText etNombre; // Campo editable para cambiar el nombre de usuario
 
-    // Inicialización del lanzador para obtener imágenes desde la galería
+    // ------------------------------
+    // VARIABLES DE IMAGEN Y USUARIO
+    // ------------------------------
+    private Uri uriFotoSeleccionada; // URI final de la foto elegida (cámara o galería)
+    private Uri uriFotoCamaraTemporal; // URI provisional generada para la captura de la cámara
+    private String userId; // Identificador único UID del usuario en Firebase
+
+    // ------------------------------
+    // LANZADORES DE ACTIVIDADES (RESULTS)
+    // ------------------------------
+
+    // Lanzador para seleccionar una imagen desde la galería del dispositivo
     private final ActivityResultLauncher<String> launcherGaleria = registerForActivityResult(
-            new ActivityResultContracts.GetContent(),
+            new ActivityResultContracts.GetContent(), // Contrato para obtener contenido
             uri -> {
-                // Comprobación de que se ha seleccionado un archivo
-                if (uri != null) {
-                    // Asignación de la dirección a la variable global
-                    uriFotoSeleccionada = uri;
-                    // Carga y recorte circular de la imagen en la vista
-                    Glide.with(this).load(uri).circleCrop().into(imgPerfil);
+                if (uri != null) { // Si el usuario selecciona una foto
+                    uriFotoSeleccionada = uri; // Guardar la URI seleccionada
+                    Glide.with(this).load(uri).circleCrop().into(imgPerfil); // Cargarla con recorte circular
                 }
             }
     );
 
-    // Inicialización del lanzador para capturar fotografías con la cámara
+    // Lanzador para capturar una fotografía directamente con la cámara
     private final ActivityResultLauncher<Uri> launcherCamara = registerForActivityResult(
-            new ActivityResultContracts.TakePicture(),
+            new ActivityResultContracts.TakePicture(), // Contrato para tomar foto
             exito -> {
-                // Comprobación de que la captura ha sido correcta
-                if (exito) {
-                    // Sincronización de la foto provisional con la seleccionada
-                    uriFotoSeleccionada = uriFotoCamaraTemporal;
-                    // Visualización de la foto capturada con formato circular
-                    Glide.with(this).load(uriFotoSeleccionada).circleCrop().into(imgPerfil);
+                if (exito) { // Si la fotografía se capturó correctamente
+                    uriFotoSeleccionada = uriFotoCamaraTemporal; // Asignar la URI temporal como definitiva
+                    Glide.with(this).load(uriFotoSeleccionada).circleCrop().into(imgPerfil); // Cargarla circular
                 }
             }
     );
 
-    // Lanzador para solicitar el permiso de cámara en tiempo de ejecución
+    // Lanzador para solicitar el permiso de cámara al usuario
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
+            new ActivityResultContracts.RequestPermission(), // Contrato de petición de permisos
             isGranted -> {
-                if (isGranted) abrirCamara();
-                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
+                if (isGranted) abrirCamara(); // Si se concede el permiso, abrir la cámara
+                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show(); // Avisar si se rechaza
             }
     );
 
-    // Método principal que se ejecuta al crear la pantalla
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // Ejecución de la lógica de creación superior
-        super.onCreate(savedInstanceState);
-        // Carga del diseño visual desde el fichero XML
-        setContentView(R.layout.activity_perfil);
+    // ------------------------------
+    // MÉTODOS DEL CICLO DE VIDA
+    // ------------------------------
 
-        // Obtención de la instancia del usuario identificado en Firebase
+    @Override
+    protected void onCreate(Bundle savedInstanceState) { // Método de inicialización de la actividad
+        super.onCreate(savedInstanceState); // Llamada al método base
+        setContentView(R.layout.activity_perfil); // Cargar el diseño XML del perfil
+
+        // Obtener el usuario autenticado en Firebase
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        // Verificación de seguridad por si no hay sesión iniciada
-        if (user == null) {
-            // Expulsión del usuario a la pantalla de acceso
+        if (user == null) { // Si no hay usuario activo, expulsar a la pantalla de login
             cerrarSesion();
             return;
         }
-        // Recuperación del código identificador del usuario
-        userId = user.getUid();
-        // Recuperación del correo electrónico de la cuenta
-        String email = user.getEmail();
+        userId = user.getUid(); // Recuperar el UID del usuario
+        String email = user.getEmail(); // Recuperar el correo del usuario
 
-        // Localización de los componentes visuales en el diseño
-        imgPerfil = findViewById(R.id.imgPerfilGrande);
-        etNombre = findViewById(R.id.etNombreUsuario);
-        TextView txtEmail = findViewById(R.id.txtEmailFijo);
-        Button btnFoto = findViewById(R.id.btnCambiarFoto);
-        Button btnGuardar = findViewById(R.id.btnGuardarPerfil);
-        Button btnLogout = findViewById(R.id.btnLogout);
+        // Vincular los componentes visuales del XML con las variables
+        imgPerfil = findViewById(R.id.imgPerfilGrande); // Imagen grande de perfil
+        etNombre = findViewById(R.id.etNombreUsuario); // Campo de texto para el nombre
+        TextView txtEmail = findViewById(R.id.txtEmailFijo); // Etiqueta estática para el correo
+        Button btnFoto = findViewById(R.id.btnCambiarFoto); // Botón para cambiar foto
+        Button btnGuardar = findViewById(R.id.btnGuardarPerfil); // Botón para guardar cambios
+        Button btnLogout = findViewById(R.id.btnLogout); // Botón para cerrar sesión
 
-        // Escritura del correo electrónico en su etiqueta correspondiente
-        txtEmail.setText(email);
-        // Recuperación de la información guardada previamente
-        cargarDatos();
+        txtEmail.setText(email); // Mostrar el correo en la interfaz
+        cargarDatos(); // Cargar nombre y foto previa si existen
 
-        // Configuración de la acción para el botón de cambio de imagen
-        btnFoto.setOnClickListener(v -> mostrarDialogoSeleccion());
-
-        // Configuración de la acción para el botón de confirmación de cambios
-        btnGuardar.setOnClickListener(v -> guardarDatos());
-        // Configuración de la acción para el botón de salida de sesión
-        btnLogout.setOnClickListener(v -> cerrarSesion());
+        // Asignar escuchadores a los botones de la interfaz
+        btnFoto.setOnClickListener(v -> mostrarDialogoSeleccion()); // Desplegar opciones de foto
+        btnGuardar.setOnClickListener(v -> guardarDatos()); // Guardar datos actualizados
+        btnLogout.setOnClickListener(v -> cerrarSesion()); // Cerrar la sesión activa
     }
 
-    // Método para desplegar las opciones de origen de la fotografía
-    private void mostrarDialogoSeleccion() {
-        // Definición de las etiquetas de las opciones disponibles
-        String[] opciones = {"Hacer foto con Cámara", "Elegir de Galería"};
+    // ------------------------------
+    // LÓGICA DE FOTOGRAFÍA
+    // ------------------------------
 
-        // Creación del constructor para el cuadro de diálogo
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        // Asignación del encabezado del diálogo
-        builder.setTitle("Cambiar foto de perfil");
-        // Definición del comportamiento según la opción pulsada
+    // Muestra un cuadro de diálogo emergente para elegir entre cámara o galería
+    private void mostrarDialogoSeleccion() {
+        String[] opciones = {"Hacer foto con Cámara", "Elegir de Galería"}; // Opciones del diálogo
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this); // Construir el diálogo
+        builder.setTitle("Cambiar foto de perfil"); // Título del cuadro emergente
         builder.setItems(opciones, (dialog, which) -> {
-            // Selección de la cámara si se pulsa el primer índice
-            if (which == 0) {
+            if (which == 0) { // Si se pulsa "Cámara"
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                         == PackageManager.PERMISSION_GRANTED) {
-                    abrirCamara();
+                    abrirCamara(); // Abrir cámara si ya tenemos permiso
                 } else {
-                    requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+                    requestPermissionLauncher.launch(Manifest.permission.CAMERA); // Solicitar permiso
                 }
-            } else {
+            } else { // Si se pulsa "Galería"
                 abrirGaleria();
             }
         });
-        // Activación visual del diálogo en pantalla
-        builder.show();
+        builder.show(); // Mostrar el cuadro de diálogo
     }
 
-    // Método para disparar el selector de archivos del dispositivo
+    // Lanza el selector de archivos para elegir imágenes de la galería
     private void abrirGaleria() {
-        // Invocación del lanzador para tipos de archivos de imagen
-        launcherGaleria.launch("image/*");
+        launcherGaleria.launch("image/*"); // Filtrar solo imágenes
     }
 
-    // Método para preparar el entorno y activar la cámara fotográfica
+    // Prepara el archivo de destino y activa la cámara
     private void abrirCamara() {
-        // Generación de un enlace temporal para guardar la foto
-        uriFotoCamaraTemporal = crearUriTemporal();
-        // Verificación de que el enlace se ha creado correctamente
+        uriFotoCamaraTemporal = crearUriTemporal(); // Crear un archivo temporal para alojar la imagen
         if (uriFotoCamaraTemporal != null) {
-            // Disparo del proceso de captura de imagen
-            launcherCamara.launch(uriFotoCamaraTemporal);
+            launcherCamara.launch(uriFotoCamaraTemporal); // Lanzar cámara indicando la URI de destino
         } else {
-            // Aviso al usuario si falla la creación del fichero temporal
             Toast.makeText(this, "Error: No se pudo crear el archivo de foto", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Método para fabricar una dirección segura para el nuevo fichero de imagen
+    // Crea un archivo seguro en almacenamiento persistente para evitar que se pierda la foto
     private Uri crearUriTemporal() {
         try {
-            // Definición de la ruta de almacenamiento en la caché externa
-            File cachePath = new File(getExternalCacheDir(), "mis_fotos");
-            // Creación de las carpetas necesarias si no existen
-            if (!cachePath.exists()) cachePath.mkdirs();
+            // Utilizar el directorio de imágenes persistente de la aplicación
+            File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            if (dir != null && !dir.exists()) dir.mkdirs(); // Crear carpetas si no existen
 
-            // Creación de la estructura del archivo con nombre basado en el tiempo actual
-            File nuevoArchivo = new File(cachePath, "foto_" + System.currentTimeMillis() + ".jpg");
+            // Crear un archivo temporal único con timestamp
+            File nuevoArchivo = File.createTempFile(
+                    "perfil_" + System.currentTimeMillis() + "_", // Prefijo único
+                    ".jpg", // Extensión de imagen
+                    dir // Directorio de destino
+            );
 
-            // Generación de la URI segura mediante el proveedor de archivos declarado
+            // Generar URI segura mediante FileProvider
             return FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", nuevoArchivo);
         } catch (Exception e) {
-            // Registro del error en caso de fallo técnico
-            e.printStackTrace();
+            e.printStackTrace(); // Registrar excepciones si ocurren
             return null;
         }
     }
 
-    // Método para persistir la información del perfil en el almacenamiento local
+    // ------------------------------
+    // PERSISTENCIA DE DATOS
+    // ------------------------------
+
+    // Guarda el nombre de usuario y la URI de la foto en SharedPreferences
     private void guardarDatos() {
-        // Acceso al fichero de preferencias privadas de la aplicación
-        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE);
-        // Apertura del modo de edición de datos
-        SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE); // Obtener SharedPreferences
+        SharedPreferences.Editor editor = prefs.edit(); // Abrir el editor de datos
 
-        // Almacenamiento del nombre introducido asociado al ID del usuario
-        editor.putString("nombre_" + userId, etNombre.getText().toString());
+        // Guardar el nombre asociándolo al ID único del usuario
+        editor.putString("nombre_" + userId, etNombre.getText().toString().trim());
 
-        // Almacenamiento de la ruta de la foto si el usuario ha elegido una nueva
+        // Guardar la URI de la foto solo si se ha seleccionado una nueva
         if (uriFotoSeleccionada != null) {
             editor.putString("foto_" + userId, uriFotoSeleccionada.toString());
         }
 
-        // Aplicación efectiva y permanente de los cambios
-        editor.apply();
-        // Notificación de confirmación al usuario
-        Toast.makeText(this, "¡Perfil actualizado!", Toast.LENGTH_SHORT).show();
-        // Cierre de la actividad actual para volver atrás
-        finish();
+        editor.apply(); // Aplicar cambios de forma asíncrona
+        Toast.makeText(this, "¡Perfil actualizado!", Toast.LENGTH_SHORT).show(); // Avisar al usuario
+        finish(); // Volver a la pantalla anterior
     }
 
-    // Método para recuperar y visualizar la información guardada del perfil
+    // Carga los datos almacenados del usuario en la interfaz
     private void cargarDatos() {
-        // Acceso al fichero de preferencias locales
-        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE);
-        // Obtención del nombre guardado o una cadena vacía si no existe
-        String nombreGuardado = prefs.getString("nombre_" + userId, "");
-        // Asignación del nombre recuperado al campo de texto
-        etNombre.setText(nombreGuardado);
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE); // Leer preferencias
+        String nombreGuardado = prefs.getString("nombre_" + userId, ""); // Recuperar nombre guardado
+        etNombre.setText(nombreGuardado); // Asignar al campo de texto
 
-        // Recuperación de la ruta de la foto guardada
-        String fotoGuardada = prefs.getString("foto_" + userId, null);
-        // Si existe una foto previa, se procede a su visualización
+        String fotoGuardada = prefs.getString("foto_" + userId, null); // Recuperar URI de foto guardada
         if (fotoGuardada != null) {
-            // Carga circular de la imagen mediante la librería Glide
-            Glide.with(this).load(fotoGuardada).circleCrop().into(imgPerfil);
+            Glide.with(this).load(fotoGuardada).circleCrop().into(imgPerfil); // Mostrar foto cargada con corte circular
         }
     }
 
-    // Método para desvincular la cuenta y reiniciar la navegación
+    // Cierra la sesión activa del usuario y regresa a la pantalla de login
     private void cerrarSesion() {
-        // Petición de salida al sistema de autenticación de Firebase
-        FirebaseAuth.getInstance().signOut();
-        // Preparación del salto a la pantalla de acceso
-        Intent intent = new Intent(PerfilActivity.this, LoginActivity.class);
-        // Configuración de banderas para limpiar el historial de navegación
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        // Inicio de la actividad de acceso
-        startActivity(intent);
-        // Cierre definitivo de la pantalla de perfil
-        finish();
+        FirebaseAuth.getInstance().signOut(); // Cerrar sesión en Firebase
+        Intent intent = new Intent(PerfilActivity.this, LoginActivity.class); // Intención para abrir Login
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Limpiar pila de pantallas
+        startActivity(intent); // Iniciar LoginActivity
+        finish(); // Finalizar PerfilActivity
     }
 }
