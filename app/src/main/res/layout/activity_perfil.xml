@@ -30,7 +30,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Volver"
+                android:contentDescription="@string/cd_volver"
                 android:src="@android:drawable/ic_menu_revert"
                 app:tint="#00E5FF" />
 
@@ -39,7 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:text="Perfil de Piloto"
+                android:text="@string/titulo_perfil_piloto"
                 android:textColor="#FFFFFF"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -60,7 +60,7 @@
                 android:id="@+id/imgFotoPerfil"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:contentDescription="Foto de perfil"
+                android:contentDescription="@string/cd_foto_perfil"
                 android:scaleType="centerCrop"
                 android:src="@android:drawable/ic_menu_myplaces" />
         </androidx.cardview.widget.CardView>
@@ -71,7 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:text="Toca la imagen para cambiar foto"
+            android:text="@string/toca_cambiar_foto"
             android:textColor="#00E5FF"
             android:textSize="13sp" />
 
@@ -96,7 +96,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:text="Nombre de usuario (público en rankings)"
+                    android:text="@string/label_nombre_usuario_publico"
                     android:textColor="#00E5FF"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -108,7 +108,7 @@
                     android:layout_height="52dp"
                     android:layout_marginBottom="16dp"
                     android:background="#0B1021"
-                    android:hint="Tu nombre de usuario"
+                    android:hint="@string/hint_nombre_usuario"
                     android:inputType="textPersonName"
                     android:maxLength="20"
                     android:paddingHorizontal="14dp"
@@ -120,7 +120,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:text="Correo electrónico (privado)"
+                    android:text="@string/label_correo_privado"
                     android:textColor="#B0BEC5"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -132,7 +132,7 @@
                     android:layout_height="52dp"
                     android:layout_marginBottom="16dp"
                     android:background="#0B1021"
-                    android:hint="Añadir correo electrónico"
+                    android:hint="@string/hint_anadir_correo"
                     android:inputType="textEmailAddress"
                     android:paddingHorizontal="14dp"
                     android:textColor="#FFFFFF"
@@ -143,7 +143,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="6dp"
-                    android:text="Número de teléfono (privado)"
+                    android:text="@string/label_telefono_privado"
                     android:textColor="#B0BEC5"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -154,7 +154,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:background="#0B1021"
-                    android:hint="Añadir teléfono (ej. +34600112233)"
+                    android:hint="@string/hint_anadir_telefono"
                     android:inputType="phone"
                     android:paddingHorizontal="14dp"
                     android:textColor="#FFFFFF"
@@ -170,7 +170,7 @@
             android:layout_height="56dp"
             android:layout_marginBottom="14dp"
             android:backgroundTint="#00E5FF"
-            android:text="Guardar cambios"
+            android:text="@string/guardar_cambios"
             android:textColor="#0B1021"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -181,7 +181,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:backgroundTint="#D32F2F"
-            android:text="Cerrar sesión"
+            android:text="@string/cerrar_sesion"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold" />

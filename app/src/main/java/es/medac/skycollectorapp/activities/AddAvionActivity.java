@@ -1,118 +1,156 @@
-// Declaración del paquete donde se ubica la actividad de añadir aviones
+// Paquete que agrupa las actividades de la aplicación
 package es.medac.skycollectorapp.activities;
 
-// Importaciones de sistema y utilidades de Android
-import android.Manifest; // Permisos de cámara
-import android.content.Context; // Contexto de la aplicación
-import android.content.SharedPreferences; // Almacenamiento local clave-valor
-import android.content.pm.PackageManager; // Comprobación de permisos
-import android.net.Uri; // Rutas de archivos de imagen
-import android.os.Bundle; // Datos del ciclo de vida
-import android.os.Environment; // Directorios de almacenamiento
-import android.util.Log; // Registros en Logcat
-import android.widget.ArrayAdapter; // Adaptador para el Spinner
-import android.widget.Button; // Botones de acción
-import android.widget.ImageView; // Vista previa de la fotografía
-import android.widget.Spinner; // Selector desplegable de modelos
-import android.widget.Toast; // Mensajes emergentes breves
+// Importación de permisos del sistema Android
+import android.Manifest;
+// Importación de Context para acceder a SharedPreferences
+import android.content.Context;
+// Importación de SharedPreferences para leer y guardar datos locales
+import android.content.SharedPreferences;
+// Importación de PackageManager para verificar si el permiso de cámara está concedido
+import android.content.pm.PackageManager;
+// Importación de Uri para manejar las rutas de las fotografías capturadas
+import android.net.Uri;
+// Importación de Bundle para el ciclo de vida de la actividad
+import android.os.Bundle;
+// Importación de Environment para acceder al directorio de imágenes de la app
+import android.os.Environment;
+// Importación de Log para registrar eventos de sincronización
+import android.util.Log;
+// Importación de ArrayAdapter para poblar el Spinner
+import android.widget.ArrayAdapter;
+// Importación de Button para los botones de acción
+import android.widget.Button;
+// Importación de ImageView para la vista previa de la foto tomada
+import android.widget.ImageView;
+// Importación de Spinner para mostrar el modelo identificado
+import android.widget.Spinner;
+// Importación de Toast para notificaciones breves al usuario
+import android.widget.Toast;
 
-// Importaciones de AndroidX y librerías externas
-import androidx.activity.OnBackPressedCallback; // Control del botón físico/gestual atrás
-import androidx.activity.result.ActivityResultLauncher; // Lanzador de cámara y permisos
-import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar de resultados
-import androidx.appcompat.app.AlertDialog; // Diálogo de confirmación para cámara
-import androidx.appcompat.app.AppCompatActivity; // Actividad base
-import androidx.core.content.ContextCompat; // Utilidad de compatibilidad de permisos
-import androidx.core.content.FileProvider; // Proveedor seguro de URIs de archivo
-import com.bumptech.glide.Glide; // Carga y escalado de imágenes
-import com.bumptech.glide.load.engine.DiskCacheStrategy; // Control de caché de imágenes
-import com.google.firebase.auth.FirebaseAuth; // Autenticación de Firebase
-import com.google.firebase.auth.FirebaseUser; // Usuario actual de Firebase
-import com.google.firebase.firestore.FirebaseFirestore; // Base de datos en la nube Firestore
-import com.google.gson.Gson; // Serialización JSON
-import com.google.gson.reflect.TypeToken; // Conservación de tipos genéricos
+// Importación para interceptar el botón físico/gestual de retroceso
+import androidx.activity.OnBackPressedCallback;
+// Importación de ActivityResultLauncher para gestionar resultados de cámara y permisos
+import androidx.activity.result.ActivityResultLauncher;
+// Importación de contratos estándar de resultados de AndroidX
+import androidx.activity.result.contract.ActivityResultContracts;
+// Importación de AlertDialog para mostrar el aviso de verificación de foto
+import androidx.appcompat.app.AlertDialog;
+// Importación de AppCompatActivity como clase base
+import androidx.appcompat.app.AppCompatActivity;
+// Importación de ContextCompat para comprobar permisos de forma compatible
+import androidx.core.content.ContextCompat;
+// Importación de FileProvider para compartir URIs seguras con la app de cámara
+import androidx.core.content.FileProvider;
 
-// Importaciones estándar de Java
-import java.io.File; // Gestión de archivos
-import java.io.IOException; // Excepciones de entrada/salida
-import java.lang.reflect.Type; // Tipo genérico para Gson
-import java.text.SimpleDateFormat; // Formateo de marcas de tiempo
-import java.util.ArrayList; // Lista dinámica
-import java.util.Date; // Fecha actual
-import java.util.List; // Interfaz de listas
-import java.util.Locale; // Configuración regional
+// Importación de Glide para cargar y recortar la foto capturada
+import com.bumptech.glide.Glide;
+// Importación de DiskCacheStrategy para evitar caché antigua en fotos nuevas
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+// Importación de FirebaseAuth para identificar al usuario actual
+import com.google.firebase.auth.FirebaseAuth;
+// Importación de FirebaseUser para obtener el UID del usuario
+import com.google.firebase.auth.FirebaseUser;
+// Importación de FirebaseFirestore para guardar el avistamiento en la nube
+import com.google.firebase.firestore.FirebaseFirestore;
+// Importación de Gson para serializar la lista de aviones a JSON
+import com.google.gson.Gson;
+// Importación de TypeToken para deserializar listas genéricas con Gson
+import com.google.gson.reflect.TypeToken;
 
-// Importaciones del proyecto
-import es.medac.skycollectorapp.R; // Recursos de la app
-import es.medac.skycollectorapp.models.Avion; // Modelo Avión
-import es.medac.skycollectorapp.utils.AvionGenerator; // Catálogo de aeronaves
+// Importación de File para crear el archivo temporal de la cámara
+import java.io.File;
+// Importación de IOException para manejar errores de escritura en disco
+import java.io.IOException;
+// Importación de Type para tipos genéricos
+import java.lang.reflect.Type;
+// Importación de SimpleDateFormat para nombrar archivos con fecha y hora
+import java.text.SimpleDateFormat;
+// Importación de ArrayList para listas dinámicas
+import java.util.ArrayList;
+// Importación de Date para obtener la marca de tiempo actual
+import java.util.Date;
+// Importación de List como interfaz de colección
+import java.util.List;
+// Importación de Locale para formato regional
+import java.util.Locale;
+
+// Importación de recursos de la aplicación
+import es.medac.skycollectorapp.R;
+// Importación del modelo Avion
+import es.medac.skycollectorapp.models.Avion;
+// Importación del motor global de identificación de aeronaves
+import es.medac.skycollectorapp.utils.AvionGenerator;
+// Importación de la utilidad de compresión Base64 para compartir fotos en Firestore
+import es.medac.skycollectorapp.utils.ImagenBase64Utils;
+// Importación del gestor de puntuación y clasificación pública
+import es.medac.skycollectorapp.utils.RankingManager;
 
 // Actividad para fotografiar en directo y registrar un avión detectado en el radar
 public class AddAvionActivity extends AppCompatActivity {
 
-    // ------------------------------
-    // VARIABLES DE INTERFAZ Y ESTADO
-    // ------------------------------
-    private Spinner spinnerAviones; // Desplegable bloqueado con el modelo detectado
-    private ImageView imgPreviewAvion; // Previsualización de la foto tomada
-    private Button btnSubirFoto, btnGuardar, btnCancelar; // Botones de cámara, guardado y cancelación
+    // Componentes visuales del formulario de avistamiento
+    private Spinner spinnerAviones;
+    private ImageView imgPreviewAvion;
+    private Button btnSubirFoto, btnGuardar, btnCancelar;
 
-    private Uri uriImagenFinal; // URI definitiva de la fotografía capturada
-    private Uri uriFotoCamaraTemporal; // URI temporal creada antes de abrir la cámara
-    private List<Avion> listaAvionesBase; // Lista completa del catálogo
-    private String icaoSeleccionado; // Código ICAO recibido desde MapaActivity
+    // URIs para controlar la foto capturada por el usuario
+    private Uri uriImagenFinal;
+    private Uri uriFotoCamaraTemporal;
+    // Lista interna para el adaptador del Spinner
+    private List<Avion> listaAvionesBase;
+    // Código ICAO24 hexadecimal del avión seleccionado en el mapa
+    private String icaoSeleccionado;
+    // Instancia del avión una vez resuelto por el motor global (Catálogo local + Wikipedia)
+    private Avion avionDetectadoResuelto;
 
-    // ------------------------------
-    // LANZADORES DE ACTIVIDADES
-    // ------------------------------
-
-    // Solicita permiso de cámara en tiempo de ejecución
+    // Lanzador que solicita permiso de cámara en tiempo de ejecución
     private final ActivityResultLauncher<String> launcherPermisos = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) abrirCamara(); // Abrir cámara si concede el permiso
-                else Toast.makeText(this, "Se necesita permiso de cámara", Toast.LENGTH_SHORT).show();
+                if (isGranted) abrirCamara();
+                else Toast.makeText(this, getString(R.string.toast_permiso_camara), Toast.LENGTH_SHORT).show();
             });
 
-    // Recibe la fotografía tomada por la cámara del sistema
+    // Lanzador que recibe la confirmación de foto tomada por la cámara
     private final ActivityResultLauncher<Uri> launcherCamara = registerForActivityResult(
             new ActivityResultContracts.TakePicture(), ok -> {
-                if (ok && uriFotoCamaraTemporal != null) cargarImagen(uriFotoCamaraTemporal); // Mostrar foto si fue exitosa
+                if (ok && uriFotoCamaraTemporal != null) cargarImagen(uriFotoCamaraTemporal);
             });
 
-    // ------------------------------
-    // MÉTODOS DEL CICLO DE VIDA
-    // ------------------------------
-
-    // Inicializa la pantalla, recupera los datos del radar y configura los botones
+    // Inicializa la pantalla, recupera los datos temporales del radar y resuelve la aeronave
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_avion); // Cargar diseño XML
+        setContentView(R.layout.activity_add_avion);
 
-        // Vincular componentes visuales
         spinnerAviones = findViewById(R.id.spinnerAviones);
         imgPreviewAvion = findViewById(R.id.imgPreviewAvion);
         btnSubirFoto = findViewById(R.id.btnSubirFoto);
         btnGuardar = findViewById(R.id.btnGuardar);
         btnCancelar = findViewById(R.id.btnCancelar);
 
-        // Recuperar el código ICAO enviado desde el mapa
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
         icaoSeleccionado = prefs.getString("icao_seleccionado", null);
+        String matriculaSeleccionada = prefs.getString("matricula_seleccionada", null);
 
         if (icaoSeleccionado == null) {
-            Toast.makeText(this, "Primero selecciona y avista un avión en el mapa", Toast.LENGTH_LONG).show();
-            finish(); // Cerrar si no hay selección previa válida
+            Toast.makeText(this, getString(R.string.toast_selecciona_mapa_primero), Toast.LENGTH_LONG).show();
+            finish();
             return;
         }
 
-        cargarDatosGenerator(); // Cargar catálogo de aviones en el Spinner
-        fijarModeloDetectado(prefs.getString("tipo_seleccionado", null), prefs.getString("descripcion_seleccionada", null)); // Bloquear modelo detectado
+        listaAvionesBase = new ArrayList<>();
+        resolverYFijarAeronave(
+                icaoSeleccionado,
+                matriculaSeleccionada,
+                prefs.getString("tipo_seleccionado", null),
+                prefs.getString("descripcion_seleccionada", null),
+                prefs.getString("categoria_seleccionada", null)
+        );
 
-        btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion()); // Abrir cámara
-        btnGuardar.setOnClickListener(v -> guardarAvionCatalogo()); // Guardar avistamiento
+        btnSubirFoto.setOnClickListener(v -> mostrarDialogoSeleccion());
+        btnGuardar.setOnClickListener(v -> guardarAvionCatalogo());
 
-        // Al pulsar Cancelar o retroceder, limpiar datos pendientes y volver al mapa
         btnCancelar.setOnClickListener(v -> cancelarYVolverAlMapa());
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -122,57 +160,77 @@ public class AddAvionActivity extends AppCompatActivity {
         });
     }
 
-    // Limpia el avistamiento pendiente y cierra la pantalla para regresar al mapa
+    // Borra las claves temporales del avistamiento y vuelve al radar
     private void cancelarYVolverAlMapa() {
         limpiarAvistamientoPendiente();
         finish();
     }
 
-    // ------------------------------
-    // LÓGICA DE DATOS Y GUARDADO
-    // ------------------------------
-
-    // Genera la clave de almacenamiento local vinculada al UID del usuario actual
+    // Construye la clave única de almacenamiento local vinculada al UID de Firebase del usuario
     private String getClaveListaUsuario() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo";
     }
 
-    // Carga todos los modelos del catálogo estático
-    private void cargarDatosGenerator() {
-        listaAvionesBase = AvionGenerator.getTodosLosAviones();
-        actualizarSpinner();
+    // Resuelve el modelo, fabricante y rareza mediante el motor híbrido asíncrono y fija el Spinner
+    private void resolverYFijarAeronave(String icao24, String matricula, String tipoIcao, String descripcionFallback, String categoriaRadar) {
+        spinnerAviones.setEnabled(false);
+        btnGuardar.setEnabled(false);
+
+        List<String> cargando = new ArrayList<>();
+        cargando.add(getString(R.string.identificando_aeronave));
+        spinnerAviones.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, cargando));
+
+        AvionGenerator.resolverAvionGlobalAsync(
+                this,
+                icao24,
+                matricula,
+                tipoIcao,
+                descripcionFallback,
+                categoriaRadar,
+                resuelto -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    avionDetectadoResuelto = resuelto;
+                    listaAvionesBase.clear();
+                    listaAvionesBase.add(resuelto);
+
+                    List<String> etiqueta = new ArrayList<>();
+                    etiqueta.add(resuelto.getModelo() + " (" + AvionGenerator.traducirRareza(this, resuelto.getRareza()) + ")");
+                    spinnerAviones.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, etiqueta));
+                    spinnerAviones.setSelection(0);
+                    btnGuardar.setEnabled(true);
+                }
+        );
     }
 
-    // Rellena el Spinner con el nombre y rareza de cada modelo
-    private void actualizarSpinner() {
-        List<String> nombres = new ArrayList<>();
-        for (Avion a : listaAvionesBase) {
-            nombres.add(a.getModelo() + " (" + a.getRareza() + ")");
-        }
-        spinnerAviones.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, nombres));
-    }
-
-    // Construye el objeto Avion con la telemetría del radar y lo guarda localmente y en Firestore
+    // Crea el registro definitivo del avistamiento y lo persiste tanto en local como en Firestore
     private void guardarAvionCatalogo() {
-        if (icaoSeleccionado == null) {
-            Toast.makeText(this, "Primero selecciona un avión en el mapa", Toast.LENGTH_SHORT).show();
+        if (icaoSeleccionado == null || avionDetectadoResuelto == null) {
+            Toast.makeText(this, getString(R.string.toast_espera_identificacion), Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (yaAvistado(icaoSeleccionado)) {
-            Toast.makeText(this, "Ya has avistado este avión anteriormente", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_ya_avistado_antes), Toast.LENGTH_SHORT).show();
             limpiarAvistamientoPendiente();
             finish();
             return;
         }
 
-        int pos = spinnerAviones.getSelectedItemPosition();
-        if (pos < 0) return;
+        Avion nuevo = new Avion(
+                avionDetectadoResuelto.getModelo(),
+                avionDetectadoResuelto.getFabricante(),
+                avionDetectadoResuelto.getRareza(),
+                avionDetectadoResuelto.getImagenResId(),
+                avionDetectadoResuelto.getVelocidad(),
+                avionDetectadoResuelto.getPasajeros(),
+                avionDetectadoResuelto.getDimensiones(),
+                avionDetectadoResuelto.getPais(),
+                avionDetectadoResuelto.getPeso(),
+                icaoSeleccionado
+        );
 
-        Avion base = listaAvionesBase.get(pos);
-        Avion nuevo = new Avion(base.getModelo(), base.getFabricante(), base.getRareza(), base.getImagenResId(),
-                base.getVelocidad(), base.getPasajeros(), base.getDimensiones(), base.getPais(), base.getPeso(), icaoSeleccionado);
+        nuevo.setDescripcion(avionDetectadoResuelto.getDescripcion());
 
         SharedPreferences prefsAv = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
         nuevo.setMatricula(prefsAv.getString("matricula_seleccionada", null));
@@ -183,27 +241,37 @@ public class AddAvionActivity extends AppCompatActivity {
         nuevo.setLonAvion(prefsAv.getFloat("lon_avion_seleccionado", 0f));
         nuevo.setOrigen("MAPA");
 
-        // Solo puntúa en el ranking si la foto se toma directamente al avistar desde el mapa
+        String urlRemotaWiki = prefsAv.getString("url_imagen_remota_seleccionada", null);
+        if (urlRemotaWiki != null && !urlRemotaWiki.isEmpty()) {
+            nuevo.setImagenUrl(urlRemotaWiki);
+            nuevo.setUrlImagenRemota(urlRemotaWiki);
+        }
+
+        // Si tomó foto en directo, la comprime a Base64 ligera para compartirla en Firestore y el ranking
         if (uriImagenFinal != null) {
-            nuevo.setUriFotoUsuario(uriImagenFinal.toString());
+            String fotoComprimida = ImagenBase64Utils.uriABase64Comprimida(this, uriImagenFinal, 600, 75);
+            nuevo.setUriFotoUsuario(fotoComprimida != null ? fotoComprimida : uriImagenFinal.toString());
             nuevo.setEsFotoVerificada(true);
         } else {
             nuevo.setEsFotoVerificada(false);
         }
 
-        guardarEnPreferencias(nuevo);
+        // Guarda en local, sube el avistamiento a Firestore y recalcula el ranking global
+        List<Avion> listaActualizada = guardarEnPreferencias(nuevo);
         guardarEnFirestore(nuevo);
+        RankingManager.sincronizarRankingUsuario(listaActualizada, null, null, null);
+
         limpiarAvistamientoPendiente();
 
         String mensaje = nuevo.isEsFotoVerificada()
-                ? "Avistamiento verificado guardado (puntúa en ranking)"
-                : "Avistamiento guardado sin foto (no puntúa en ranking)";
+                ? getString(R.string.toast_guardado_verificado)
+                : getString(R.string.toast_guardado_sin_foto);
         Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
         finish();
     }
 
-    // Añade el avión capturado a la lista JSON local del usuario activo
-    private void guardarEnPreferencias(Avion nuevo) {
+    // Añade el avión a la lista JSON guardada en SharedPreferences y devuelve la lista actualizada
+    private List<Avion> guardarEnPreferencias(Avion nuevo) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String clave = getClaveListaUsuario();
@@ -213,9 +281,10 @@ public class AddAvionActivity extends AppCompatActivity {
         if (lista == null) lista = new ArrayList<>();
         lista.add(nuevo);
         prefs.edit().putString(clave, gson.toJson(lista)).apply();
+        return lista;
     }
 
-    // Guarda el avistamiento en la colección del usuario dentro de Firebase Firestore
+    // Sube el registro del avión a la subcolección del usuario en Firebase Firestore
     private void guardarEnFirestore(Avion avion) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) return;
@@ -225,38 +294,34 @@ public class AddAvionActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("FIRESTORE", "Error", e));
     }
 
-    // ------------------------------
-    // LÓGICA DE CÁMARA Y CATALOGACIÓN
-    // ------------------------------
-
-    // Muestra el aviso de captura directa por cámara (sin galería para evitar trampas)
+    // Muestra un diálogo explicando que solo se aceptan fotos tomadas en el momento para el ranking
     private void mostrarDialogoSeleccion() {
         new AlertDialog.Builder(this)
-                .setTitle("Añadir foto del avistamiento")
-                .setMessage("Para el ranking oficial, solo se admiten fotos tomadas en el momento.")
-                .setPositiveButton("Hacer foto", (d, i) -> {
+                .setTitle(getString(R.string.dialogo_foto_titulo))
+                .setMessage(getString(R.string.dialogo_foto_mensaje))
+                .setPositiveButton(getString(R.string.dialogo_foto_hacer), (d, i) -> {
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                        abrirCamara(); // Abrir cámara si ya tiene permiso
+                        abrirCamara();
                     } else {
-                        launcherPermisos.launch(Manifest.permission.CAMERA); // Solicitar permiso de cámara
+                        launcherPermisos.launch(Manifest.permission.CAMERA);
                     }
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton(getString(R.string.dialogo_foto_cancelar), null)
                 .show();
     }
 
-    // Crea el archivo temporal y abre la aplicación de cámara del dispositivo
+    // Prepara el archivo temporal y lanza la aplicación de cámara del teléfono
     private void abrirCamara() {
         try {
             File f = crearArchivoImagen();
             uriFotoCamaraTemporal = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", f);
             launcherCamara.launch(uriFotoCamaraTemporal);
         } catch (Exception e) {
-            Toast.makeText(this, "Error al iniciar la cámara", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_error_camara), Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Crea un fichero JPEG único en el almacenamiento privado de imágenes
+    // Crea un fichero JPEG único con marca de tiempo en el directorio privado de imágenes
     private File crearArchivoImagen() throws IOException {
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -264,34 +329,13 @@ public class AddAvionActivity extends AppCompatActivity {
         return File.createTempFile("IMG_" + ts + "_", ".jpg", dir);
     }
 
-    // Carga la imagen capturada en el ImageView sin usar caché antigua
+    // Muestra la fotografía tomada en el ImageView desactivando la caché de disco y memoria
     private void cargarImagen(Uri uri) {
         uriImagenFinal = uri;
         Glide.with(this).load(uri).centerCrop().diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(imgPreviewAvion);
     }
 
-    // Selecciona automáticamente el modelo detectado por el radar y bloquea el Spinner
-    private void fijarModeloDetectado(String tipoIcao, String descripcion) {
-        if (icaoSeleccionado == null) return;
-        Avion detectado = AvionGenerator.getAvionPorTipoIcao(tipoIcao);
-        if (detectado != null) {
-            for (int i = 0; i < listaAvionesBase.size(); i++) {
-                if (listaAvionesBase.get(i).getModelo().equals(detectado.getModelo())) {
-                    spinnerAviones.setSelection(i); // Seleccionar modelo coincidente
-                    break;
-                }
-            }
-        } else {
-            String nombre = (descripcion != null && !descripcion.isEmpty()) ? descripcion : "Aeronave " + tipoIcao;
-            Avion generico = new Avion(nombre, "Sin catalogar", "COMMON", R.drawable.sil_jet, "—", "—", "—", "—", "—");
-            listaAvionesBase.add(0, generico); // Añadir ficha genérica si no está en catálogo
-            actualizarSpinner();
-            spinnerAviones.setSelection(0);
-        }
-        spinnerAviones.setEnabled(false); // Bloquear selección manual
-    }
-
-    // Comprueba si el avión con ese código ICAO ya fue registrado previamente por el usuario
+    // Comprueba si el código ICAO24 ya está registrado en la colección local del usuario
     private boolean yaAvistado(String icao) {
         if (icao == null) return false;
         String json = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE).getString(getClaveListaUsuario(), null);
@@ -304,11 +348,12 @@ public class AddAvionActivity extends AppCompatActivity {
         return false;
     }
 
-    // Borra las claves temporales del avistamiento pendiente en SharedPreferences
+    // Elimina de SharedPreferences todas las claves temporales del avistamiento en curso
     private void limpiarAvistamientoPendiente() {
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE).edit()
                 .remove("icao_seleccionado").remove("tipo_seleccionado").remove("matricula_seleccionada")
                 .remove("descripcion_seleccionada").remove("fecha_seleccionada").remove("distancia_seleccionada")
-                .remove("lat_avion_seleccionado").remove("lon_avion_seleccionado").apply();
+                .remove("lat_avion_seleccionado").remove("lon_avion_seleccionado")
+                .remove("url_imagen_remota_seleccionada").remove("categoria_seleccionada").apply();
     }
 }

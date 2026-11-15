@@ -1,7 +1,8 @@
 // Plugins principales para compilar la aplicación Android y conectar los servicios de Firebase
 plugins {
     id 'com.android.application' // Plugin principal de aplicación Android
-    id 'com.google.gms.google-services' // Plugin encargado de leer google-services.json
+    id 'com.google.gms.google-services'
+    alias(libs.plugins.kotlin.android) // Plugin encargado de leer google-services.json
 }
 
 // Bloque principal de configuración de compilación de Android
@@ -28,6 +29,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de código fuente con Java 8
         targetCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de bytecode destino con Java 8
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 // Declaración de dependencias y librerías externas del módulo
@@ -47,7 +51,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:21.0.0' // SDK para iniciar sesión con cuentas de Google
 
     // --- GLIDE (IMÁGENES) ---
-    implementation 'com.github.bumptech.glide:glide:4.16.0' // Carga y caché eficiente de imágenes
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation libs.core.ktx// Carga y caché eficiente de imágenes
     // Esta línea es la que te faltaba para que Glide compile bien:
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0' // Procesador de anotaciones de Glide
 
@@ -71,4 +76,14 @@ dependencies {
     testImplementation 'junit:junit:4.13.2' // Pruebas unitarias locales
     androidTestImplementation 'androidx.test.ext:junit:1.1.5' // Extensiones de JUnit para Android
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1' // Pruebas de interfaz de usuario
+
+    // Librería Coil para la carga y caché automática de imágenes desde internet
+    implementation("io.coil-kt:coil:2.6.0")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.core:core:1.13.1")
+        force("androidx.core:core-ktx:1.13.1")
+    }
 }

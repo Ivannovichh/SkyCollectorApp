@@ -34,8 +34,9 @@ import java.util.List; // Interfaz para listas
 import es.medac.skycollectorapp.adapters.ChatAdapter; // Adaptador del chat
 import es.medac.skycollectorapp.models.Mensaje; // Modelo del mensaje
 import es.medac.skycollectorapp.R; // Recursos del proyecto
+import es.medac.skycollectorapp.utils.AvionGenerator; // Utilidad para obtener el idioma activo de la app
 
-// Clase principal que gestiona el asistente virtual e integrado con la Wikipedia
+// Clase principal que gestiona el asistente virtual e integrado con la Wikipedia bilingüe
 public class ChatbotActivity extends AppCompatActivity {
 
     // ------------------------------
@@ -79,8 +80,8 @@ public class ChatbotActivity extends AppCompatActivity {
         // Inicializar la cola de peticiones HTTP Volley
         requestQueue = Volley.newRequestQueue(this);
 
-        // Enviar un mensaje de bienvenida automático al cargar la pantalla
-        recibirMensaje("Sistema online. Pregúntame por un modelo (Ej: F18, Boeing 737) y buscaré su ficha.");
+        // Enviar un mensaje de bienvenida traducido automáticamente al cargar la pantalla
+        recibirMensaje(getString(R.string.chat_bienvenida));
 
         // Acción al pulsar el botón de envío
         btnEnviar.setOnClickListener(v -> {
@@ -125,20 +126,20 @@ public class ChatbotActivity extends AppCompatActivity {
     // LÓGICA DE PROCESAMIENTO Y RED
     // ------------------------------
 
-    // Procesa la pregunta del usuario y lanza la búsqueda externa
+    // Procesa la pregunta del usuario y lanza la búsqueda externa en el idioma activo
     private void cerebroDelBot(String pregunta) {
-        String modeloLimpio = limpiarConsulta(pregunta); // Filtrar tildes, signos y palabras basura
+        String modeloLimpio = limpiarConsulta(pregunta); // Filtrar tildes, signos y palabras basura en ES/EN
 
         if (modeloLimpio.length() < 2) { // Verificar longitud mínima
-            recibirMensaje("Por favor, escribe el modelo del avión.");
+            recibirMensaje(getString(R.string.chat_pedir_modelo));
             return;
         }
 
-        recibirMensaje("Localizando ficha oficial de '" + modeloLimpio + "'..."); // Notificar inicio de búsqueda
-        buscarTituloOficial(modeloLimpio); // Iniciar primera llamada a la API
+        recibirMensaje(getString(R.string.chat_buscando, modeloLimpio)); // Notificar inicio de búsqueda
+        buscarTituloOficial(modeloLimpio, AvionGenerator.obtenerCodigoIdiomaWiki()); // Iniciar llamada en el idioma activo
     }
 
-    // Limpia el texto de la pregunta eliminando tildes, signos de puntuación y palabras comunes
+    // Limpia el texto de la pregunta eliminando tildes, signos de puntuación y palabras comunes tanto en español como en inglés
     private String limpiarConsulta(String textoBruto) {
         if (textoBruto == null) return "";
 
@@ -150,15 +151,18 @@ public class ChatbotActivity extends AppCompatActivity {
         // 2. Sustituir caracteres especiales y signos de puntuación por espacios manteniendo guiones
         String limpio = sinTildes.replaceAll("[^a-z0-9\\s-]", " ");
 
-        // 3. Colección de expresiones irrelevantes para aislar el término de búsqueda
+        // 3. Colección de expresiones irrelevantes en español e inglés para aislar el término de búsqueda
         String[] basura = {
                 "dame informacion sobre", "dame informacion de", "dame informacion",
                 "informacion del", "informacion de", "informacion",
                 "que es un", "que es el", "que es", "que son",
                 "quiero saber del", "quiero saber sobre", "dame datos del", "dame datos de",
                 "busca el", "busca la", "busca", "sobre el", "sobre la", "sobre",
-                "caza", "bombardero", "avion", "jet",
-                " el ", " la ", " los ", " las ", " un ", " una ", " unos ", " unas "
+                "give me information about", "information about", "tell me about",
+                "what is an", "what is a", "what is the", "what is", "search for", "search",
+                "fighter", "bomber", "aircraft", "plane", "caza", "bombardero", "avion", "jet",
+                " el ", " la ", " los ", " las ", " un ", " una ", " unos ", " unas ",
+                " the ", " an ", " a ", " about "
         };
 
         // Recorrer el arreglo de cadenas irrelevantes y reemplazarlas por espacios
@@ -170,11 +174,11 @@ public class ChatbotActivity extends AppCompatActivity {
         return limpio.replaceAll("\\s+", " ").trim();
     }
 
-    // Consulta el título oficial del artículo en Wikipedia utilizando la API OpenSearch
-    private void buscarTituloOficial(String termino) {
+    // Consulta el título oficial del artículo en Wikipedia en el idioma activo (con respaldo en inglés si no existe en español)
+    private void buscarTituloOficial(String termino, String lang) {
         try {
             String terminoUrl = URLEncoder.encode(termino, StandardCharsets.UTF_8.name()); // Codificar parámetros de URL
-            String url = "https://es.wikipedia.org/w/api.php?action=opensearch&search=" + terminoUrl + "&limit=1&format=json";
+            String url = "https://" + lang + ".wikipedia.org/w/api.php?action=opensearch&search=" + terminoUrl + "&limit=1&format=json";
 
             // Crear la petición de array JSON con Volley
             JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
@@ -184,27 +188,30 @@ public class ChatbotActivity extends AppCompatActivity {
 
                             if (titulos.length() > 0) {
                                 String tituloOficial = titulos.getString(0); // Tomar la primera coincidencia
-                                descargarContenido(tituloOficial); // Descargar el resumen del artículo
+                                descargarContenido(tituloOficial, lang); // Descargar el resumen del artículo en ese idioma
+                            } else if (!"en".equals(lang)) {
+                                // Si no hubo resultados en español, reintentar automáticamente en inglés
+                                buscarTituloOficial(termino, "en");
                             } else {
-                                recibirMensaje("No encuentro ningún avión llamado '" + termino + "'. Prueba con el nombre completo.");
+                                recibirMensaje(getString(R.string.chat_no_encontrado, termino));
                             }
                         } catch (Exception e) {
-                            recibirMensaje("Error al identificar el avión.");
+                            recibirMensaje(getString(R.string.chat_error_identificar));
                         }
                     },
-                    error -> recibirMensaje("Error de conexión a internet.")
+                    error -> recibirMensaje(getString(R.string.chat_error_conexion))
             );
             requestQueue.add(request); // Añadir petición a la cola de Volley
         } catch (Exception e) {
-            recibirMensaje("Error al codificar la búsqueda.");
+            recibirMensaje(getString(R.string.chat_error_codificar));
         }
     }
 
     // Descarga el extracto introductorio del artículo localizado en Wikipedia
-    private void descargarContenido(String tituloOficial) {
+    private void descargarContenido(String tituloOficial, String lang) {
         try {
             String tituloUrl = URLEncoder.encode(tituloOficial, StandardCharsets.UTF_8.name()); // Codificar título para la URL
-            String url = "https://es.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=" + tituloUrl + "&format=json&redirects=1";
+            String url = "https://" + lang + ".wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=" + tituloUrl + "&format=json&redirects=1";
 
             // Crear la petición de objeto JSON con Volley
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
@@ -215,7 +222,7 @@ public class ChatbotActivity extends AppCompatActivity {
                             Iterator<String> keys = pages.keys(); // Iterar sobre las claves dinámicas de las páginas
 
                             if (!keys.hasNext()) { // Evitar excepción si el JSON viene sin páginas
-                                recibirMensaje("No se encontraron detalles para este modelo.");
+                                recibirMensaje(getString(R.string.chat_sin_detalles));
                                 return;
                             }
 
@@ -227,22 +234,22 @@ public class ChatbotActivity extends AppCompatActivity {
                                 String tituloReal = page.optString("title", tituloOficial); // Extraer el título formateado
 
                                 if (!extracto.isEmpty()) {
-                                    recibirMensaje("INFORME: " + tituloReal.toUpperCase() + "\n\n" + extracto);
+                                    recibirMensaje(getString(R.string.chat_informe_formato, tituloReal.toUpperCase(), extracto));
                                 } else {
-                                    recibirMensaje("He encontrado el artículo '" + tituloReal + "' pero parece estar vacío.");
+                                    recibirMensaje(getString(R.string.chat_articulo_vacio, tituloReal));
                                 }
                             } else {
-                                recibirMensaje("Error al recuperar los datos.");
+                                recibirMensaje(getString(R.string.chat_error_datos));
                             }
                         } catch (Exception e) {
-                            recibirMensaje("Error al leer el informe.");
+                            recibirMensaje(getString(R.string.chat_error_leer));
                         }
                     },
-                    error -> recibirMensaje("Error de red.")
+                    error -> recibirMensaje(getString(R.string.chat_error_red))
             );
             requestQueue.add(request); // Registrar la petición final en la cola de red
         } catch (Exception e) {
-            recibirMensaje("Error al solicitar el informe.");
+            recibirMensaje(getString(R.string.chat_error_solicitar));
         }
     }
 }

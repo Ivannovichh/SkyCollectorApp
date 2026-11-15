@@ -1,334 +1,682 @@
 // Declaración del paquete donde se encuentra ubicada la actividad
 package es.medac.skycollectorapp.activities;
 
-// Importaciones de permisos y utilidades del sistema Android
-import android.Manifest; // Definición de permisos de sistema (Cámara)
-import android.content.Intent; // Objeto para intenciones y paso entre actividades
-import android.content.SharedPreferences; // Almacenamiento persistente clave-valor local
-import android.content.pm.PackageManager; // Gestor para comprobación de permisos de la app
-import android.net.Uri; // Representación de direcciones URI para archivos e imágenes
-import android.os.Bundle; // Pases de datos durante el ciclo de vida de la actividad
-import android.os.Environment; // Directorios estándar del sistema de archivos
-import android.util.Log; // Registro de mensajes de depuración en Logcat
-import android.view.View; // Componente base de las vistas de interfaz
-import android.widget.Button; // Componente de la interfaz tipo botón
-import android.widget.EditText; // Componente de texto editable para apodos
-import android.widget.ImageView; // Componente para mostrar imágenes
-import android.widget.TextView; // Componente para mostrar textos estáticos
-import android.widget.Toast; // Notificaciones emergentes breves en pantalla
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-// Importaciones de librerías de soporte AndroidX
-import androidx.activity.result.ActivityResultLauncher; // Lanzador para recibir resultados de actividades
-import androidx.activity.result.contract.ActivityResultContracts; // Contratos estándar para fotos y permisos
-import androidx.appcompat.app.AppCompatActivity; // Clase base para actividades con soporte ActionBar
-import androidx.cardview.widget.CardView; // Tarjeta contenedora con elevación y bordes redondeados
-import androidx.core.content.ContextCompat; // Métodos de compatibilidad para contextos y permisos
-import androidx.core.content.FileProvider; // Proveedor seguro para compartir archivos con la cámara
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
-// Importaciones de librerías externas
-import com.bumptech.glide.Glide; // Carga y procesamiento eficiente de imágenes
-import com.bumptech.glide.load.engine.DiskCacheStrategy; // Estrategias de caché en disco para Glide
-import com.google.firebase.auth.FirebaseAuth; // Gestor de autenticación de usuarios de Firebase
-import com.google.firebase.auth.FirebaseUser; // Objeto de usuario autenticado en Firebase
-import com.google.firebase.firestore.FirebaseFirestore; // Gestor de la base de datos Firestore en la nube
-import com.google.gson.Gson; // Motor de conversión de objetos Java a formato JSON
-import com.google.gson.reflect.TypeToken; // Preservación de tipos genéricos en Gson
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-// Importaciones estándar de Java
-import java.io.File; // Manipulación de archivos en almacenamiento
-import java.io.IOException; // Manejo de excepciones de entrada/salida
-import java.lang.reflect.Type; // Tipo genérico para la deserialización con Gson
-import java.text.SimpleDateFormat; // Formateador de fechas a cadenas de texto
-import java.util.ArrayList; // Colección de lista dinámicamente redimensionable
-import java.util.Date; // Representación de fecha y hora del sistema
-import java.util.Locale; // Configuración regional de idioma
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
-// Importaciones de recursos y modelos del proyecto
-import es.medac.skycollectorapp.R; // Recursos del proyecto
-import es.medac.skycollectorapp.models.Avion; // Modelo de datos del objeto Avión
+import es.medac.skycollectorapp.R;
+import es.medac.skycollectorapp.models.Avion;
+import es.medac.skycollectorapp.utils.AvionGenerator;
 
-// Clase principal que gestiona la visualización, edición de apodos y fotos personalizadas de un avión
+/**
+ * Actividad que gestiona la visualización, edición de apodos y fotos personalizadas de un avión en la colección.
+ */
 public class DetalleAvionActivity extends AppCompatActivity {
 
-    // ------------------------------
-    // VARIABLES DE INTERFAZ
-    // ------------------------------
-    private ImageView imgDetalleGrande; // Imagen principal con la silueta o ilustración oficial del avión
-    private ImageView imgFotoUsuario; // Imagen personalizada tomada o cargada por el usuario
-    private EditText etNombreAvion; // Campo editable para cambiar el apodo personalizado de la aeronave
+    private ImageView imgDetalleGrande;
+    private ImageView imgFotoUsuario;
+    private EditText etNombreAvion;
 
     private TextView txtDetalleFabricante, txtDetallePais, txtDetalleVelocidad,
-            txtDetalleCapacidad, txtDetallePeso, txtDetalleDimensiones; // Etiquetas de la ficha técnica
+            txtDetalleCapacidad, txtDetallePeso, txtDetalleDimensiones;
 
-    private Button btnCamara, btnGaleria; // Botones para capturar o elegir una fotografía
-    private Button btnGuardar, btnCancelar; // Botones de confirmación o cancelación de edición
+    private Button btnCamara, btnGaleria;
+    private Button btnGuardar, btnCancelar;
+    private CardView layoutFotoUsuario;
 
-    private CardView layoutFotoUsuario; // Tarjeta contenedora de la fotografía del usuario
+    private Avion avion;
+    private Uri uriFotoTemporal;
+    private String avionId;
 
-    // ------------------------------
-    // VARIABLES DE DATOS
-    // ------------------------------
-    private Avion avion; // Objeto de tipo Avion cargado para edición
-    private Uri uriFotoTemporal; // URI provisional generada para la toma con la cámara
-    private String avionId; // Identificador único ID del avión seleccionado
+    private Object fuenteImagenCatalogoActual;
+    private Object fuenteFotoUsuarioActual;
+    private TextView txtAvisoSinFoto;
 
-    // ------------------------------
-    // LANZADORES DE ACTIVIDADES
-    // ------------------------------
-
-    // Lanzador para capturar fotografías con la aplicación de cámara del dispositivo
     private final ActivityResultLauncher<Uri> launcherCamara = registerForActivityResult(
-            new ActivityResultContracts.TakePicture(), // Contrato para tomar foto
+            new ActivityResultContracts.TakePicture(),
             exito -> {
-                if (exito && uriFotoTemporal != null) { // Si la captura fue correcta
-                    mostrarFotoUsuario(uriFotoTemporal, true); // Cargar foto y marcarla como verificada de cámara
+                if (exito && uriFotoTemporal != null) {
+                    mostrarFotoUsuario(uriFotoTemporal, true);
                 }
             }
     );
 
-    // Lanzador para solicitar permisos de sistema en tiempo de ejecución
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(), // Contrato de solicitud de permiso
+            new ActivityResultContracts.RequestPermission(),
             isGranted -> {
-                if (isGranted) abrirCamara(); // Si el permiso fue otorgado, abrir cámara
-                else Toast.makeText(this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show(); // Avisar si fue denegado
+                if (isGranted) abrirCamara();
+                else Toast.makeText(this, getString(R.string.toast_permiso_denegado), Toast.LENGTH_SHORT).show();
             }
     );
 
-    // Lanzador para seleccionar archivos multimedia desde la galería
     private final ActivityResultLauncher<String> launcherGaleria = registerForActivityResult(
-            new ActivityResultContracts.GetContent(), // Contrato para seleccionar contenido
+            new ActivityResultContracts.GetContent(),
             uri -> {
-                if (uri != null) { // Si el usuario eligió una imagen
+                if (uri != null) {
                     try {
-                        // Solicitar permiso de lectura persistente sobre la URI de la galería
                         getContentResolver().takePersistableUriPermission(
                                 uri,
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                         );
                     } catch (Exception e) {
-                        Log.w("URI_PERM", "El proveedor no soporta persistencia de URI", e); // Registrar aviso
+                        Log.w("URI_PERM", "El proveedor no soporta persistencia de URI", e);
                     }
-                    mostrarFotoUsuario(uri, false); // Cargar foto y desmarcar verificación por ser de galería
+                    mostrarFotoUsuario(uri, false);
                 }
             }
     );
 
-    // ------------------------------
-    // MÉTODOS DEL CICLO DE VIDA
-    // ------------------------------
-
+    /**
+     * Inicializa la actividad, recupera la aeronave desde la colección local y configura los eventos.
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) { // Inicialización de la actividad
-        super.onCreate(savedInstanceState); // Llamada al método padre
-        setContentView(R.layout.activity_detalle_avion); // Cargar el diseño XML de detalle
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_detalle_avion);
 
-        initViews(); // Vincular las vistas del layout con las variables locales
+        initViews();
 
-        avionId = getIntent().getStringExtra("avion_id"); // Recuperar el ID enviado en la intención
+        avionId = getIntent().getStringExtra("avion_id");
 
-        if (avionId == null) { // Validar la existencia del parámetro
-            Toast.makeText(this, "Error: no se recibió el ID del avión", Toast.LENGTH_SHORT).show(); // Avisar de error
-            finish(); // Cerrar la pantalla
+        if (avionId == null) {
+            Toast.makeText(this, getString(R.string.toast_error_sin_id), Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
 
-        avion = buscarAvionPorId(avionId); // Búsqueda del objeto dentro de la colección local del usuario
+        avion = buscarAvionPorId(avionId);
 
-        if (avion == null) { // Validar si el objeto existe
-            Toast.makeText(this, "Error: avión no encontrado en la colección", Toast.LENGTH_SHORT).show(); // Avisar de error
-            finish(); // Cerrar la pantalla
+        if (avion == null) {
+            Toast.makeText(this, getString(R.string.toast_error_no_encontrado), Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
 
-        cargarDatos(); // Poblar las etiquetas con la información técnica del avión
-        setupListeners(); // Configurar los eventos de clic en los botones
+        cargarDatos();
+        setupListeners();
     }
 
-    // Genera la clave de almacenamiento local asociada al UID del usuario autenticado
+    /**
+     * Genera la clave de almacenamiento local asociada al UID del usuario autenticado.
+     */
     private String getClaveListaUsuario() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser(); // Obtener el usuario actual
-        return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo"; // Devolver clave única por cuenta
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo";
     }
 
-    // Vincula las referencias de los componentes del archivo XML con las variables locales
+    /**
+     * Vincula las referencias de los componentes del archivo XML y ajusta los márgenes de la imagen principal.
+     */
     private void initViews() {
-        imgDetalleGrande = findViewById(R.id.imgDetalleGrande); // Imagen oficial grande
-        etNombreAvion = findViewById(R.id.etNombreAvion); // Campo editable del apodo
+        imgDetalleGrande = findViewById(R.id.imgDetalleGrande);
 
-        txtDetalleFabricante = findViewById(R.id.txtDetalleFabricante); // Etiqueta de fabricante
-        txtDetallePais = findViewById(R.id.txtDetallePais); // Etiqueta de país de origen
-        txtDetalleVelocidad = findViewById(R.id.txtDetalleVelocidad); // Etiqueta de velocidad
-        txtDetalleCapacidad = findViewById(R.id.txtDetalleCapacidad); // Etiqueta de pasajeros
-        txtDetallePeso = findViewById(R.id.txtDetallePeso); // Etiqueta de peso
-        txtDetalleDimensiones = findViewById(R.id.txtDetalleDimensiones); // Etiqueta de dimensiones
+        ViewGroup.MarginLayoutParams imgParams = (ViewGroup.MarginLayoutParams) imgDetalleGrande.getLayoutParams();
+        if (imgParams != null) {
+            imgParams.setMargins(0, imgParams.topMargin, 0, imgParams.bottomMargin);
+            imgDetalleGrande.setLayoutParams(imgParams);
+        }
+        imgDetalleGrande.setPadding(0, 0, 0, 0);
+        imgDetalleGrande.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        btnCamara = findViewById(R.id.btnCamara); // Botón para foto de cámara
-        btnGaleria = findViewById(R.id.btnGaleria); // Botón para foto de galería
+        if (imgDetalleGrande.getParent() instanceof CardView) {
+            CardView cardPadre = (CardView) imgDetalleGrande.getParent();
+            cardPadre.setContentPadding(0, 0, 0, 0);
+        }
 
-        btnCancelar = findViewById(R.id.btnCancelar); // Botón para cancelar
-        btnGuardar = findViewById(R.id.btnGuardar); // Botón para guardar
+        etNombreAvion = findViewById(R.id.etNombreAvion);
 
-        layoutFotoUsuario = findViewById(R.id.layoutFotoUsuario); // Contenedor de la foto del usuario
-        imgFotoUsuario = findViewById(R.id.imgFotoUsuario); // Vista de la foto del usuario
+        txtDetalleFabricante = findViewById(R.id.txtDetalleFabricante);
+        txtDetallePais = findViewById(R.id.txtDetallePais);
+        txtDetalleVelocidad = findViewById(R.id.txtDetalleVelocidad);
+        txtDetalleCapacidad = findViewById(R.id.txtDetalleCapacidad);
+        txtDetallePeso = findViewById(R.id.txtDetallePeso);
+        txtDetalleDimensiones = findViewById(R.id.txtDetalleDimensiones);
+
+        btnCamara = findViewById(R.id.btnCamara);
+        btnGaleria = findViewById(R.id.btnGaleria);
+
+        btnCancelar = findViewById(R.id.btnCancelar);
+        btnGuardar = findViewById(R.id.btnGuardar);
+
+        layoutFotoUsuario = findViewById(R.id.layoutFotoUsuario);
+        imgFotoUsuario = findViewById(R.id.imgFotoUsuario);
     }
 
-    // Configura las acciones asociadas a los clics de los botones
+    /**
+     * Configura las acciones asociadas a los clics de los botones y vistas de imagen.
+     */
     private void setupListeners() {
-
-        btnCancelar.setOnClickListener(v -> finish()); // Cerrar la actividad sin guardar cambios
+        btnCancelar.setOnClickListener(v -> finish());
 
         btnGuardar.setOnClickListener(v -> {
-            String nuevoApodo = etNombreAvion.getText().toString().trim(); // Leer apodo introducido
-            if (!nuevoApodo.isEmpty()) { // Evitar guardar un nombre vacío
-                avion.setApodo(nuevoApodo); // Actualizar apodo en el objeto
+            String nuevoApodo = etNombreAvion.getText().toString().trim();
+            if (!nuevoApodo.isEmpty()) {
+                avion.setApodo(nuevoApodo);
             }
 
-            guardarCambiosEnPreferencias(avion); // Persistir cambios localmente en SharedPreferences
-            guardarCambiosEnFirestore(avion); // Sincronizar los cambios actualizados en la nube Firestore
+            guardarCambiosEnPreferencias(avion);
+            guardarCambiosEnFirestore(avion);
 
-            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show(); // Notificar al usuario
-            finish(); // Cerrar la pantalla
+            Toast.makeText(this, getString(R.string.toast_cambios_guardados), Toast.LENGTH_SHORT).show();
+            finish();
         });
 
         btnCamara.setOnClickListener(v -> {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                abrirCamara(); // Abrir cámara si se cuenta con el permiso concedido
+                abrirCamara();
             } else {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA); // Solicitar permiso de cámara
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA);
             }
         });
 
-        btnGaleria.setOnClickListener(v -> launcherGaleria.launch("image/*")); // Lanzar selector de la galería
+        btnGaleria.setOnClickListener(v -> launcherGaleria.launch("image/*"));
+
+        imgDetalleGrande.setOnClickListener(v -> {
+            if (fuenteImagenCatalogoActual != null) {
+                abrirImagenAmpliada(fuenteImagenCatalogoActual);
+            }
+        });
+
+        imgFotoUsuario.setOnClickListener(v -> {
+            if (fuenteFotoUsuarioActual != null) {
+                abrirImagenAmpliada(fuenteFotoUsuarioActual);
+            }
+        });
     }
 
-    // Rellena la interfaz gráfica con los datos del objeto Avion cargado
+    /**
+     * Rellena la interfaz gráfica con los datos técnicos y fotografías del objeto Avion cargado.
+     */
     private void cargarDatos() {
-        etNombreAvion.setText(avion.getApodo()); // Mostrar el apodo o modelo actual
+        etNombreAvion.setText(avion.getApodo());
 
-        // Asignar los textos formateados a las etiquetas técnicas
-        txtDetalleFabricante.setText("Fabricante: " + avion.getFabricante());
-        txtDetallePais.setText("País: " + avion.getPais());
-        txtDetalleVelocidad.setText("Velocidad: " + avion.getVelocidad());
-        txtDetalleCapacidad.setText("Capacidad: " + avion.getPasajeros());
-        txtDetallePeso.setText("Peso: " + avion.getPeso());
-        txtDetalleDimensiones.setText("Dimensiones: " + avion.getDimensiones());
+        txtDetalleFabricante.setText(getString(R.string.detalle_fabricante_formato, avion.getFabricante()));
+        txtDetallePais.setText(getString(R.string.detalle_pais_formato, avion.getPais()));
+        txtDetalleVelocidad.setText(getString(R.string.detalle_velocidad_formato, avion.getVelocidad()));
+        txtDetalleCapacidad.setText(getString(R.string.detalle_capacidad_formato, avion.getPasajeros()));
+        txtDetallePeso.setText(getString(R.string.detalle_peso_formato, avion.getPeso()));
+        txtDetalleDimensiones.setText(getString(R.string.detalle_dimensiones_formato, avion.getDimensiones()));
 
-        // Cargar la imagen o silueta del catálogo base con Glide
-        Glide.with(this)
-                .load(avion.getImagenResId()) // Cargar id del recurso
-                .fitCenter() // Ajustar centrado
-                .into(imgDetalleGrande); // Asignar al ImageView principal
+        String nombreModeloCrudo = avion.getModelo() != null ? avion.getModelo() : getString(R.string.aeronave_desconocida);
 
-        // Mostrar la foto del usuario si existe previamente guardada
+        if (avion.getImagenUrl() != null && !avion.getImagenUrl().isEmpty()) {
+            fuenteImagenCatalogoActual = avion.getImagenUrl();
+            gestionarAvisoSinFoto(imgDetalleGrande, false);
+            Glide.with(this)
+                    .load(avion.getImagenUrl())
+                    .centerCrop()
+                    .into(imgDetalleGrande);
+        } else {
+            String modeloLimpioParaWiki = limpiarNombreParaBusqueda(nombreModeloCrudo);
+            cargarImagenAutomaticaDesdeInternet(modeloLimpioParaWiki, imgDetalleGrande, avion.getImagenResId());
+        }
+
         if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
-            layoutFotoUsuario.setVisibility(View.VISIBLE); // Hacer visible el contenedor
+            layoutFotoUsuario.setVisibility(View.VISIBLE);
+            fuenteFotoUsuarioActual = avion.getUriFotoUsuario();
 
             Glide.with(this)
-                    .load(Uri.parse(avion.getUriFotoUsuario())) // Cargar foto desde la URI guardada
-                    .centerCrop() // Recortar centrado
-                    .into(imgFotoUsuario); // Renderizar en la vista de foto de usuario
+                    .load(Uri.parse(avion.getUriFotoUsuario()))
+                    .centerCrop()
+                    .into(imgFotoUsuario);
         } else {
-            layoutFotoUsuario.setVisibility(View.GONE); // Ocultar si no hay foto personalizada
+            layoutFotoUsuario.setVisibility(View.GONE);
+            fuenteFotoUsuarioActual = null;
         }
     }
 
-    // Refresca la vista, asigna la nueva foto al objeto Avion y actualiza su estado de verificación
+    /**
+     * Refresca la vista, asigna la nueva foto al objeto Avion y actualiza su estado de verificación.
+     */
     private void mostrarFotoUsuario(Uri uri, boolean esDesdeCamara) {
-        avion.setUriFotoUsuario(uri.toString()); // Asignar la nueva cadena de URI al objeto
-        avion.setEsFotoVerificada(esDesdeCamara); // Marcar verificada solo si proviene de la cámara
-        layoutFotoUsuario.setVisibility(View.VISIBLE); // Asegurar visibilidad del contenedor
+        avion.setUriFotoUsuario(uri.toString());
+        avion.setEsFotoVerificada(esDesdeCamara);
+        layoutFotoUsuario.setVisibility(View.VISIBLE);
+        fuenteFotoUsuarioActual = uri.toString();
 
         Glide.with(this)
-                .load(uri) // Cargar la nueva URI
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactivar caché en disco para refresco inmediato
-                .skipMemoryCache(true) // Omitir caché en memoria
-                .centerCrop() // Recorte centrado
-                .into(imgFotoUsuario); // Cargar en la vista
+                .load(uri)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .centerCrop()
+                .into(imgFotoUsuario);
     }
 
-    // Prepara el archivo privado y lanza la aplicación de cámara
+    /**
+     * Prepara el archivo privado y lanza la aplicación de cámara.
+     */
     private void abrirCamara() {
         try {
-            File archivo = crearArchivoImagen(); // Crear archivo temporal seguro en disco
-            uriFotoTemporal = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", archivo); // Generar la URI
-            launcherCamara.launch(uriFotoTemporal); // Disparar la captura de la cámara
+            File archivo = crearArchivoImagen();
+            uriFotoTemporal = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", archivo);
+            launcherCamara.launch(uriFotoTemporal);
         } catch (Exception e) {
-            Toast.makeText(this, "Error cámara: " + e.getMessage(), Toast.LENGTH_LONG).show(); // Informar de error
-            e.printStackTrace(); // Imprimir traza de la excepción
+            Toast.makeText(this, getString(R.string.toast_error_camara), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
-    // Genera un archivo JPG temporal en el directorio persistente privado
+    /**
+     * Genera un archivo JPG temporal en el directorio persistente privado.
+     */
     private File crearArchivoImagen() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()); // Timestamp único
-        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // Directorio persistente privado
-        if (dir != null && !dir.exists()) dir.mkdirs(); // Crear directorios si no existen
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (dir != null && !dir.exists()) dir.mkdirs();
 
-        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", dir); // Devolver el nuevo archivo temporal
+        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", dir);
     }
 
-    // ------------------------------
-    // PERSISTENCIA Y SINCRONIZACIÓN
-    // ------------------------------
-
-    // Busca una aeronave dentro del almacenamiento JSON local del usuario por su identificador ID
+    /**
+     * Busca una aeronave dentro del almacenamiento JSON local del usuario por su identificador ID.
+     */
     private Avion buscarAvionPorId(String id) {
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
-        String json = prefs.getString(getClaveListaUsuario(), null); // Leer la cadena JSON del usuario activo
-        if (json == null) return null; // Salir si está vacía
+        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
+        String json = prefs.getString(getClaveListaUsuario(), null);
+        if (json == null) return null;
 
-        Gson gson = new Gson(); // Instanciar conversor Gson
-        Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir tipo para la deserialización
-        ArrayList<Avion> lista = gson.fromJson(json, type); // Deserializar la lista
-        if (lista == null) return null; // Salir si la lista es nula
+        Gson gson = new Gson();
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
+        ArrayList<Avion> lista = gson.fromJson(json, type);
+        if (lista == null) return null;
 
-        for (Avion a : lista) { // Recorrer los aviones guardados
+        for (Avion a : lista) {
             if (a.getId() != null && a.getId().equals(id)) {
-                return a; // Devolver el objeto coincidente
+                return a;
             }
         }
-        return null; // Retornar nulo si no se encuentra
+        return null;
     }
 
-    // Actualiza la versión modificada del avión en la lista de SharedPreferences local del usuario
+    /**
+     * Actualiza la versión modificada del avión en la lista de SharedPreferences local del usuario.
+     */
     private void guardarCambiosEnPreferencias(Avion avionActualizado) {
-        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE); // Leer preferencias
-        Gson gson = new Gson(); // Instanciar conversor
-        String clave = getClaveListaUsuario(); // Obtener clave única del usuario
+        SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String clave = getClaveListaUsuario();
 
-        String json = prefs.getString(clave, null); // Obtener JSON existente
+        String json = prefs.getString(clave, null);
         if (json == null) return;
 
-        Type type = new TypeToken<ArrayList<Avion>>() {}.getType(); // Definir el tipo
-        ArrayList<Avion> lista = gson.fromJson(json, type); // Deserializar la lista
+        Type type = new TypeToken<ArrayList<Avion>>() {}.getType();
+        ArrayList<Avion> lista = gson.fromJson(json, type);
         if (lista == null) return;
 
-        for (int i = 0; i < lista.size(); i++) { // Recorrer la lista para sustituir el elemento modificado
+        for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i).getId().equals(avionActualizado.getId())) {
-                lista.set(i, avionActualizado); // Reemplazar el objeto antiguo por el actualizado
+                lista.set(i, avionActualizado);
                 break;
             }
         }
 
-        prefs.edit().putString(clave, gson.toJson(lista)).apply(); // Guardar la lista actualizada en JSON
+        prefs.edit().putString(clave, gson.toJson(lista)).apply();
     }
 
-    // Sincroniza las modificaciones del avión en la base de datos Firestore en la nube
+    /**
+     * Sincroniza las modificaciones del avión en la base de datos Firestore en la nube.
+     */
     private void guardarCambiosEnFirestore(Avion avionActualizado) {
-        FirebaseAuth auth = FirebaseAuth.getInstance(); // Obtener la instancia de autenticación
-        if (auth.getCurrentUser() == null) return; // Salir si no hay un usuario autenticado
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) return;
 
-        String uid = auth.getCurrentUser().getUid(); // Obtener el UID del usuario activo
+        String uid = auth.getCurrentUser().getUid();
 
-        // Actualizar el documento en la ruta: usuarios / {uid} / aviones / {id}
         FirebaseFirestore.getInstance()
                 .collection("usuarios")
                 .document(uid)
                 .collection("aviones")
                 .document(avionActualizado.getId())
-                .set(avionActualizado) // Sobrescribir el documento actualizado en Firestore
-                .addOnSuccessListener(aVoid -> Log.d("FIRESTORE", "Cambios del avión actualizados en Firestore: " + avionActualizado.getApodo())) // Log de éxito
-                .addOnFailureListener(e -> Log.e("FIRESTORE", "Error al actualizar cambios en Firestore", e)); // Log de error
+                .set(avionActualizado)
+                .addOnSuccessListener(aVoid -> Log.d("FIRESTORE", "Cambios del avión actualizados en Firestore: " + avionActualizado.getApodo()))
+                .addOnFailureListener(e -> Log.e("FIRESTORE", "Error al actualizar cambios en Firestore", e));
+    }
+
+    /**
+     * Limpia prefijos genéricos y simplifica familias de modelos para optimizar la búsqueda en Wikipedia.
+     */
+    private String limpiarNombreParaBusqueda(String modelo) {
+        if (modelo == null || modelo.isEmpty()) return "";
+
+        String limpio = AvionGenerator.limpiarModeloParaWiki(this, modelo);
+        String mayus = limpio.toUpperCase(Locale.ROOT);
+
+        if (mayus.contains("737")) return "Boeing 737";
+        if (mayus.contains("A320")) return "Airbus A320";
+        if (mayus.contains("A321")) return "Airbus A321";
+        if (mayus.contains("A319")) return "Airbus A319";
+        if (mayus.contains("A330")) return "Airbus A330";
+
+        return limpio.replaceAll("(?i)(-\\d+|\\b\\d+[A-Z]{2,}\\b|\\/.*)", "").trim();
+    }
+
+    /**
+     * Muestra u oculta un aviso visual superpuesto cuando no hay fotografía real disponible.
+     */
+    private void gestionarAvisoSinFoto(ImageView imageView, boolean mostrar) {
+        ViewGroup parent = (ViewGroup) imageView.getParent();
+        if (parent == null) return;
+
+        if (mostrar) {
+            if (txtAvisoSinFoto == null) {
+                txtAvisoSinFoto = new TextView(this);
+                txtAvisoSinFoto.setText(getString(R.string.sin_fotografia_disponible));
+                txtAvisoSinFoto.setTextColor(Color.WHITE);
+                txtAvisoSinFoto.setTextSize(14f);
+                txtAvisoSinFoto.setTypeface(null, android.graphics.Typeface.BOLD);
+                txtAvisoSinFoto.setPadding(24, 12, 24, 12);
+                txtAvisoSinFoto.setBackgroundColor(Color.parseColor("#CC1E293B"));
+                txtAvisoSinFoto.setGravity(Gravity.CENTER);
+
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                params.gravity = Gravity.CENTER;
+                txtAvisoSinFoto.setLayoutParams(params);
+                parent.addView(txtAvisoSinFoto);
+            } else {
+                txtAvisoSinFoto.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (txtAvisoSinFoto != null) {
+                txtAvisoSinFoto.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Obtiene automáticamente la fotografía desde Wikipedia en segundo plano y la persiste si tiene éxito.
+     */
+    private void cargarImagenAutomaticaDesdeInternet(String terminoBusqueda, ImageView imageView, int recursoFallback) {
+        fuenteImagenCatalogoActual = recursoFallback;
+
+        if (terminoBusqueda == null || terminoBusqueda.isEmpty()
+                || AvionGenerator.esModeloDesconocido(this, terminoBusqueda)) {
+            Glide.with(this).load(recursoFallback).centerCrop().into(imageView);
+            gestionarAvisoSinFoto(imageView, true);
+            return;
+        }
+
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+
+        executor.execute(() -> {
+            String langPrincipal = AvionGenerator.obtenerCodigoIdiomaWiki();
+            String urlImagenRemota = obtenerUrlDesdeWikipedia(terminoBusqueda, langPrincipal);
+            if ((urlImagenRemota == null || urlImagenRemota.isEmpty()) && !"en".equals(langPrincipal)) {
+                urlImagenRemota = obtenerUrlDesdeWikipedia(terminoBusqueda, "en");
+            }
+
+            final String urlFinal = urlImagenRemota;
+            mainHandler.post(() -> {
+                if (urlFinal != null && !urlFinal.isEmpty()) {
+                    fuenteImagenCatalogoActual = urlFinal;
+
+                    avion.setImagenUrl(urlFinal);
+                    guardarCambiosEnPreferencias(avion);
+                    guardarCambiosEnFirestore(avion);
+
+                    gestionarAvisoSinFoto(imageView, false);
+                    Glide.with(this)
+                            .load(urlFinal)
+                            .centerCrop()
+                            .into(imageView);
+                } else {
+                    fuenteImagenCatalogoActual = recursoFallback;
+                    gestionarAvisoSinFoto(imageView, true);
+                    Glide.with(this)
+                            .load(recursoFallback)
+                            .centerCrop()
+                            .into(imageView);
+                }
+            });
+        });
+    }
+
+    /**
+     * Consulta la API de búsqueda e imágenes de Wikipedia filtrando resultados no válidos.
+     */
+    private String obtenerUrlDesdeWikipedia(String terminoBusqueda, String lang) {
+        try {
+            String sufijo = getString(R.string.wiki_sufijo_busqueda);
+            String searchEndpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&list=search&srsearch="
+                    + java.net.URLEncoder.encode(terminoBusqueda + sufijo, "UTF-8") + "&format=json&srlimit=1";
+            String searchRespuesta = leerUrlHttp(searchEndpoint);
+            if (searchRespuesta == null) return null;
+
+            org.json.JSONObject searchJson = new org.json.JSONObject(searchRespuesta);
+            org.json.JSONObject queryObj = searchJson.optJSONObject("query");
+            if (queryObj == null) return null;
+
+            org.json.JSONArray searchArray = queryObj.optJSONArray("search");
+            if (searchArray == null || searchArray.length() == 0) return null;
+
+            String tituloEncontrado = searchArray.getJSONObject(0).optString("title");
+            if (tituloEncontrado.isEmpty()) return null;
+
+            String tituloLower = tituloEncontrado.toLowerCase(Locale.ROOT);
+            if (tituloLower.contains("escudo") || tituloLower.contains("coat of arms") ||
+                    tituloLower.contains("bandera") || tituloLower.contains("flag") ||
+                    tituloLower.contains("municipality") || tituloLower.contains("province") ||
+                    tituloLower.contains("forza aerea") || tituloLower.contains("fuerza aérea") ||
+                    tituloLower.contains("type designator") || tituloLower.contains("designador")) {
+                return null;
+            }
+
+            String imageEndpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=500&titles="
+                    + java.net.URLEncoder.encode(tituloEncontrado, "UTF-8");
+            String imageRespuesta = leerUrlHttp(imageEndpoint);
+            if (imageRespuesta == null) return null;
+
+            org.json.JSONObject jsonObject = new org.json.JSONObject(imageRespuesta);
+            org.json.JSONObject query = jsonObject.optJSONObject("query");
+            if (query == null) return null;
+
+            org.json.JSONObject pages = query.optJSONObject("pages");
+            if (pages == null || !pages.keys().hasNext()) return null;
+
+            String primeraClave = pages.keys().next();
+            org.json.JSONObject pagina = pages.optJSONObject(primeraClave);
+            if (pagina == null) return null;
+
+            org.json.JSONObject thumbnail = pagina.optJSONObject("thumbnail");
+            if (thumbnail != null) {
+                String sourceUrl = thumbnail.optString("source");
+                String urlLower = sourceUrl.toLowerCase(Locale.ROOT);
+                if (urlLower.contains("accident") || urlLower.contains("crash") ||
+                        urlLower.contains("incident") || urlLower.contains("damage") ||
+                        urlLower.contains("destroy") || urlLower.contains("fire") ||
+                        urlLower.contains("overrun") || urlLower.contains("wrecks")) {
+                    return null;
+                }
+                return sourceUrl;
+            }
+        } catch (Exception e) {
+            android.util.Log.e("GestorAviones", "Error al buscar en Wikipedia: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Realiza una petición HTTP GET segura con User-Agent y cierre garantizado de conexión.
+     */
+    private String leerUrlHttp(String endpointUrl) {
+        java.net.HttpURLConnection conexion = null;
+        try {
+            java.net.URL url = new java.net.URL(endpointUrl);
+            conexion = (java.net.HttpURLConnection) url.openConnection();
+            conexion.setRequestMethod("GET");
+            conexion.setRequestProperty("User-Agent", AvionGenerator.USER_AGENT);
+            conexion.setConnectTimeout(3000);
+            conexion.setReadTimeout(3000);
+
+            if (conexion.getResponseCode() != 200) return null;
+
+            java.io.BufferedReader lector = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conexion.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder respuesta = new StringBuilder();
+            String linea;
+            while ((linea = lector.readLine()) != null) {
+                respuesta.append(linea);
+            }
+            lector.close();
+            return respuesta.toString();
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (conexion != null) {
+                conexion.disconnect();
+            }
+        }
+    }
+
+    /**
+     * Abre un visor de zoom táctil en pantalla completa con botón de cierre.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private void abrirImagenAmpliada(Object fuenteImagen) {
+        FrameLayout contenedor = new FrameLayout(this);
+        contenedor.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+        contenedor.setBackgroundColor(Color.BLACK);
+
+        ImageView imgZoom = new ImageView(this);
+        FrameLayout.LayoutParams paramsImg = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        paramsImg.gravity = Gravity.CENTER;
+        imgZoom.setLayoutParams(paramsImg);
+        imgZoom.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        contenedor.addView(imgZoom);
+
+        ImageButton btnCerrar = new ImageButton(this);
+        FrameLayout.LayoutParams paramsBtn = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        paramsBtn.gravity = Gravity.TOP | Gravity.END;
+        paramsBtn.setMargins(40, 40, 40, 40);
+        btnCerrar.setLayoutParams(paramsBtn);
+        btnCerrar.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        btnCerrar.setBackgroundColor(Color.parseColor("#99000000"));
+        btnCerrar.setColorFilter(Color.WHITE);
+        contenedor.addView(btnCerrar);
+
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        dialog.setContentView(contenedor);
+        dialog.setCancelable(true);
+
+        com.bumptech.glide.RequestManager glideReq = com.bumptech.glide.Glide.with(this);
+        if (fuenteImagen instanceof String) {
+            String str = (String) fuenteImagen;
+            if (str.startsWith("content://") || str.startsWith("file://") || str.startsWith("/")) {
+                glideReq.load(Uri.parse(str)).fitCenter().into(imgZoom);
+            } else {
+                glideReq.load(str).fitCenter().into(imgZoom);
+            }
+        } else if (fuenteImagen instanceof Integer) {
+            glideReq.load((Integer) fuenteImagen).fitCenter().into(imgZoom);
+        } else {
+            glideReq.load(fuenteImagen).fitCenter().into(imgZoom);
+        }
+
+        btnCerrar.setOnClickListener(v -> dialog.dismiss());
+
+        final float[] escalaActual = {1.0f};
+        final boolean[] estaArrastrando = {false};
+        final float[] ultimaX = {0f};
+        final float[] ultimaY = {0f};
+
+        ScaleGestureDetector detectorEscala = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScale(ScaleGestureDetector detector) {
+                escalaActual[0] *= detector.getScaleFactor();
+                escalaActual[0] = Math.max(1.0f, Math.min(escalaActual[0], 5.0f));
+                imgZoom.setScaleX(escalaActual[0]);
+                imgZoom.setScaleY(escalaActual[0]);
+                return true;
+            }
+        });
+
+        imgZoom.setOnTouchListener((v, event) -> {
+            detectorEscala.onTouchEvent(event);
+
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    ultimaX[0] = event.getRawX();
+                    ultimaY[0] = event.getRawY();
+                    estaArrastrando[0] = true;
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    if (estaArrastrando[0] && escalaActual[0] > 1.0f) {
+                        float deltaX = event.getRawX() - ultimaX[0];
+                        float deltaY = event.getRawY() - ultimaY[0];
+                        imgZoom.setTranslationX(imgZoom.getTranslationX() + deltaX);
+                        imgZoom.setTranslationY(imgZoom.getTranslationY() + deltaY);
+                        ultimaX[0] = event.getRawX();
+                        ultimaY[0] = event.getRawY();
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    estaArrastrando[0] = false;
+                    if (escalaActual[0] <= 1.0f) {
+                        imgZoom.setTranslationX(0f);
+                        imgZoom.setTranslationY(0f);
+                    }
+                    break;
+            }
+            return true;
+        });
+
+        dialog.show();
     }
 }

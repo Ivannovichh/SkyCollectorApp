@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 } catch (ApiException e) { // Capturar error devuelto por Google Play Services
                     if (e.getStatusCode() != 12501) { // Ignorar código 12501 (el usuario cerró la ventana manualmente)
-                        Toast.makeText(this, "Error Google Sign-In (código " + e.getStatusCode() + ")", Toast.LENGTH_LONG).show(); // Avisar error
+                        Toast.makeText(this, getString(R.string.toast_error_google, e.getStatusCode()), Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -101,14 +101,14 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onVerificationFailed(@NonNull FirebaseException e) { // Si falla el envío del SMS o la validación
-                    if (e instanceof FirebaseAuthInvalidCredentialsException) { // Comprobar si el formato del teléfono es inválido
-                        Toast.makeText(LoginActivity.this, "Formato de teléfono no válido", Toast.LENGTH_LONG).show(); // Avisar formato incorrecto
-                    } else if (e instanceof FirebaseTooManyRequestsException) { // Comprobar si se superó la cuota de envíos
-                        Toast.makeText(LoginActivity.this, "Cuota de SMS excedida temporalmente", Toast.LENGTH_LONG).show(); // Avisar exceso de intentos
-                    } else if (e instanceof FirebaseAuthMissingActivityForRecaptchaException) { // Comprobar si falló la actividad para reCAPTCHA
-                        Toast.makeText(LoginActivity.this, "Falta actividad válida para verificar reCAPTCHA", Toast.LENGTH_LONG).show(); // Avisar error reCAPTCHA
-                    } else { // Cualquier otro error genérico de Firebase
-                        Toast.makeText(LoginActivity.this, "Error SMS: " + e.getMessage(), Toast.LENGTH_LONG).show(); // Mostrar mensaje detallado
+                    if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                        Toast.makeText(LoginActivity.this, getString(R.string.toast_telefono_no_valido), Toast.LENGTH_LONG).show();
+                    } else if (e instanceof FirebaseTooManyRequestsException) {
+                        Toast.makeText(LoginActivity.this, getString(R.string.toast_cuota_sms), Toast.LENGTH_LONG).show();
+                    } else if (e instanceof FirebaseAuthMissingActivityForRecaptchaException) {
+                        Toast.makeText(LoginActivity.this, getString(R.string.toast_error_recaptcha), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(LoginActivity.this, getString(R.string.toast_error_sms, e.getMessage()), Toast.LENGTH_LONG).show();
                     }
                 }
 
@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
                                        @NonNull PhoneAuthProvider.ForceResendingToken token) { // Cuando el SMS se ha enviado con éxito
                     verificationIdActual = verificationId; // Guardar el ID necesario para comprobar el código después
                     resendToken = token; // Guardar el token de reenvío por si el usuario solicita otro SMS
-                    Toast.makeText(LoginActivity.this, "Código SMS enviado", Toast.LENGTH_SHORT).show(); // Notificar envío
+                    Toast.makeText(LoginActivity.this, getString(R.string.toast_sms_enviado), Toast.LENGTH_SHORT).show();
                     mostrarDialogoCodigoSms(); // Abrir ventana para que el usuario escriba los 6 dígitos
                 }
             };
@@ -140,38 +140,38 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Restaurar datos si Android recreó la actividad tras volver del navegador de reCAPTCHA
-        if (savedInstanceState != null) { // Verificar si existe estado guardado previamente
-            verificationIdActual = savedInstanceState.getString(KEY_VERIFICATION_ID); // Recuperar ID de verificación
-            telefonoEnCurso = savedInstanceState.getString(KEY_TELEFONO_ACTUAL); // Recuperar teléfono en curso
+        if (savedInstanceState != null) {
+            verificationIdActual = savedInstanceState.getString(KEY_VERIFICATION_ID);
+            telefonoEnCurso = savedInstanceState.getString(KEY_TELEFONO_ACTUAL);
         }
 
         // Configurar las opciones de Google Sign-In solicitando el ID de cliente web y el email
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Vincular con el cliente web de Firebase
-                .requestEmail() // Solicitar acceso al correo electrónico de la cuenta
-                .build(); // Construir el objeto de configuración
-        googleSignInClient = GoogleSignIn.getClient(this, gso); // Inicializar el cliente de Google
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // Enlazar cada variable Java con su componente visual del archivo XML
-        etEmail = findViewById(R.id.etEmail); // Campo de correo electrónico
-        etPassword = findViewById(R.id.etPassword); // Campo de contraseña
-        btnLogin = findViewById(R.id.btnLogin); // Botón de acceso tradicional
-        btnRegistro = findViewById(R.id.btnRegistro); // Botón de registro de nueva cuenta
-        btnGoogleLogin = findViewById(R.id.btnGoogleLogin); // Botón de acceso con Google
-        btnSmsLogin = findViewById(R.id.btnSmsLogin); // Botón de acceso por SMS
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegistro = findViewById(R.id.btnRegistro);
+        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
+        btnSmsLogin = findViewById(R.id.btnSmsLogin);
 
         // Asignar las acciones a ejecutar cuando el usuario pulse cada botón
-        btnLogin.setOnClickListener(v -> iniciarSesionCorreo()); // Iniciar sesión con correo y contraseña
-        btnRegistro.setOnClickListener(v -> registrarUsuarioCorreo()); // Crear cuenta nueva con correo
-        btnGoogleLogin.setOnClickListener(v -> iniciarSesionGoogle()); // Abrir selector de cuentas de Google
-        btnSmsLogin.setOnClickListener(v -> mostrarDialogoTelefono()); // Abrir cuadro para introducir el teléfono
+        btnLogin.setOnClickListener(v -> iniciarSesionCorreo());
+        btnRegistro.setOnClickListener(v -> registrarUsuarioCorreo());
+        btnGoogleLogin.setOnClickListener(v -> iniciarSesionGoogle());
+        btnSmsLogin.setOnClickListener(v -> mostrarDialogoTelefono());
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) { // Guarda el estado antes de destruir o recrear la actividad
-        super.onSaveInstanceState(outState); // Llamada obligatoria al método padre
-        outState.putString(KEY_VERIFICATION_ID, verificationIdActual); // Guardar ID de verificación SMS actual
-        outState.putString(KEY_TELEFONO_ACTUAL, telefonoEnCurso); // Guardar número de teléfono en curso
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_VERIFICATION_ID, verificationIdActual);
+        outState.putString(KEY_TELEFONO_ACTUAL, telefonoEnCurso);
     }
 
     // ------------------------------
@@ -180,45 +180,45 @@ public class LoginActivity extends AppCompatActivity {
 
     // Valida los campos e inicia sesión en Firebase con correo electrónico y contraseña
     private void iniciarSesionCorreo() {
-        String email = etEmail.getText().toString().trim(); // Obtener texto del correo eliminando espacios
-        String password = etPassword.getText().toString().trim(); // Obtener texto de la contraseña
-        if (!validarCampos(email, password)) return; // Salir si el correo o la contraseña no son válidos
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        if (!validarCampos(email, password)) return;
 
-        mAuth.signInWithEmailAndPassword(email, password) // Enviar credenciales a Firebase Auth
-                .addOnSuccessListener(authResult -> { // Si la autenticación es correcta
-                    if (mAuth.getCurrentUser() != null) { // Verificar usuario activo
-                        guardarDatosContactoIniciales(mAuth.getCurrentUser()); // Guardar su correo en preferencias privadas
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    if (mAuth.getCurrentUser() != null) {
+                        guardarDatosContactoIniciales(mAuth.getCurrentUser());
                     }
-                    irAMain(); // Entrar a MainActivity
+                    irAMain();
                 })
-                .addOnFailureListener(e -> // Si las credenciales son incorrectas o hay error de red
-                        Toast.makeText(this, "Error al iniciar sesión: " + e.getMessage(), Toast.LENGTH_LONG).show() // Avisar error
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, getString(R.string.toast_error_login, e.getMessage()), Toast.LENGTH_LONG).show()
                 );
     }
 
     // Crea un nuevo usuario en Firebase utilizando correo electrónico y contraseña
     private void registrarUsuarioCorreo() {
-        String email = etEmail.getText().toString().trim(); // Obtener correo escrito
-        String password = etPassword.getText().toString().trim(); // Obtener contraseña escrita
-        if (!validarCampos(email, password)) return; // Detener si los datos no cumplen los requisitos
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        if (!validarCampos(email, password)) return;
 
-        mAuth.createUserWithEmailAndPassword(email, password) // Solicitar creación de cuenta en Firebase
-                .addOnSuccessListener(authResult -> { // Al crearse la cuenta correctamente
-                    if (mAuth.getCurrentUser() != null) { // Verificar usuario creado
-                        guardarDatosContactoIniciales(mAuth.getCurrentUser()); // Guardar correo en preferencias privadas
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    if (mAuth.getCurrentUser() != null) {
+                        guardarDatosContactoIniciales(mAuth.getCurrentUser());
                     }
-                    Toast.makeText(this, "Cuenta creada correctamente", Toast.LENGTH_SHORT).show(); // Mostrar confirmación
-                    irAMain(); // Acceder directamente a la aplicación
+                    Toast.makeText(this, getString(R.string.toast_cuenta_creada), Toast.LENGTH_SHORT).show();
+                    irAMain();
                 })
-                .addOnFailureListener(e -> // Si el correo ya existe o hay error
-                        Toast.makeText(this, "Error al registrar: " + e.getMessage(), Toast.LENGTH_LONG).show() // Mostrar error
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, getString(R.string.toast_error_registro, e.getMessage()), Toast.LENGTH_LONG).show()
                 );
     }
 
     // Cierra cualquier selección previa en Google Sign-In para permitir elegir cuenta y abre el selector
     private void iniciarSesionGoogle() {
-        googleSignInClient.signOut().addOnCompleteListener(this, task -> // Limpiar cuenta en caché del cliente
-                launcherGoogle.launch(googleSignInClient.getSignInIntent()) // Lanzar ventana de selección de cuenta
+        googleSignInClient.signOut().addOnCompleteListener(this, task ->
+                launcherGoogle.launch(googleSignInClient.getSignInIntent())
         );
     }
 
@@ -228,71 +228,71 @@ public class LoginActivity extends AppCompatActivity {
 
     // Despliega un cuadro de diálogo para pedir el número de teléfono con prefijo internacional
     private void mostrarDialogoTelefono() {
-        EditText inputTelefono = new EditText(this); // Crear campo de texto dinámico para el diálogo
-        inputTelefono.setInputType(InputType.TYPE_CLASS_PHONE); // Mostrar teclado numérico telefónico
-        inputTelefono.setHint("+34 600 000 000"); // Texto de ejemplo con prefijo
-        inputTelefono.setText("+34"); // Pre-rellenar prefijo de España por comodidad
-        inputTelefono.setSelection(inputTelefono.getText().length()); // Colocar cursor al final del prefijo
+        EditText inputTelefono = new EditText(this);
+        inputTelefono.setInputType(InputType.TYPE_CLASS_PHONE);
+        inputTelefono.setHint("+34 600 000 000");
+        inputTelefono.setText("+34");
+        inputTelefono.setSelection(inputTelefono.getText().length());
 
-        new AlertDialog.Builder(this) // Construir cuadro de diálogo emergente
-                .setTitle("Acceso por SMS") // Título de la ventana
-                .setMessage("Introduce tu número de teléfono con el prefijo internacional:") // Instrucciones
-                .setView(inputTelefono) // Insertar el campo de texto dentro del diálogo
-                .setPositiveButton("Enviar código", (dialog, which) -> { // Acción al pulsar enviar
-                    String telefono = inputTelefono.getText().toString().replaceAll("\\s+", ""); // Limpiar espacios
-                    if (telefono.length() < 9 || !telefono.startsWith("+")) { // Validar longitud mínima y símbolo '+'
-                        Toast.makeText(this, "Incluye el prefijo internacional (ej. +34600112233)", Toast.LENGTH_LONG).show(); // Avisar formato
-                        return; // No enviar si el formato es incorrecto
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.dialogo_sms_titulo))
+                .setMessage(getString(R.string.dialogo_sms_mensaje))
+                .setView(inputTelefono)
+                .setPositiveButton(getString(R.string.dialogo_sms_enviar), (dialog, which) -> {
+                    String telefono = inputTelefono.getText().toString().replaceAll("\\s+", "");
+                    if (telefono.length() < 9 || !telefono.startsWith("+")) {
+                        Toast.makeText(this, getString(R.string.toast_prefijo_internacional), Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    telefonoEnCurso = telefono; // Guardar el teléfono introducido para mostrarlo o reenviarlo
-                    enviarCodigoSms(telefono, null); // Iniciar solicitud de SMS a Firebase sin token de reenvío
+                    telefonoEnCurso = telefono;
+                    enviarCodigoSms(telefono, null);
                 })
-                .setNegativeButton("Cancelar", null) // Botón para cerrar sin hacer nada
-                .show(); // Mostrar el diálogo en pantalla
+                .setNegativeButton(getString(R.string.dialogo_foto_cancelar), null)
+                .show();
     }
 
     // Configura los parámetros y solicita a Firebase el envío del SMS al teléfono indicado
     private void enviarCodigoSms(String telefono, PhoneAuthProvider.ForceResendingToken tokenReenvio) {
-        PhoneAuthOptions.Builder builder = PhoneAuthOptions.newBuilder(mAuth) // Crear constructor de opciones SMS
-                .setPhoneNumber(telefono) // Establecer número destino en formato E.164
-                .setTimeout(60L, TimeUnit.SECONDS) // Tiempo máximo de espera antes de permitir reenvío
-                .setActivity(this) // Vincular a la actividad actual para verificación automática
-                .setCallbacks(callbacksSms); // Asociar los callbacks que recibirán el resultado
+        PhoneAuthOptions.Builder builder = PhoneAuthOptions.newBuilder(mAuth)
+                .setPhoneNumber(telefono)
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(this)
+                .setCallbacks(callbacksSms);
 
-        if (tokenReenvio != null) { // Comprobar si se trata de una solicitud de reenvío
-            builder.setForceResendingToken(tokenReenvio); // Adjuntar token para forzar el reenvío del SMS
+        if (tokenReenvio != null) {
+            builder.setForceResendingToken(tokenReenvio);
         }
 
-        PhoneAuthProvider.verifyPhoneNumber(builder.build()); // Ejecutar petición de envío de SMS
+        PhoneAuthProvider.verifyPhoneNumber(builder.build());
     }
 
     // Muestra un cuadro de diálogo para introducir el código de 6 dígitos recibido por SMS
     private void mostrarDialogoCodigoSms() {
-        EditText inputCodigo = new EditText(this); // Crear campo de texto para el código
-        inputCodigo.setInputType(InputType.TYPE_CLASS_NUMBER); // Mostrar teclado numérico
-        inputCodigo.setHint("123456"); // Ejemplo de código de 6 dígitos
+        EditText inputCodigo = new EditText(this);
+        inputCodigo.setInputType(InputType.TYPE_CLASS_NUMBER);
+        inputCodigo.setHint("123456");
 
-        new AlertDialog.Builder(this) // Construir diálogo de verificación
-                .setTitle("Verificar código") // Título del cuadro
-                .setMessage("Introduce el código de 6 dígitos enviado a " + telefonoEnCurso + ":") // Mensaje explicativo
-                .setCancelable(false) // Impedir cierre accidental al tocar fuera
-                .setView(inputCodigo) // Añadir campo numérico al diálogo
-                .setPositiveButton("Verificar", (dialog, which) -> { // Al pulsar el botón Verificar
-                    String codigo = inputCodigo.getText().toString().trim(); // Leer código escrito
-                    if (codigo.length() < 6 || verificationIdActual == null) { // Comprobar que tiene 6 dígitos
-                        Toast.makeText(this, "Introduce el código completo de 6 dígitos", Toast.LENGTH_SHORT).show(); // Avisar
-                        return; // Salir sin verificar
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.dialogo_codigo_titulo))
+                .setMessage(getString(R.string.dialogo_codigo_mensaje, telefonoEnCurso))
+                .setCancelable(false)
+                .setView(inputCodigo)
+                .setPositiveButton(getString(R.string.dialogo_codigo_verificar), (dialog, which) -> {
+                    String codigo = inputCodigo.getText().toString().trim();
+                    if (codigo.length() < 6 || verificationIdActual == null) {
+                        Toast.makeText(this, getString(R.string.toast_codigo_incompleto), Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationIdActual, codigo); // Crear credencial
-                    autenticarConFirebase(credential); // Iniciar sesión en Firebase con la credencial SMS
+                    PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationIdActual, codigo);
+                    autenticarConFirebase(credential);
                 })
-                .setNeutralButton("Reenviar SMS", (dialog, which) -> { // Botón para volver a solicitar el código SMS
-                    if (telefonoEnCurso != null && resendToken != null) { // Verificar que existen teléfono y token válidos
-                        enviarCodigoSms(telefonoEnCurso, resendToken); // Reenviar SMS usando el token guardado
+                .setNeutralButton(getString(R.string.dialogo_codigo_reenviar), (dialog, which) -> {
+                    if (telefonoEnCurso != null && resendToken != null) {
+                        enviarCodigoSms(telefonoEnCurso, resendToken);
                     }
                 })
-                .setNegativeButton("Cancelar", null) // Botón para cancelar verificación
-                .show(); // Mostrar diálogo
+                .setNegativeButton(getString(R.string.dialogo_foto_cancelar), null)
+                .show();
     }
 
     // ------------------------------
@@ -301,63 +301,60 @@ public class LoginActivity extends AppCompatActivity {
 
     // Inicia sesión en Firebase utilizando una credencial externa (Google o SMS)
     private void autenticarConFirebase(AuthCredential credential) {
-        mAuth.signInWithCredential(credential) // Autenticar con la credencial proporcionada
-                .addOnSuccessListener(authResult -> { // Si la autenticación tiene éxito
-                    FirebaseUser user = mAuth.getCurrentUser(); // Obtener datos del usuario autenticado
-                    if (user != null) { // Verificar que el objeto usuario no sea nulo
-                        guardarDatosContactoIniciales(user); // Guardar correo/teléfono y foto por defecto si no tiene
+        mAuth.signInWithCredential(credential)
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        guardarDatosContactoIniciales(user);
                     }
-                    irAMain(); // Entrar a la pantalla principal
+                    irAMain();
                 })
-                .addOnFailureListener(e -> // Si el código SMS es incorrecto o la credencial expiró
-                        Toast.makeText(this, "Error de autenticación: " + e.getMessage(), Toast.LENGTH_LONG).show() // Avisar error
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, getString(R.string.toast_error_autenticacion, e.getMessage()), Toast.LENGTH_LONG).show()
                 );
     }
 
     // Comprueba que el correo tenga formato válido y que la contraseña tenga al menos 6 caracteres
     private boolean validarCampos(String email, String password) {
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) { // Validar patrón de correo
-            etEmail.setError("Introduce un correo válido"); // Marcar error en el campo email
-            etEmail.requestFocus(); // Enfocar el cursor en el campo email
-            return false; // Retornar validación fallida
+        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError(getString(R.string.error_correo_valido));
+            etEmail.requestFocus();
+            return false;
         }
-        if (password.length() < 6) { // Validar longitud mínima exigida por Firebase
-            etPassword.setError("La contraseña debe tener al menos 6 caracteres"); // Marcar error en contraseña
-            etPassword.requestFocus(); // Enfocar cursor en contraseña
-            return false; // Retornar validación fallida
+        if (password.length() < 6) {
+            etPassword.setError(getString(R.string.error_password_corta));
+            etPassword.requestFocus();
+            return false;
         }
-        return true; // Ambos campos son válidos
+        return true;
     }
 
-    // Almacena por separado el correo, el teléfono y la foto inicial en SharedPreferences sin exponer datos privados como nombre
+    // Almacena por separado el correo, el teléfono y la foto inicial en SharedPreferences
     private void guardarDatosContactoIniciales(FirebaseUser user) {
-        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE); // Abrir preferencias del perfil
-        String uid = user.getUid(); // Obtener identificador único del usuario
-        SharedPreferences.Editor editor = prefs.edit(); // Iniciar editor de preferencias
+        SharedPreferences prefs = getSharedPreferences("PerfilUsuario", Context.MODE_PRIVATE);
+        String uid = user.getUid();
+        SharedPreferences.Editor editor = prefs.edit();
 
-        // Si el usuario tiene correo (acceso por email o Google) y aún no estaba guardado, almacenarlo en su clave privada
         if (user.getEmail() != null && !user.getEmail().isEmpty() && !prefs.contains("correo_" + uid)) {
-            editor.putString("correo_" + uid, user.getEmail()); // Guardar correo de contacto
+            editor.putString("correo_" + uid, user.getEmail());
         }
 
-        // Si el usuario entró por teléfono SMS y aún no estaba guardado, almacenarlo en su clave privada
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty() && !prefs.contains("telefono_" + uid)) {
-            editor.putString("telefono_" + uid, user.getPhoneNumber()); // Guardar teléfono de contacto
+            editor.putString("telefono_" + uid, user.getPhoneNumber());
         }
 
-        // Si aún no tiene foto de perfil local y Google proporciona avatar, guardarlo
         if (!prefs.contains("foto_" + uid) && user.getPhotoUrl() != null) {
-            editor.putString("foto_" + uid, user.getPhotoUrl().toString()); // Guardar URI de la foto
+            editor.putString("foto_" + uid, user.getPhotoUrl().toString());
         }
 
-        editor.apply(); // Confirmar y guardar cambios en almacenamiento local
+        editor.apply();
     }
 
-    // Navega hacia MainActivity y vacía el historial de pantallas para impedir volver atrás al login
+    // Navega hacia MainActivity y vacía el historial de pantallas
     private void irAMain() {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class); // Crear intención hacia MainActivity
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Limpiar pila de actividades
-        startActivity(intent); // Iniciar pantalla principal
-        finish(); // Cerrar LoginActivity
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

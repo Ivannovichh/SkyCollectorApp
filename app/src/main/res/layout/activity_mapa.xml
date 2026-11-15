@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?> <!-- Declaración estándar XML -->
+<?xml version="1.0" encoding="utf-8"?>
 
 <!-- Layout principal: RelativeLayout permite posicionar elementos relativos entre sí -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Volver atrás"
+            android:contentDescription="@string/cd_volver_atras"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@android:drawable/ic_menu_revert"
@@ -90,15 +90,35 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- TextView que muestra el modelo y fabricante del avión -->
-            <TextView
-                android:id="@+id/txt_modelo_panel"
-                android:layout_width="wrap_content"
+            <!-- Fila con el título del panel y el icono de información en la esquina derecha -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/modelo"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- TextView que muestra el modelo y fabricante del avión -->
+                <TextView
+                    android:id="@+id/txt_modelo_panel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/modelo"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF" />
+
+                <!-- Icono informativo sin lógica propia: al tocar el panel (también aquí) se abre la ficha completa -->
+                <ImageView
+                    android:id="@+id/img_info_panel"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_info_panel"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:contentDescription="@string/cd_ver_ficha_completa" />
+            </LinearLayout>
 
             <!-- Línea divisoria horizontal entre modelo y datos -->
             <View

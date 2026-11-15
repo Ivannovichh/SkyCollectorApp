@@ -39,7 +39,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SkyCollectorApp"
-        tools:targetApi="31">
+        android:localeConfig="@xml/locales_config"
+        tools:targetApi="33">
 
         <!-- Metadato que almacena la clave de Google Maps -->
         <meta-data
@@ -93,9 +94,15 @@
         <!-- Actividad que gestiona el perfil del usuario -->
         <activity android:name=".activities.PerfilActivity" android:exported="false"/>
 
+        <!-- Actividad que muestra detalles de un avión antes de avistar -->
         <activity
-            android:name=".activities.DetalleVueloRadarActivity"
-            android:exported="false" />
+            android:name=".activities.DetalleVueloRadarActivity" android:exported="false" />
+
+        <!-- Actividad que gestiona el ranking del usuario -->
+        <activity android:name=".activities.RankingActivity" />
+
+        <!-- Actividad que gestiona el perfil del usuario publico -->
+        <activity android:name=".activities.PerfilPublicoActivity" />
 
     </application>
 

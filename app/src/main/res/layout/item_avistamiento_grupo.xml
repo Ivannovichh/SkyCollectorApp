@@ -60,7 +60,7 @@
         android:id="@+id/imgTieneFoto"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:contentDescription="Foto adjunta"
+        android:contentDescription="@string/cd_foto_adjunta"
         android:src="@android:drawable/ic_menu_camera" />
 
 </LinearLayout>

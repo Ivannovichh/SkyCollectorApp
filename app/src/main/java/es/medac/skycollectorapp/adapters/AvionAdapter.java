@@ -1,8 +1,9 @@
-// Declaración del paquete al que pertenece la clase del adaptador
+// Declaración del paquete al que pertenece el adaptador
 package es.medac.skycollectorapp.adapters;
 
 // Importaciones para gestión de gráficos y formato visual
 import android.graphics.Color; // Utilidades de color
+import android.net.Uri; // Para parsear URIs de fotos de usuario
 import android.view.LayoutInflater; // Conversor de XML a objetos de vista Java
 import android.view.View; // Componente base de vista
 import android.view.ViewGroup; // Contenedor padre de vistas
@@ -63,7 +64,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflar el diseño XML del elemento individual de la lista
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
-        return new AvionViewHolder(view); // Devolver nueva instancia del ViewHolder
+        return new AvionViewHolder(view); // Devolver nueva instancia delViewHolder
     }
 
     @Override
@@ -93,23 +94,40 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
         holder.cardView.setStrokeWidth(4); // Ajustar grosor del borde
         holder.txtRareza.setBackgroundColor(color); // Ajustar fondo de la etiqueta de rareza
 
-        // Seleccionar la fuente de la imagen
-        Object imagenCarga;
-        if (avion.getImagenResId() != 0) {
-            imagenCarga = avion.getImagenResId(); // Usar el recurso drawable
-        } else {
-            imagenCarga = android.R.drawable.ic_menu_gallery; // Imagen de reserva
-        }
+        // ----------------------------------------------------
+        // SELECCIÓN INTELIGENTE DE LA FUENTE DE IMAGEN (COLECCIÓN)
+        // ----------------------------------------------------
+        if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
+            // 1. Prioridad: Foto propia tomada o cargada por el usuario
+            Glide.with(holder.itemView.getContext())
+                    .load(Uri.parse(avion.getUriFotoUsuario()))
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .centerCrop()
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_delete)
+                    .into(holder.imgAvion);
 
-        // Cargar imagen con la librería Glide de forma optimizada
-        Glide.with(holder.itemView.getContext())
-                .load(imagenCarga)
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Desactivar caché en disco
-                .skipMemoryCache(true) // Omitir caché en memoria
-                .fitCenter() // Ajustar centrado
-                .placeholder(android.R.drawable.ic_menu_gallery) // Imagen de carga
-                .error(android.R.drawable.ic_delete) // Imagen en caso de error
-                .into(holder.imgAvion); // Contenedor de destino
+        } else if (avion.getUrlImagenRemota() != null && !avion.getUrlImagenRemota().isEmpty()) {
+            // 2. Segunda prioridad: Foto real descargada de internet (Wikipedia) ya guardada previamente
+            Glide.with(holder.itemView.getContext())
+                    .load(avion.getUrlImagenRemota())
+                    .centerCrop()
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_delete)
+                    .into(holder.imgAvion);
+
+        } else {
+            // 3. Última opción: Recurrir al recurso local del catálogo o silueta por defecto
+            Object imagenCarga = (avion.getImagenResId() != 0) ? avion.getImagenResId() : R.drawable.sil_jet;
+
+            Glide.with(holder.itemView.getContext())
+                    .load(imagenCarga)
+                    .fitCenter()
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_delete)
+                    .into(holder.imgAvion);
+        }
 
         // Evitar activaciones accidentales del listener durante la configuración
         holder.chkSeleccion.setOnCheckedChangeListener(null);

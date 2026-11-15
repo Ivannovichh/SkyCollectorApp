@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?> <!-- Declaración estándar XML -->
+<?xml version="1.0" encoding="utf-8"?>
 
 <!-- Contenedor principal con fondo azul noche corporativo -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -24,7 +24,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Volver al mapa"
+            android:contentDescription="@string/cd_volver_mapa"
             android:src="@android:drawable/ic_menu_revert"
             app:tint="#00E5FF" />
 
@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Ficha de Aeronave en Radar"
+            android:text="@string/titulo_ficha_aeronave_radar"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -109,7 +109,7 @@
                         android:background="#3A506B"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="4dp"
-                        android:text="COMMON"
+                        android:text="@string/rareza_common"
                         android:textColor="#FFFFFF"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -123,7 +123,7 @@
                         android:id="@+id/txt_icao_badge_detalle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="ICAO: ---"
+                        android:text="@string/icao_placeholder"
                         android:textColor="#00E5FF"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -142,7 +142,7 @@
                         android:id="@+id/img_avion_detalle_radar"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:contentDescription="Imagen del modelo de avión"
+                        android:contentDescription="@string/cd_imagen_modelo_avion"
                         android:scaleType="centerCrop"
                         android:src="@drawable/sil_jet" />
                 </androidx.cardview.widget.CardView>
@@ -153,7 +153,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Modelo de Aeronave"
+                    android:text="@string/placeholder_modelo_aeronave"
                     android:textColor="#FFFFFF"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -164,7 +164,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Fabricante / Aerolínea"
+                    android:text="@string/placeholder_fabricante_aerolinea"
                     android:textColor="#B0BEC5"
                     android:textSize="15sp" />
 
@@ -179,7 +179,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="DATOS DEL VUELO EN VIVO"
+                    android:text="@string/seccion_datos_vuelo_vivo"
                     android:textColor="#00E5FF"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -204,7 +204,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="ESPECIFICACIONES TÉCNICAS"
+                    android:text="@string/seccion_especificaciones_tecnicas"
                     android:textColor="#00E5FF"
                     android:textSize="12sp"
                     android:textStyle="bold" />

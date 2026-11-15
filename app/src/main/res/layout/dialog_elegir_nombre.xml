@@ -23,7 +23,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginBottom="12dp"
-            android:contentDescription="Icono de piloto"
+            android:contentDescription="@string/cd_icono_piloto"
             android:src="@android:drawable/ic_menu_myplaces"
             app:tint="#00E5FF" />
 
@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:text="Escoge un nombre de usuario"
+            android:text="@string/dialogo_elegir_nombre_titulo"
             android:textColor="#00E5FF"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="18dp"
             android:gravity="center"
-            android:text="Este será tu indicativo público en la aplicación y en los rankings. Tu correo y teléfono permanecerán privados."
+            android:text="@string/dialogo_elegir_nombre_mensaje"
             android:textColor="#B0BEC5"
             android:textSize="13sp" />
 
@@ -55,7 +55,7 @@
             android:layout_height="54dp"
             android:layout_marginBottom="20dp"
             android:background="#0B1021"
-            android:hint="Ej. Maverick_77"
+            android:hint="@string/hint_ejemplo_piloto"
             android:inputType="textPersonName"
             android:maxLength="20"
             android:paddingHorizontal="16dp"
@@ -69,7 +69,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:backgroundTint="#00E5FF"
-            android:text="Confirmar nombre"
+            android:text="@string/btn_confirmar_nombre"
             android:textColor="#0B1021"
             android:textSize="15sp"
             android:textStyle="bold" />

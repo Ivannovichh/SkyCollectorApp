@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Identity -->
+    <string name="app_name">SkyCollector</string>
+    <string name="sky_collector">Sky Collector</string>
+    <string name="skycollector">SkyCollector</string>
+
+    <!-- Login & Authentication Screen -->
+    <string name="correo_electr_nico">Email address</string>
+    <string name="contrase_a">Password</string>
+    <string name="iniciar_sesi_n">Sign in</string>
+    <string name="continuar_con_google">Continue with Google</string>
+    <string name="continuar_con_sms">Continue with SMS</string>
+    <string name="no_tienes_cuenta">Don\'t have an account?</string>
+    <string name="crear_cuenta_nueva">Create new account</string>
+    <string name="toast_error_google">Google Error (%1$d)</string>
+    <string name="toast_telefono_no_valido">The phone number is not valid.</string>
+    <string name="toast_cuota_sms">SMS quota exceeded. Please try again later.</string>
+    <string name="toast_error_recaptcha">Security verification error (reCAPTCHA).</string>
+    <string name="toast_error_sms">Failed to send SMS: %1$s</string>
+    <string name="toast_sms_enviado">SMS code sent</string>
+    <string name="toast_error_login">Sign-in error: %1$s</string>
+    <string name="toast_cuenta_creada">Account created successfully</string>
+    <string name="toast_error_registro">Registration error: %1$s</string>
+    <string name="dialogo_sms_titulo">Sign in with SMS</string>
+    <string name="dialogo_sms_mensaje">Enter your phone number with country code (e.g. +15551234567):</string>
+    <string name="dialogo_sms_enviar">Send code</string>
+    <string name="toast_prefijo_internacional">Include the international prefix (e.g. +1...)</string>
+    <string name="dialogo_codigo_titulo">Verify SMS code</string>
+    <string name="dialogo_codigo_mensaje">Enter the 6-digit code sent to %1$s:</string>
+    <string name="dialogo_codigo_verificar">Verify</string>
+    <string name="toast_codigo_incompleto">Enter the full 6-digit code</string>
+    <string name="dialogo_codigo_reenviar">Resend</string>
+    <string name="toast_error_autenticacion">Authentication error: %1$s</string>
+    <string name="error_correo_valido">Enter a valid email address</string>
+    <string name="error_password_corta">Password must be at least 6 characters long</string>
+
+    <!-- Main Screen (MainActivity) -->
+    <string name="usuario">User</string>
+    <string name="piloto_provisional">Pilot</string>
+    <string name="no_tienes_aviones_n_a_ade_el_primero">You have no aircraft yet.\nAdd your first one!</string>
+    <string name="dialogo_elegir_nombre_titulo">Choose a username</string>
+    <string name="dialogo_elegir_nombre_mensaje">This will be your public callsign in the app and leaderboards. Your email and phone number remain private.</string>
+    <string name="hint_ejemplo_piloto">e.g. Maverick_77</string>
+    <string name="btn_confirmar_nombre">Confirm name</string>
+    <string name="error_nombre_corto">Must be at least 3 characters long</string>
+    <string name="toast_bienvenido">Welcome, %1$s!</string>
+    <string name="btn_siguiente">Next</string>
+    <string name="btn_aceptar">Accept</string>
+    <string name="toast_ningun_avion_seleccionado">No aircraft selected for deletion.</string>
+    <string name="dialogo_borrar_titulo">Confirm deletion</string>
+    <string name="dialogo_borrar_uno_mensaje">Are you sure you want to remove %1$s from your collection?</string>
+    <string name="dialogo_borrar_varios_mensaje">Are you sure you want to remove the %1$d selected aircraft from your collection?</string>
+    <string name="btn_eliminar">Delete</string>
+    <string name="toast_avion_eliminado">Aircraft removed successfully</string>
+    <string name="toast_aviones_eliminados">Aircraft removed successfully</string>
+
+    <!-- Pilot Profile -->
+    <string name="titulo_perfil_piloto">Pilot Profile</string>
+    <string name="toca_cambiar_foto">Tap the image to change photo</string>
+    <string name="label_nombre_usuario_publico">Username (public on leaderboards)</string>
+    <string name="hint_nombre_usuario">Your username</string>
+    <string name="label_correo_privado">Email address (private)</string>
+    <string name="hint_anadir_correo">Add email address</string>
+    <string name="label_telefono_privado">Phone number (private)</string>
+    <string name="hint_anadir_telefono">Add phone (e.g. +15551234567)</string>
+    <string name="guardar_cambios">Save changes</string>
+    <string name="cerrar_sesion">Sign out</string>
+    <string name="error_correo_formato">Invalid email format</string>
+    <string name="toast_perfil_actualizado">Profile updated successfully</string>
+    <string name="toast_perfil_error_nube">Saved locally, but failed to sync with the cloud.</string>
+
+    <!-- Live Radar Map -->
+    <string name="todos">All</string>
+    <string name="avistados">Spotted</string>
+    <string name="modelo">Model</string>
+    <string name="datos_del_vuelo">Flight data</string>
+    <string name="avistar_este_avi_n">Spot this aircraft</string>
+    <string name="toast_sin_permiso_ubicacion">Location permission denied</string>
+    <string name="toast_selecciona_avion_primero">Select an aircraft on the map first</string>
+    <string name="toast_no_comprobar_ubicacion">Unable to verify your location yet</string>
+    <string name="toast_acercarse_rango">Get closer to spot it (%1$d km; max %2$d km)</string>
+    <string name="altitud_en_tierra">On ground</string>
+    <string name="toast_espera_refrescar">Wait a few seconds before refreshing again</string>
+    <string name="toast_acerca_mapa">Zoom in closer to view aircraft</string>
+    <string name="toast_limite_api">Rate limit reached. Retrying in 1 minute.</string>
+    <string name="panel_vuelo_generico">Flight %1$s</string>
+    <string name="panel_distancia_lejos">Distance: %1$d km (get within 30 km)\n</string>
+    <string name="panel_distancia_ok">Distance: %1$d km\n</string>
+    <string name="panel_ruta_formato">Route: %1$s\n</string>
+    <string name="panel_tipo_formato">Type: %1$s\n</string>
+    <string name="panel_rareza_formato">Rarity: %1$s\n</string>
+    <string name="panel_velocidad_formato">Speed: %1$d km/h\n</string>
+    <string name="panel_altitud_formato">Altitude: %1$s</string>
+    <string name="telemetria_matricula">Registration: %1$s\n</string>
+
+    <!-- Radar Flight Sheet (DetalleVueloRadarActivity) -->
+    <string name="titulo_ficha_aeronave_radar">Radar Aircraft Sheet</string>
+    <string name="icao_placeholder">ICAO: ---</string>
+    <string name="placeholder_modelo_aeronave">Aircraft Model</string>
+    <string name="placeholder_fabricante_aerolinea">Manufacturer / Airline</string>
+    <string name="seccion_datos_vuelo_vivo">LIVE FLIGHT DATA</string>
+    <string name="seccion_especificaciones_tecnicas">TECHNICAL SPECIFICATIONS</string>
+
+    <!-- Log Sighting (AddAvionActivity) -->
+    <string name="registrar_avistamiento">Log Sighting</string>
+    <string name="_1_selecciona_el_modelo">1. Identified model</string>
+    <string name="_2_a_ade_tu_foto_opcional">2. Add your photo (optional)</string>
+    <string name="a_adir_foto">Take live photo</string>
+    <string name="cancelar">Cancel</string>
+    <string name="guardar">Save</string>
+    <string name="identificando_aeronave">Identifying aircraft...</string>
+    <string name="toast_permiso_camara">Camera permission required</string>
+    <string name="toast_selecciona_mapa_primero">Select an aircraft on the map first</string>
+    <string name="toast_espera_identificacion">Please wait until identification finishes</string>
+    <string name="toast_ya_avistado_antes">You have already spotted this aircraft</string>
+    <string name="toast_guardado_verificado">Aircraft saved and verified for the leaderboard!</string>
+    <string name="toast_guardado_sin_foto">Aircraft saved (without a live photo it won\'t score leaderboard points)</string>
+    <string name="dialogo_foto_titulo">Live photo</string>
+    <string name="dialogo_foto_mensaje">To score points on the leaderboard, you must take a photo of the aircraft right now.</string>
+    <string name="dialogo_foto_hacer">Take photo</string>
+    <string name="dialogo_foto_cancelar">Cancel</string>
+    <string name="toast_error_camara">Error opening camera</string>
+
+    <!-- Collected Aircraft Detail (DetalleAvionActivity) -->
+    <string name="nombre_apodo">Name / Nickname</string>
+    <string name="boeing_747">Boeing 747</string>
+    <string name="datos_t_cnicos">Technical data</string>
+    <string name="fabricante">Manufacturer</string>
+    <string name="pa_s">Country</string>
+    <string name="velocidad">Speed</string>
+    <string name="capacidad">Capacity</string>
+    <string name="peso">Weight</string>
+    <string name="dimensiones">Dimensions</string>
+    <string name="tu_avistamiento">Your sighting</string>
+    <string name="c_mara">Camera</string>
+    <string name="galer_a">Gallery</string>
+    <string name="detalle_fabricante_formato">Manufacturer: %1$s</string>
+    <string name="detalle_pais_formato">Country: %1$s</string>
+    <string name="detalle_velocidad_formato">Max speed: %1$s</string>
+    <string name="detalle_capacidad_formato">Passengers: %1$s</string>
+    <string name="detalle_peso_formato">Weight: %1$s</string>
+    <string name="detalle_dimensiones_formato">Dimensions: %1$s</string>
+    <string name="sin_fotografia_disponible">No photograph available</string>
+    <string name="toast_permiso_denegado">Permission denied</string>
+    <string name="toast_error_sin_id">Error: aircraft missing ID</string>
+    <string name="toast_error_no_encontrado">Error: aircraft not found</string>
+    <string name="toast_cambios_guardados">Changes saved</string>
+
+    <!-- Chatbot / Online Aircraft Wiki -->
+    <string name="wiki_avi_n_online">Online Aircraft Wiki</string>
+    <string name="ej_f_16_falcon">e.g. F-16 Falcon, Airbus A380...</string>
+    <string name="enviar">Send</string>
+    <string name="mensaje">Message</string>
+    <string name="chat_bienvenida">Hello! Type any aircraft model (e.g. F-22, Boeing 747, Concorde) and I will give you its technical profile.</string>
+    <string name="chat_pedir_modelo">Please enter an aircraft name or model.</string>
+    <string name="chat_buscando">Searching information about \"%1$s\"...</string>
+    <string name="chat_no_encontrado">No article found for \"%1$s\". Try being more specific.</string>
+    <string name="chat_error_identificar">Could not identify that model.</string>
+    <string name="chat_error_conexion">Connection error. Check your internet access.</string>
+    <string name="chat_error_codificar">Error encoding search query.</string>
+    <string name="chat_sin_detalles">No details found for this model.</string>
+    <string name="chat_informe_formato">REPORT ON %1$s:\n\n%2$s</string>
+    <string name="chat_articulo_vacio">The article on \"%1$s\" exists, but it is empty.</string>
+    <string name="chat_error_datos">Error retrieving article data.</string>
+    <string name="chat_error_leer">Error reading received information.</string>
+    <string name="chat_error_red">Network error while downloading data.</string>
+    <string name="chat_error_solicitar">Error requesting content.</string>
+
+    <!-- Identification Engine & Rarities (AvionGenerator) -->
+    <string name="fabricante_internacional">International Manufacturer</string>
+    <string name="aeronave_generica">%1$s Aircraft</string>
+    <string name="aeronave_desconocida">Unknown Aircraft</string>
+    <string name="descripcion_fallback">Aircraft manufactured by %1$s, model %2$s.</string>
+    <string name="sin_descripcion_detallada">No detailed description available.</string>
+    <string name="rareza_common">COMMON</string>
+    <string name="rareza_rare">RARE</string>
+    <string name="rareza_epic">EPIC</string>
+    <string name="rareza_legendary">LEGENDARY</string>
+    <string name="rareza_mythic">MYTHIC</string>
+
+    <!-- Accessibility Descriptions (ContentDescriptions) & Helper Views -->
+    <string name="cd_volver_atras">Go back</string>
+    <string name="cd_volver">Back</string>
+    <string name="cd_volver_mapa">Back to map</string>
+    <string name="cd_ver_ficha_completa">View full sheet</string>
+    <string name="cd_foto_perfil">Profile photo</string>
+    <string name="cd_icono_piloto">Pilot icon</string>
+    <string name="cd_foto_adjunta">Attached photo</string>
+    <string name="cd_imagen_modelo_avion">Aircraft model image</string>
+    <string name="boeing_737_boeing">Boeing 737 (Boeing)</string>
+    <string name="callsign_ibe324_pa_s_spain">Callsign: IBE324 | Country: Spain</string>
+
+    <!-- DetalleVueloRadarActivity (specific keys) -->
+    <string name="telemetria_ruta_estimada">Estimated route: %1$s\n</string>
+    <string name="telemetria_tipo_icao">ICAO type: %1$s\n</string>
+    <string name="telemetria_velocidad">Speed: %1$d km/h\n</string>
+    <string name="telemetria_altitud">Altitude: %1$s</string>
+    <string name="consultando_base_datos">Querying database...</string>
+    <string name="obteniendo_ficha_tecnica">Fetching technical sheet and description...</string>
+    <string name="specs_detalle_formato">• Manufacturer: %1$s\n• Rarity: %2$s\n• Current speed: %3$d km/h\n\n%4$s</string>
+    <string name="btn_ya_avistado">Already spotted</string>
+    <string name="msg_ya_en_hangar">This aircraft is already in your collection</string>
+    <string name="msg_gps_no_disponible">GPS location not available yet</string>
+    <string name="msg_fuera_rango">Out of range (%1$d km). Get within 30 km</string>
+    <string name="msg_en_rango">Within spotting range (%1$d km)</string>
+    <string name="toast_activar_gps">Enable location to check distance to the aircraft</string>
+
+    <!-- Leaderboard & Public Profile -->
+    <string name="titulo_ranking_pilotos">Pilot Leaderboard</string>
+    <string name="leyenda_puntos_rareza">Common: 10 pts • Rare: 25 pts • Epic: 50 pts • Legendary: 100 pts</string>
+    <string name="ranking_sin_pilotos">No pilots on the leaderboard yet.</string>
+    <string name="toast_error_cargar_ranking">Error loading leaderboard</string>
+    <string name="ranking_avistados_formato">%1$d verified sightings</string>
+    <string name="ranking_puntos_formato">%1$d pts</string>
+    <string name="titulo_hangar_piloto">Pilot Hangar</string>
+    <string name="hangar_publico_vacio">This pilot has no verified sightings yet.</string>
+    <string name="perfil_publico_stats_con_puesto">Rank #%1$d  •  %2$d pts  •  %3$d aircraft</string>
+    <string name="perfil_publico_stats">%1$d pts  •  %2$d aircraft</string>
+    <string name="toast_error_cargar_perfil_publico">Error loading pilot profile</string>
+
+    <string name="telemetria_distancia_captura">Spotting distance: %1$d km\n</string>
+    <string name="telemetria_fecha_captura">Spotting date: %1$s</string>
+    <string name="specs_detalle_solo_lectura_formato">• Manufacturer: %1$s\n• Rarity: %2$s\n\n%3$s</string>
+
+    <!-- Flight, Radar & Catalog Details -->
+    <string name="icao_badge_formato">ICAO: %1$s</string>
+    <string name="wiki_sufijo_busqueda">\u0020aircraft</string>
+    <string name="wiki_atribucion_formato">\n\nSource: Wikipedia (CC BY-SA) - %1$s</string>
+    <string name="easter_egg_vehiculo_modelo">Airport Operations Vehicle</string>
+    <string name="easter_egg_vehiculo_fabricante">Airport</string>
+    <string name="easter_egg_vehiculo_capacidad">Operations</string>
+    <string name="easter_egg_vehiculo_pais">Global</string>
+    <string name="easter_egg_vehiculo_descripcion">Easter Egg found! This is not an aircraft, but an airport ground operations vehicle equipped with an ADS-B transponder for runway traffic control.</string>
+</resources>

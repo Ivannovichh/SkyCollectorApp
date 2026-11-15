@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono de información: círculo celeste con una i, que indica que el panel abre la ficha completa -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Círculo de fondo -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M12,12m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+    <!-- Punto de la i -->
+    <path
+        android:fillColor="#1C2541"
+        android:pathData="M12,7.2m-1.4,0a1.4,1.4 0,1 1,2.8 0a1.4,1.4 0,1 1,-2.8 0" />
+    <!-- Palito de la i -->
+    <path
+        android:fillColor="#1C2541"
+        android:pathData="M10.9,10.4h2.2v7.2h-2.2z" />
+</vector>

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!-- Contenedor principal vertical del panel deslizante inferior -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -32,18 +31,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:buttonTint="#00E5FF"
-            android:text="Todos"
+            android:text="@string/todos"
             android:textColor="#E0E0E0"
             android:textSize="14sp"
             android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Lista desplazable con los avistamientos individuales del modelo -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerAvistamientos"
+    <!-- Contenedor con Scroll y altura máxima real para evitar que se desborde -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="360dp" />
+        android:maxHeight="360dp"
+        android:fillViewport="true">
+
+        <!-- Lista desplazable con los avistamientos individuales del modelo -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerAvistamientos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Botonera inferior visible únicamente durante el asistente de borrado -->
     <LinearLayout
@@ -61,7 +69,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancelar"
+            android:text="@string/dialogo_foto_cancelar"
             android:textColor="#90A4AE" />
 
         <!-- Botón para confirmar la selección actual y avanzar o finalizar -->
@@ -71,7 +79,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:backgroundTint="#00E5FF"
-            android:text="Aceptar"
+            android:text="@string/btn_aceptar"
             android:textColor="#0B1021"
             android:textStyle="bold" />
     </LinearLayout>
