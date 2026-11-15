@@ -5,11 +5,10 @@
 ![Status](https://img.shields.io/badge/Status-Mejorando-yellowgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)
 
+**SkyCollectorApp** es una aplicación nativa para Android desarrollada en **Java**.
+Permite gestionar una colección personal de aviones (*spotting*), visualizar vuelos reales en un mapa en tiempo real, capturar fotografías verificadas y consultar fichas técnicas mediante un motor híbrido de múltiples APIs aeronáuticas.
 
-**SkyCollectorApp** es una aplicación Android desarrollada en **Java** como proyecto de 2º DAM.
-Permite gestionar una colección de aviones, visualizar vuelos reales en un mapa y consultar información aeronáutica mediante una API externa.
-
-Proyecto académico orientado a demostrar desarrollo Android completo: interfaz, consumo de API, arquitectura modular y visualización de datos en tiempo real.
+Proyecto orientado al desarrollo Android completo: interfaz nativa, consumo multi-API asíncrono, caché inteligente, arquitectura modular, sincronización en la nube y visualización de datos en tiempo real.
 
 ---
 
@@ -17,45 +16,46 @@ Proyecto académico orientado a demostrar desarrollo Android completo: interfaz,
 
 SkyCollectorApp combina:
 
-* Colección personal de aviones
-* Visualización de vuelos reales en mapa
-* Consulta de datos aeronáuticos
-* Chat interno
-* Perfil de usuario
+* Colección personal de aviones (Hangar sincronizado con la nube)
+* Radar de tráfico aéreo en tiempo real sobre mapa interactivo
+* Motor híbrido de identificación aeronáutica y resolución de metadatos
+* Registro de avistamientos con fotografía en directo verificada por rango GPS
+* Detección de *Easter Eggs* en pista (Vehículos de tierra y Torres de Control)
+* Ranking global de coleccionistas y perfil de usuario
+* Chatbot interno de asistencia
 
-La aplicación integra datos reales de tráfico aéreo con una interfaz Android organizada por paquetes.
+La aplicación integra datos reales de tráfico aéreo con una arquitectura Android modular organizada por paquetes.
 
 ---
 
-## 🌍 API utilizada
+## 🌍 APIs utilizadas
 
-Para la funcionalidad del mapa se utiliza la **API de OpenSky Network**, que proporciona:
+Para garantizar una cobertura total y evitar aeronaves sin identificar (`Unknown Aircraft`), la aplicación utiliza un **pipeline multi-API** gestionado por `AvionGenerator`:
 
-* Posición de aviones en tiempo real
-* Coordenadas geográficas
-* Identificación de vuelos
-* Información de seguimiento
-
-Estos datos se consumen desde la app y se representan en el mapa dentro de **MapaActivity**.
+1. **Radar en tiempo real (ADSBExchange v2 / `adsb.lol` / `airplanes.live`):** Proporciona posición geográfica, altitud, velocidad, rumbo, matrícula y código ICAO de 24 bits en vivo.
+2. **HexDB & ADSBDB API:** Consultas de respaldo por código hexadecimal ICAO (Modo S) y por matrícula oficial (*N-Number*), además de rutas comerciales y aerolíneas.
+3. **OpenSky Network API:** Respaldo adicional para identificación de aeronaves recientes y telemetría de seguimiento.
+4. **MediaWiki / Wikipedia API:** Obtención automática de descripciones históricas y fotografías reales de cada modelo detectado.
 
 ---
 
 ## 🧠 Tecnologías usadas
 
-* Java
-* Android Studio
-* Android SDK
-* XML layouts
-* RecyclerView
-* API REST (OpenSky)
-* Gradle
-* Git / GitHub
+* **Java** (Desarrollo nativo Android)
+* **Android Studio & Android SDK**
+* **XML Layouts & Material Design**
+* **Retrofit 2 & Gson** (Consumo de APIs REST y serialización JSON)
+* **Firebase Authentication & Cloud Firestore** (Login, persistencia en la nube y ranking)
+* **Glide** (Carga de imágenes, caché y visor con zoom táctil)
+* **RecyclerView & Spinners dinámicos**
+* **Gradle**
+* **Git / GitHub**
 
 ---
 
 ## 🏗️ Estructura del proyecto
 
-```
+```text
 app/
 ├── manifests/
 │   └── AndroidManifest.xml
@@ -65,26 +65,30 @@ app/
 │   │   ├── AddAvionActivity.java
 │   │   ├── ChatbotActivity.java
 │   │   ├── DetalleAvionActivity.java
+│   │   ├── DetalleVueloRadarActivity.java
 │   │   ├── LoginActivity.java
 │   │   ├── MainActivity.java
 │   │   ├── MapaActivity.java
-│   │   ├── PerfilActivity.java
-│   │   └── TrackResponse.java
+│   │   └── PerfilActivity.java
 │   │
 │   ├── adapters/
 │   │   ├── AvionAdapter.java
 │   │   └── ChatAdapter.java
 │   │
 │   ├── models/
+│   │   ├── AdsbdbResponse.java
+│   │   ├── AdsbResponse.java
 │   │   ├── Avion.java
-│   │   ├── FlightResponse.java
 │   │   └── Mensaje.java
 │   │
 │   ├── network/
-│   │   └── FlightRadarService.java
+│   │   ├── AdsbdbService.java
+│   │   └── AdsbService.java
 │   │
 │   └── utils/
-│       └── AvionGenerator.java
+│       ├── AvionGenerator.java
+│       ├── ImagenBase64Utils.java
+│       └── RankingManager.java
 │
 ├── res/
 │   ├── layout/
@@ -99,14 +103,16 @@ app/
 
 ## 🧩 Funcionalidades principales
 
-* Login de usuario
-* Registro de aviones
-* Colección personal
-* Visualización en mapa
-* Datos reales de OpenSky
-* Chatbot interno
-* Perfil de usuario
-* Detalle de aviones
+* **Login y Perfil de usuario:** Autenticación con Firebase y gestión del hangar personal.
+* **Radar en vivo (`MapaActivity`):** Visualización de tráfico aéreo cercano con cálculo de distancia GPS en tiempo real.
+* **Resolución Híbrida y Caché Inteligente (`AvionGenerator`):**
+  * Identificación automática por catálogo maestro local y múltiples APIs externas (ICAO Hex + Matrícula).
+  * Caché de doble capa: aciertos guardados permanentemente en `SharedPreferences` y fallos temporales en RAM para reintentos automáticos sin mantenimiento manual.
+  * **Easter Eggs operativos:** Reconocimiento automático de vehículos de servicio en tierra (`GRND`, `SERV`, `GND`) y Torres de Control (`TWR`) con categoría de rareza especial.
+* **Ficha Técnica en Vivo (`DetalleVueloRadarActivity`):** Vista previa completa antes de capturar, con resolución dinámica de modelos, rareza, telemetría y visor de fotos ampliable por gestos.
+* **Registro de Avistamientos con Cámara (`AddAvionActivity`):** Captura directa desde la cámara dentro del radio permitido (30 km), compresión Base64 y subida a Firestore.
+* **Ranking Global:** Clasificación pública sincronizada según rareza y fotos verificadas.
+* **Chatbot interno:** Asistente integrado en la aplicación.
 
 ---
 
@@ -128,10 +134,9 @@ app/
 
 ![Perfil](capturas/Perfil.png)
 
-### 🗺️ Mapa Generico y Avistados filtrados (OpenSky API)
+### 🗺️ Mapa Genérico y Avistados filtrados (Radar en vivo)
 
 ![Mapa](capturas/Mapa.png) ![Aviones avistados](capturas/AvionesAvistados.png)
-
 
 ### ✈️ Detalle de los Aviones
 
@@ -146,51 +151,52 @@ app/
 ## ▶️ Ejecución
 
 ```bash
-git clone https://github.com/Ivannovichh/SkyCollectorApp.git
+git clone [https://github.com/Ivannovichh/SkyCollectorApp.git](https://github.com/Ivannovichh/SkyCollectorApp.git)
 ```
 
-Abrir en Android Studio → Sync Gradle → Ejecutar en emulador o móvil.
+1. Abrir en **Android Studio**.
+2. Asegurarse de incluir el archivo `google-services.json` en la carpeta `app/` para los servicios de Firebase.
+3. Realizar **Sync Gradle** (y *Rebuild Project* si es necesario).
+4. Ejecutar en emulador o dispositivo físico con permisos de ubicación GPS y cámara activados.
 
 ---
 
 ## 👨‍💻 Autores
 
-**Iván Sánchez**
+**Iván Sánchez**  
 **Ángel Japón**
-
-2º DAM — Desarrollo de Aplicaciones Multiplataforma
 
 ---
 
 ## 🧩 Enlaces de interés
 
-- Enlace a Google Forms sobre la encuesta:
+- Enlace a Google Forms sobre la encuesta:  
   https://forms.gle/a42kbaB4RF5ejABD9
 
-- Enlace a Figma v1:
+- Enlace a Figma v1:  
   https://attic-froze-16880795.figma.site
   
-- Enlace a Figma v2:
+- Enlace a Figma v2:  
   https://malt-easy-43617739.figma.site
   
-- Enlace a Presentación Canva:
+- Enlace a Presentación Canva:  
   https://www.canva.com/design/DAHA662muww/UUBLTHJHiU7Lalhx1Sw4bQ/edit?utm_content=DAHA662muww&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 ---
 
-## 🎓 Proyecto académico
+## 🚀 Arquitectura y Desarrollo
 
-Aplicación desarrollada como proyecto de DAM integrando:
+Aplicación desarrollada integrando:
 
-* Consumo de API real (OpenSky)
-* Mapa con vuelos en directo
+* Consumo multi-API en tiempo real (ADSBExchange / HexDB / ADSBDB / OpenSky / Wikipedia)
+* Mapa interactivo con vuelos en directo y geolocalización GPS
+* Persistencia híbrida (SharedPreferences + Firebase Firestore)
 * Arquitectura Android modular
-* RecyclerViews
-* Navegación entre activities
-* GitHub
+* RecyclerViews y navegación fluida entre activities
+* Control de versiones con Git / GitHub
 
 ---
 
 ## ✈️ SkyCollectorApp
 
-Aplicación Android de colección y visualización de tráfico aéreo en tiempo real.
+Aplicación Android de colección, identificación y visualización de tráfico aéreo en tiempo real.
