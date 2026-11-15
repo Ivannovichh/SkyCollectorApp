@@ -93,7 +93,7 @@ public class MapaActivity extends AppCompatActivity
 
     private static final String URL_API_VUELOS = "https://api.adsb.lol/";
     private static final int RADIO_MAXIMO_NM = 250;
-    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 30f;
+    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 40f;
     private static final String URL_API_DETALLES = "https://api.adsbdb.com/";
 
     private static final long INTERVALO_ACTUALIZACION_MS = 15000;
