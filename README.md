@@ -32,7 +32,7 @@
 * Filtro rápido entre **todos los vuelos activos** y **aviones ya avistados**, diferenciando los iconos en el mapa según su rareza.
 
 ### 🎯 Reglas de avistamiento
-1. **Proximidad GPS:** El dispositivo debe encontrarse a **$\le$ 30 km** de la aeronave.
+1. **Proximidad GPS:** El dispositivo debe encontrarse a **$\le$ 40 km** de la aeronave.
 2. **Unicidad:** Cada avión físico (identificado por su código hexadecimal ICAO de 24 bits) solo puede registrarse una vez por usuario.
 3. **Verificación automática:** El modelo se asigna directamente desde la telemetría del radar y el motor de identificación; no es editable manualmente.
 4. **Fotografía en directo:** La captura se realiza exclusivamente desde la cámara de la app (sin acceso a galería) y se comprime antes de subirla a la nube.
