@@ -85,7 +85,7 @@
     <string name="toast_acerca_mapa">Zoom in closer to view aircraft</string>
     <string name="toast_limite_api">Rate limit reached. Retrying in 1 minute.</string>
     <string name="panel_vuelo_generico">Flight %1$s</string>
-    <string name="panel_distancia_lejos">Distance: %1$d km (get within 30 km)\n</string>
+    <string name="panel_distancia_lejos">Distance: %1$d km (get closer to your location´s circle)\n</string>
     <string name="panel_distancia_ok">Distance: %1$d km\n</string>
     <string name="panel_ruta_formato">Route: %1$s\n</string>
     <string name="panel_tipo_formato">Type: %1$s\n</string>
@@ -232,4 +232,18 @@
     <string name="easter_egg_vehiculo_capacidad">Operations</string>
     <string name="easter_egg_vehiculo_pais">Global</string>
     <string name="easter_egg_vehiculo_descripcion">Easter Egg found! This is not an aircraft, but an airport ground operations vehicle equipped with an ADS-B transponder for runway traffic control.</string>
+
+    <!-- Dynamic generator & radar cards -->
+    <string name="aeronave_matricula_generica">Aircraft %1$s</string>
+    <string name="aeronave_hex_generica">Aircraft [%1$s]</string>
+    <string name="fabricante_aviacion_general">General / Commercial Aviation</string>
+    <string name="error_cargar_vuelo">Could not load flight information</string>
+
+    <!-- Control Tower Easter Egg -->
+    <string name="easter_egg_torre_modelo">Air Traffic Control Tower (TWR)</string>
+    <string name="easter_egg_torre_fabricante">Air Traffic Control</string>
+    <string name="easter_egg_torre_desc">Fixed ADS-B calibration transponder located at the airport control tower to verify radar accuracy.</string>
+
+    <string name="descripcion_transpondedor_anonimo">Aircraft operating with ADS-B transponder (ICAO: %1$s) with no public technical record in open databases.</string>
 </resources>
+

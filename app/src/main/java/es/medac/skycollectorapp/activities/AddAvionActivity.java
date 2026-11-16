@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 // Importación de PackageManager para verificar si el permiso de cámara está concedido
 import android.content.pm.PackageManager;
+// Importación de GradientDrawable para aplicar el degradado dorado en Easter Eggs
+import android.graphics.drawable.GradientDrawable;
 // Importación de Uri para manejar las rutas de las fotografías capturadas
 import android.net.Uri;
 // Importación de Bundle para el ciclo de vida de la actividad
@@ -17,6 +19,9 @@ import android.os.Bundle;
 import android.os.Environment;
 // Importación de Log para registrar eventos de sincronización
 import android.util.Log;
+// Importación de View y ViewGroup para estilizar la vista raíz en modo Easter Egg
+import android.view.View;
+import android.view.ViewGroup;
 // Importación de ArrayAdapter para poblar el Spinner
 import android.widget.ArrayAdapter;
 // Importación de Button para los botones de acción
@@ -86,7 +91,9 @@ import es.medac.skycollectorapp.utils.ImagenBase64Utils;
 // Importación del gestor de puntuación y clasificación pública
 import es.medac.skycollectorapp.utils.RankingManager;
 
-// Actividad para fotografiar en directo y registrar un avión detectado en el radar
+/**
+ * Actividad para fotografiar en directo y registrar un avión o vehículo Easter Egg detectado en el radar.
+ */
 public class AddAvionActivity extends AppCompatActivity {
 
     // Componentes visuales del formulario de avistamiento
@@ -101,8 +108,10 @@ public class AddAvionActivity extends AppCompatActivity {
     private List<Avion> listaAvionesBase;
     // Código ICAO24 hexadecimal del avión seleccionado en el mapa
     private String icaoSeleccionado;
-    // Instancia del avión una vez resuelto por el motor global (Catálogo local + Wikipedia)
+    // Instancia del avión una vez resuelto por el motor global (Catálogo local + Wikipedia + Easter Eggs)
     private Avion avionDetectadoResuelto;
+    // Indica si el blanco seleccionado corresponde a un Easter Egg terrestre
+    private boolean esEasterEgg;
 
     // Lanzador que solicita permiso de cámara en tiempo de ejecución
     private final ActivityResultLauncher<String> launcherPermisos = registerForActivityResult(
@@ -117,7 +126,10 @@ public class AddAvionActivity extends AppCompatActivity {
                 if (ok && uriFotoCamaraTemporal != null) cargarImagen(uriFotoCamaraTemporal);
             });
 
-    // Inicializa la pantalla, recupera los datos temporales del radar y resuelve la aeronave
+    /**
+     * Inicializa la pantalla, recupera los datos temporales del radar, aplica tema dorado si es Easter Egg
+     * y resuelve la aeronave o vehículo terrestre.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,7 +143,10 @@ public class AddAvionActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
         icaoSeleccionado = prefs.getString("icao_seleccionado", null);
+        String callsignSeleccionado = prefs.getString("callsign_seleccionado", null);
         String matriculaSeleccionada = prefs.getString("matricula_seleccionada", null);
+        String tipoSeleccionado = prefs.getString("tipo_seleccionado", null);
+        String descripcionSeleccionada = prefs.getString("descripcion_seleccionada", null);
 
         if (icaoSeleccionado == null) {
             Toast.makeText(this, getString(R.string.toast_selecciona_mapa_primero), Toast.LENGTH_LONG).show();
@@ -139,12 +154,20 @@ public class AddAvionActivity extends AppCompatActivity {
             return;
         }
 
+        esEasterEgg = prefs.getBoolean("es_easter_egg_seleccionado", false)
+                || AvionGenerator.esEasterEggTerrestre(tipoSeleccionado, callsignSeleccionado, matriculaSeleccionada, descripcionSeleccionada);
+
+        if (esEasterEgg) {
+            aplicarTemaDoradoEasterEgg();
+        }
+
         listaAvionesBase = new ArrayList<>();
         resolverYFijarAeronave(
                 icaoSeleccionado,
+                callsignSeleccionado,
                 matriculaSeleccionada,
-                prefs.getString("tipo_seleccionado", null),
-                prefs.getString("descripcion_seleccionada", null),
+                tipoSeleccionado,
+                descripcionSeleccionada,
                 prefs.getString("categoria_seleccionada", null)
         );
 
@@ -160,20 +183,51 @@ public class AddAvionActivity extends AppCompatActivity {
         });
     }
 
-    // Borra las claves temporales del avistamiento y vuelve al radar
+    /**
+     * Aplica el degradado dorado exclusivo y resalta los botones cuando se va a capturar un Easter Egg.
+     */
+    private void aplicarTemaDoradoEasterEgg() {
+        View root = findViewById(android.R.id.content);
+        if (root instanceof ViewGroup && ((ViewGroup) root).getChildCount() > 0) {
+            View pantallaPrincipal = ((ViewGroup) root).getChildAt(0);
+            GradientDrawable fondoDorado = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{0xFF3B2800, 0xFF6B4C00, 0xFF1F1400}
+            );
+            pantallaPrincipal.setBackground(fondoDorado);
+        }
+
+        if (btnGuardar != null) {
+            btnGuardar.setBackgroundColor(0xFFFFD700);
+            btnGuardar.setTextColor(0xFF1F1400);
+        }
+        if (btnSubirFoto != null) {
+            btnSubirFoto.setBackgroundColor(0xFFB45309);
+            btnSubirFoto.setTextColor(0xFFFFD700);
+        }
+    }
+
+    /**
+     * Borra las claves temporales del avistamiento y vuelve al radar.
+     */
     private void cancelarYVolverAlMapa() {
         limpiarAvistamientoPendiente();
         finish();
     }
 
-    // Construye la clave única de almacenamiento local vinculada al UID de Firebase del usuario
+    /**
+     * Construye la clave única de almacenamiento local vinculada al UID de Firebase del usuario.
+     */
     private String getClaveListaUsuario() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         return user != null ? "lista_aviones_" + user.getUid() : "lista_aviones_anonimo";
     }
 
-    // Resuelve el modelo, fabricante y rareza mediante el motor híbrido asíncrono y fija el Spinner
-    private void resolverYFijarAeronave(String icao24, String matricula, String tipoIcao, String descripcionFallback, String categoriaRadar) {
+    /**
+     * Resuelve el modelo, fabricante y rareza mediante el motor híbrido asíncrono y fija el Spinner.
+     */
+    private void resolverYFijarAeronave(String icao24, String callsign, String matricula,
+                                        String tipoIcao, String descripcionFallback, String categoriaRadar) {
         spinnerAviones.setEnabled(false);
         btnGuardar.setEnabled(false);
 
@@ -184,6 +238,7 @@ public class AddAvionActivity extends AppCompatActivity {
         AvionGenerator.resolverAvionGlobalAsync(
                 this,
                 icao24,
+                callsign,
                 matricula,
                 tipoIcao,
                 descripcionFallback,
@@ -194,8 +249,22 @@ public class AddAvionActivity extends AppCompatActivity {
                     listaAvionesBase.clear();
                     listaAvionesBase.add(resuelto);
 
+                    if ("EASTER_EGG".equalsIgnoreCase(resuelto.getRareza()) || esEasterEgg) {
+                        esEasterEgg = true;
+                        aplicarTemaDoradoEasterEgg();
+                        if (uriImagenFinal == null && imgPreviewAvion != null) {
+                            Glide.with(this)
+                                    .load(AvionGenerator.URL_FOTO_EASTER_EGG_VEHICULO)
+                                    .centerCrop()
+                                    .into(imgPreviewAvion);
+                        }
+                    }
+
                     List<String> etiqueta = new ArrayList<>();
-                    etiqueta.add(resuelto.getModelo() + " (" + AvionGenerator.traducirRareza(this, resuelto.getRareza()) + ")");
+                    String etiquetaRareza = "EASTER_EGG".equalsIgnoreCase(resuelto.getRareza())
+                            ? "★ EASTER EGG ★"
+                            : AvionGenerator.traducirRareza(this, resuelto.getRareza());
+                    etiqueta.add(resuelto.getModelo() + " (" + etiquetaRareza + ")");
                     spinnerAviones.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, etiqueta));
                     spinnerAviones.setSelection(0);
                     btnGuardar.setEnabled(true);
@@ -203,7 +272,9 @@ public class AddAvionActivity extends AppCompatActivity {
         );
     }
 
-    // Crea el registro definitivo del avistamiento y lo persiste tanto en local como en Firestore
+    /**
+     * Crea el registro definitivo del avistamiento y lo persiste tanto en local como en Firestore.
+     */
     private void guardarAvionCatalogo() {
         if (icaoSeleccionado == null || avionDetectadoResuelto == null) {
             Toast.makeText(this, getString(R.string.toast_espera_identificacion), Toast.LENGTH_SHORT).show();
@@ -234,7 +305,13 @@ public class AddAvionActivity extends AppCompatActivity {
 
         SharedPreferences prefsAv = getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE);
         nuevo.setMatricula(prefsAv.getString("matricula_seleccionada", null));
-        nuevo.setTipoIcao(prefsAv.getString("tipo_seleccionado", null));
+
+        String tipoGuardar = prefsAv.getString("tipo_seleccionado", null);
+        if ((tipoGuardar == null || tipoGuardar.trim().isEmpty()) && avionDetectadoResuelto.getTipoIcao() != null) {
+            tipoGuardar = avionDetectadoResuelto.getTipoIcao();
+        }
+        nuevo.setTipoIcao(tipoGuardar);
+
         nuevo.setFechaAvistamiento(prefsAv.getLong("fecha_seleccionada", System.currentTimeMillis()));
         nuevo.setDistanciaKm(prefsAv.getFloat("distancia_seleccionada", 0f));
         nuevo.setLatAvion(prefsAv.getFloat("lat_avion_seleccionado", 0f));
@@ -242,6 +319,9 @@ public class AddAvionActivity extends AppCompatActivity {
         nuevo.setOrigen("MAPA");
 
         String urlRemotaWiki = prefsAv.getString("url_imagen_remota_seleccionada", null);
+        if ((urlRemotaWiki == null || urlRemotaWiki.isEmpty()) && avionDetectadoResuelto.getUrlImagenRemota() != null) {
+            urlRemotaWiki = avionDetectadoResuelto.getUrlImagenRemota();
+        }
         if (urlRemotaWiki != null && !urlRemotaWiki.isEmpty()) {
             nuevo.setImagenUrl(urlRemotaWiki);
             nuevo.setUrlImagenRemota(urlRemotaWiki);
@@ -270,7 +350,9 @@ public class AddAvionActivity extends AppCompatActivity {
         finish();
     }
 
-    // Añade el avión a la lista JSON guardada en SharedPreferences y devuelve la lista actualizada
+    /**
+     * Añade el avión a la lista JSON guardada en SharedPreferences y devuelve la lista actualizada.
+     */
     private List<Avion> guardarEnPreferencias(Avion nuevo) {
         SharedPreferences prefs = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE);
         Gson gson = new Gson();
@@ -284,7 +366,9 @@ public class AddAvionActivity extends AppCompatActivity {
         return lista;
     }
 
-    // Sube el registro del avión a la subcolección del usuario en Firebase Firestore
+    /**
+     * Sube el registro del avión a la subcolección del usuario en Firebase Firestore.
+     */
     private void guardarEnFirestore(Avion avion) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) return;
@@ -294,7 +378,9 @@ public class AddAvionActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("FIRESTORE", "Error", e));
     }
 
-    // Muestra un diálogo explicando que solo se aceptan fotos tomadas en el momento para el ranking
+    /**
+     * Muestra un diálogo explicando que solo se aceptan fotos tomadas en el momento para el ranking.
+     */
     private void mostrarDialogoSeleccion() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.dialogo_foto_titulo))
@@ -310,7 +396,9 @@ public class AddAvionActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Prepara el archivo temporal y lanza la aplicación de cámara del teléfono
+    /**
+     * Prepara el archivo temporal y lanza la aplicación de cámara del teléfono.
+     */
     private void abrirCamara() {
         try {
             File f = crearArchivoImagen();
@@ -321,7 +409,9 @@ public class AddAvionActivity extends AppCompatActivity {
         }
     }
 
-    // Crea un fichero JPEG único con marca de tiempo en el directorio privado de imágenes
+    /**
+     * Crea un fichero JPEG único con marca de tiempo en el directorio privado de imágenes.
+     */
     private File crearArchivoImagen() throws IOException {
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -329,13 +419,17 @@ public class AddAvionActivity extends AppCompatActivity {
         return File.createTempFile("IMG_" + ts + "_", ".jpg", dir);
     }
 
-    // Muestra la fotografía tomada en el ImageView desactivando la caché de disco y memoria
+    /**
+     * Muestra la fotografía tomada en el ImageView desactivando la caché de disco y memoria.
+     */
     private void cargarImagen(Uri uri) {
         uriImagenFinal = uri;
         Glide.with(this).load(uri).centerCrop().diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true).into(imgPreviewAvion);
     }
 
-    // Comprueba si el código ICAO24 ya está registrado en la colección local del usuario
+    /**
+     * Comprueba si el código ICAO24 ya está registrado en la colección local del usuario.
+     */
     private boolean yaAvistado(String icao) {
         if (icao == null) return false;
         String json = getSharedPreferences("SkyCollectorDatos", Context.MODE_PRIVATE).getString(getClaveListaUsuario(), null);
@@ -348,12 +442,23 @@ public class AddAvionActivity extends AppCompatActivity {
         return false;
     }
 
-    // Elimina de SharedPreferences todas las claves temporales del avistamiento en curso
+    /**
+     * Elimina de SharedPreferences todas las claves temporales del avistamiento en curso.
+     */
     private void limpiarAvistamientoPendiente() {
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE).edit()
-                .remove("icao_seleccionado").remove("tipo_seleccionado").remove("matricula_seleccionada")
-                .remove("descripcion_seleccionada").remove("fecha_seleccionada").remove("distancia_seleccionada")
-                .remove("lat_avion_seleccionado").remove("lon_avion_seleccionado")
-                .remove("url_imagen_remota_seleccionada").remove("categoria_seleccionada").apply();
+                .remove("icao_seleccionado")
+                .remove("callsign_seleccionado")
+                .remove("tipo_seleccionado")
+                .remove("matricula_seleccionada")
+                .remove("descripcion_seleccionada")
+                .remove("fecha_seleccionada")
+                .remove("distancia_seleccionada")
+                .remove("lat_avion_seleccionado")
+                .remove("lon_avion_seleccionado")
+                .remove("url_imagen_remota_seleccionada")
+                .remove("categoria_seleccionada")
+                .remove("es_easter_egg_seleccionado")
+                .apply();
     }
 }

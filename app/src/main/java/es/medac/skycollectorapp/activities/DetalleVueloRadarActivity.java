@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,9 +22,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,13 +44,14 @@ import es.medac.skycollectorapp.utils.AvionGenerator;
 
 /**
  * Actividad encargada de mostrar la ficha previa detallada de un vuelo detectado en el radar
- * o consultado desde un perfil público, permitiendo su avistamiento y registro en el hangar.
+ * o consultado desde un perfil público, aplicando estilo dorado exclusivo si es un Easter Egg.
  */
 public class DetalleVueloRadarActivity extends AppCompatActivity {
 
-    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 30f;
+    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = MapaActivity.DISTANCIA_MAXIMA_AVISTAMIENTO_KM;
 
     private String icao;
+    private String callsign;
     private String tipoIcao;
     private String matricula;
     private String nombreModelo;
@@ -50,21 +60,44 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
     private double lonAvion;
     private boolean yaAvistado;
     private boolean modoSoloLectura;
+    private boolean esEasterEgg;
 
     private Object fuenteImagenActual;
     private String urlRemotaWikipedia = null;
     private TextView txtAvisoSinFoto;
 
     /**
-     * Inicializa la vista de detalle del vuelo, recupera los extras del Intent,
-     * configura la telemetría inicial y lanza la resolución asíncrona de la aeronave.
+     * Inicializa la actividad y valida los parámetros recibidos en el Intent.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalle_vuelo_radar);
 
-        // Vinculación de componentes de la interfaz de usuario
+        if (!validarDatosEntrada()) {
+            Toast.makeText(this, getString(R.string.error_cargar_vuelo), Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        inicializarVistas();
+    }
+
+    /**
+     * Comprueba que el código ICAO recibido en el Intent sea válido antes de cargar la interfaz.
+     */
+    private boolean validarDatosEntrada() {
+        Intent intent = getIntent();
+        if (intent == null) return false;
+
+        icao = intent.getStringExtra("icao");
+        return icao != null && !icao.trim().isEmpty();
+    }
+
+    /**
+     * Enlaza las vistas del layout, muestra la telemetría inicial y lanza la resolución asíncrona del avión.
+     */
+    private void inicializarVistas() {
         ImageButton btnVolver = findViewById(R.id.btn_volver_detalle_radar);
         ImageView imgAvion = findViewById(R.id.img_avion_detalle_radar);
         TextView txtRareza = findViewById(R.id.txt_rareza_detalle);
@@ -77,20 +110,17 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         Button btnAvistar = findViewById(R.id.btn_avistar_desde_detalle);
         View footerAvistar = findViewById(R.id.footer_avistar_radar);
 
-        // Configuración del botón de retroceso
         btnVolver.setOnClickListener(v -> finish());
 
-        // Configuración del evento táctil para ampliar la fotografía de la aeronave
         imgAvion.setOnClickListener(v -> {
             if (fuenteImagenActual != null) {
                 abrirImagenAmpliada(fuenteImagenActual);
             }
         });
 
-        // Extracción de parámetros enviados a través del Intent
         Intent intent = getIntent();
         modoSoloLectura = intent.getBooleanExtra("modo_solo_lectura", false);
-        icao = intent.getStringExtra("icao");
+        callsign = intent.getStringExtra("callsign");
         tipoIcao = intent.getStringExtra("tipo");
         matricula = intent.getStringExtra("matricula");
 
@@ -98,6 +128,9 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         nombreModelo = (modeloCrudo != null)
                 ? modeloCrudo.replaceAll("(?i)^(aeronave|avión|aircraft)\\s+", "").trim()
                 : null;
+
+        esEasterEgg = intent.getBooleanExtra("es_easter_egg", false)
+                || AvionGenerator.esEasterEggTerrestre(tipoIcao, callsign, matricula, nombreModelo);
 
         String apodo = intent.getStringExtra("apodo");
         String empresa = intent.getStringExtra("empresa");
@@ -112,11 +145,9 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         long fechaAvistamiento = intent.getLongExtra("fecha_avistamiento", 0L);
         String fotoAvistamientoPublica = intent.getStringExtra("foto_avistamiento_url");
 
-        // Mostrar código ICAO formateado en la insignia superior
         String icaoFormateado = (icao != null && !icao.isEmpty()) ? icao.toUpperCase(Locale.ROOT) : "---";
         txtIcaoBadge.setText(getString(R.string.icao_badge_formato, icaoFormateado));
 
-        // Construcción y pintado de la telemetría del vuelo en pantalla
         StringBuilder telemetria = new StringBuilder();
         if (modoSoloLectura) {
             telemetria.append(getString(R.string.telemetria_matricula, matricula != null && !matricula.isEmpty() ? matricula : "—"))
@@ -139,14 +170,12 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         }
         txtTelemetria.setText(telemetria.toString().trim());
 
-        // Gestión de visibilidad del pie de página de avistamiento
         if (modoSoloLectura) {
             if (footerAvistar != null) footerAvistar.setVisibility(View.GONE);
         } else {
             configurarBotonAvistar(btnAvistar, txtEstadoDistancia);
         }
 
-        // Textos provisionales mientras se resuelve la aeronave en segundo plano
         txtModelo.setText(nombreModelo != null && !nombreModelo.isEmpty()
                 ? nombreModelo
                 : getString(R.string.identificando_aeronave));
@@ -154,17 +183,20 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
                 ? empresa
                 : getString(R.string.consultando_base_datos));
         txtSpecs.setText(getString(R.string.obteniendo_ficha_tecnica));
-        aplicarEstiloRareza(txtRareza, "COMMON");
+        aplicarEstiloRareza(txtRareza, esEasterEgg ? "EASTER_EGG" : "COMMON");
 
-        // Ejecutor para peticiones de red secundarias en hilos de fondo
+        if (esEasterEgg) {
+            aplicarTemaDoradoEasterEgg();
+        }
+
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler mainHandler = new Handler(Looper.getMainLooper());
         final String empresaInicial = empresa;
 
-        // Llamada al motor híbrido global pasando ICAO, matrícula, tipo y modelo de respaldo
         AvionGenerator.resolverAvionGlobalAsync(
                 this,
                 icao,
+                callsign,
                 matricula,
                 tipoIcao,
                 nombreModelo,
@@ -172,9 +204,13 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
                 avionResuelto -> {
                     if (isFinishing() || isDestroyed()) return;
 
+                    if ("EASTER_EGG".equalsIgnoreCase(avionResuelto.getRareza()) || esEasterEgg) {
+                        esEasterEgg = true;
+                        aplicarTemaDoradoEasterEgg();
+                    }
+
                     nombreModelo = avionResuelto.getModelo();
 
-                    // Actualización dinámica de la telemetría si el tipo ICAO se ha recuperado remotamente
                     if (avionResuelto.getTipoIcao() != null && !avionResuelto.getTipoIcao().isEmpty()
                             && (tipoIcao == null || tipoIcao.trim().isEmpty())) {
                         tipoIcao = avionResuelto.getTipoIcao();
@@ -220,7 +256,6 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
 
                     boolean esDesconocido = AvionGenerator.esModeloDesconocido(this, avionResuelto.getModelo());
 
-                    // Si la aeronave es desconocida, se muestra la silueta por defecto sin buscar en Wikipedia
                     if (esDesconocido) {
                         urlRemotaWikipedia = null;
                         fuenteImagenActual = fallback;
@@ -234,42 +269,160 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
                             : avionResuelto.getUrlImagenRemota();
 
                     if (urlDirecta != null && !urlDirecta.isEmpty()) {
-                        urlRemotaWikipedia = urlDirecta;
-                        fuenteImagenActual = urlDirecta;
-                        gestionarAvisoSinFoto(imgAvion, false);
-                        Glide.with(this).load(urlDirecta).fitCenter().into(imgAvion);
+                        cargarImagenRemotaConRespaldo(imgAvion, urlDirecta, fallback, executor, mainHandler);
                     } else {
-                        String modeloWiki = AvionGenerator.limpiarModeloParaWiki(this, avionResuelto.getModelo());
-                        if (modeloWiki.isEmpty()) {
-                            urlRemotaWikipedia = null;
-                            fuenteImagenActual = fallback;
-                            gestionarAvisoSinFoto(imgAvion, true);
-                            Glide.with(this).load(fallback).fitCenter().into(imgAvion);
-                            return;
-                        }
-
-                        // Consulta asíncrona a Wikipedia para obtener una fotografía real del modelo
-                        executor.execute(() -> {
-                            String urlFotoWiki = obtenerUrlDesdeWikipedia(modeloWiki);
-                            mainHandler.post(() -> {
-                                if (isFinishing() || isDestroyed()) return;
-
-                                if (urlFotoWiki != null && !urlFotoWiki.isEmpty()) {
-                                    urlRemotaWikipedia = urlFotoWiki;
-                                    fuenteImagenActual = urlFotoWiki;
-                                    gestionarAvisoSinFoto(imgAvion, false);
-                                    Glide.with(this).load(urlFotoWiki).fitCenter().into(imgAvion);
-                                } else {
-                                    urlRemotaWikipedia = null;
-                                    fuenteImagenActual = fallback;
-                                    gestionarAvisoSinFoto(imgAvion, true);
-                                    Glide.with(this).load(fallback).fitCenter().into(imgAvion);
-                                }
-                            });
-                        });
+                        buscarYMostrarFotoWikipedia(imgAvion, avionResuelto.getModelo(), fallback, executor, mainHandler);
                     }
                 }
         );
+    }
+
+    /**
+     * Construye el modelo de carga para Glide añadiendo la cabecera User-Agent obligatoria
+     * cuando la URL pertenece a Wikimedia o Wikipedia para evitar bloqueos HTTP 403.
+     */
+    private Object construirModeloGlide(String url) {
+        if (url == null) return null;
+        if (url.contains("wikimedia.org") || url.contains("wikipedia.org")) {
+            return new GlideUrl(
+                    url,
+                    new LazyHeaders.Builder()
+                            .addHeader("User-Agent", AvionGenerator.USER_AGENT)
+                            .build()
+            );
+        }
+        return url;
+    }
+
+    /**
+     * Descarga una URL remota en el ImageView con User-Agent compatible y, si falla,
+     * intenta rescatarla mediante Wikipedia o muestra la silueta de respaldo con su aviso.
+     */
+    private void cargarImagenRemotaConRespaldo(ImageView imgAvion, String urlDirecta, int fallback,
+                                               ExecutorService executor, Handler mainHandler) {
+        urlRemotaWikipedia = urlDirecta;
+        fuenteImagenActual = urlDirecta;
+        gestionarAvisoSinFoto(imgAvion, false);
+
+        Glide.with(this)
+                .load(construirModeloGlide(urlDirecta))
+                .fitCenter()
+                .listener(new RequestListener<Drawable>() {
+                    /**
+                     * Gestiona el fallo de carga de la imagen principal recurriendo a una búsqueda de respaldo en Wikipedia.
+                     */
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                Target<Drawable> target, boolean isFirstResource) {
+                        mainHandler.post(() -> {
+                            if (isFinishing() || isDestroyed()) return;
+                            boolean esTorre = AvionGenerator.esEasterEggTorre(tipoIcao, callsign, matricula, nombreModelo);
+                            String terminoRespaldo = esTorre
+                                    ? "Air traffic control tower"
+                                    : (esEasterEgg ? "Airport ground support equipment" : nombreModelo);
+                            buscarYMostrarFotoWikipedia(imgAvion, terminoRespaldo, fallback, executor, mainHandler);
+                        });
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model,
+                                                   Target<Drawable> target, DataSource dataSource,
+                                                   boolean isFirstResource) {
+                        return false;
+                    }
+                })
+                .into(imgAvion);
+    }
+
+    /**
+     * Busca la imagen del modelo en Wikipedia en segundo plano y aplica la silueta si no hay resultados.
+     */
+    private void buscarYMostrarFotoWikipedia(ImageView imgAvion, String terminoRaw, int fallback,
+                                             ExecutorService executor, Handler mainHandler) {
+        String modeloWiki = esEasterEgg
+                ? terminoRaw
+                : AvionGenerator.limpiarModeloParaWiki(this, terminoRaw);
+
+        if (modeloWiki == null || modeloWiki.isEmpty()) {
+            urlRemotaWikipedia = null;
+            fuenteImagenActual = fallback;
+            gestionarAvisoSinFoto(imgAvion, true);
+            Glide.with(this).load(fallback).fitCenter().into(imgAvion);
+            return;
+        }
+
+        executor.execute(() -> {
+            String urlFotoWiki = esEasterEgg
+                    ? consultarImagenWikiLibre(modeloWiki)
+                    : obtenerUrlDesdeWikipedia(modeloWiki);
+
+            mainHandler.post(() -> {
+                if (isFinishing() || isDestroyed()) return;
+
+                if (urlFotoWiki != null && !urlFotoWiki.isEmpty()) {
+                    urlRemotaWikipedia = urlFotoWiki;
+                    fuenteImagenActual = urlFotoWiki;
+                    gestionarAvisoSinFoto(imgAvion, false);
+                    Glide.with(this)
+                            .load(construirModeloGlide(urlFotoWiki))
+                            .error(fallback)
+                            .fitCenter()
+                            .into(imgAvion);
+                } else {
+                    urlRemotaWikipedia = null;
+                    fuenteImagenActual = fallback;
+                    gestionarAvisoSinFoto(imgAvion, true);
+                    Glide.with(this).load(fallback).fitCenter().into(imgAvion);
+                }
+            });
+        });
+    }
+
+    /**
+     * Busca directamente una fotografía en Wikipedia usando la API REST de resúmenes
+     * sin añadir sufijos aeronáuticos (respaldo para Easter Eggs terrestres).
+     */
+    private String consultarImagenWikiLibre(String termino) {
+        String[] consultas = new String[]{termino, "Follow-me car", "Airport apron"};
+        for (String consulta : consultas) {
+            if (consulta == null || consulta.trim().isEmpty()) continue;
+            try {
+                String searchEndpoint = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch="
+                        + java.net.URLEncoder.encode(consulta, "UTF-8") + "&format=json&srlimit=1";
+                String searchResp = leerUrlHttp(searchEndpoint);
+                if (searchResp == null) continue;
+
+                org.json.JSONObject searchJson = new org.json.JSONObject(searchResp);
+                org.json.JSONObject queryObj = searchJson.optJSONObject("query");
+                if (queryObj == null) continue;
+
+                org.json.JSONArray searchArray = queryObj.optJSONArray("search");
+                if (searchArray == null || searchArray.length() == 0) continue;
+
+                String titulo = searchArray.getJSONObject(0).optString("title", "");
+                if (titulo.isEmpty()) continue;
+
+                String summaryUrl = "https://en.wikipedia.org/api/rest_v1/page/summary/"
+                        + java.net.URLEncoder.encode(titulo.replace(" ", "_"), "UTF-8");
+                String summaryResp = leerUrlHttp(summaryUrl);
+                if (summaryResp == null) continue;
+
+                org.json.JSONObject summaryJson = new org.json.JSONObject(summaryResp);
+                org.json.JSONObject thumb = summaryJson.optJSONObject("thumbnail");
+                if (thumb != null) {
+                    String src = thumb.optString("source", null);
+                    if (src != null && !src.isEmpty()) return src;
+                }
+                org.json.JSONObject orig = summaryJson.optJSONObject("originalimage");
+                if (orig != null) {
+                    String src = orig.optString("source", null);
+                    if (src != null && !src.isEmpty()) return src;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     /**
@@ -280,6 +433,11 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         badge.setText(AvionGenerator.traducirRareza(this, r));
 
         switch (r) {
+            case "EASTER_EGG":
+                badge.setBackgroundColor(Color.parseColor("#B45309"));
+                badge.setTextColor(Color.parseColor("#FFD700"));
+                badge.setText("★ EASTER EGG ★");
+                break;
             case "RARE":
                 badge.setBackgroundColor(Color.parseColor("#1E3A8A"));
                 badge.setTextColor(Color.parseColor("#93C5FD"));
@@ -301,8 +459,39 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
     }
 
     /**
+     * Transforma la pantalla de detalle en una edición dorada exclusiva cuando la entidad es un Easter Egg.
+     */
+    private void aplicarTemaDoradoEasterEgg() {
+        View root = findViewById(android.R.id.content);
+        if (root instanceof ViewGroup && ((ViewGroup) root).getChildCount() > 0) {
+            View pantallaPrincipal = ((ViewGroup) root).getChildAt(0);
+            GradientDrawable fondoDorado = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{0xFF3B2800, 0xFF6B4C00, 0xFF1F1400}
+            );
+            pantallaPrincipal.setBackground(fondoDorado);
+        }
+
+        TextView txtModelo = findViewById(R.id.txt_modelo_detalle_radar);
+        TextView txtEmpresa = findViewById(R.id.txt_empresa_detalle_radar);
+        TextView txtIcaoBadge = findViewById(R.id.txt_icao_badge_detalle);
+        Button btnAvistar = findViewById(R.id.btn_avistar_desde_detalle);
+
+        if (txtModelo != null) txtModelo.setTextColor(0xFFFFD700);
+        if (txtEmpresa != null) txtEmpresa.setTextColor(0xFFFDE68A);
+        if (txtIcaoBadge != null) {
+            txtIcaoBadge.setBackgroundColor(0xFF78350F);
+            txtIcaoBadge.setTextColor(0xFFFFD700);
+        }
+        if (btnAvistar != null && btnAvistar.isEnabled()) {
+            btnAvistar.setBackgroundColor(0xFFFFD700);
+            btnAvistar.setTextColor(0xFF1F1400);
+        }
+    }
+
+    /**
      * Configura el comportamiento, texto y colores del botón de avistamiento
-     * en función de la distancia GPS calculada con el usuario.
+     * en función de la distancia GPS calculada con el usuario (rango de 40 km).
      */
     private void configurarBotonAvistar(Button btnAvistar, TextView txtEstadoDistancia) {
         if (yaAvistado) {
@@ -349,10 +538,12 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
                 .edit()
                 .putString("icao_seleccionado", icao)
+                .putString("callsign_seleccionado", callsign)
                 .putString("tipo_seleccionado", tipoIcao)
                 .putString("matricula_seleccionada", matricula)
                 .putString("descripcion_seleccionada", nombreModelo)
                 .putString("url_imagen_remota_seleccionada", urlRemotaWikipedia)
+                .putBoolean("es_easter_egg_seleccionado", esEasterEgg)
                 .putLong("fecha_seleccionada", System.currentTimeMillis())
                 .putFloat("distancia_seleccionada", distanciaKm)
                 .putFloat("lat_avion_seleccionado", (float) latAvion)
@@ -513,8 +704,8 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
     }
 
     /**
-     * Despliega un diálogo flotante a pantalla completa para visualizar la imagen ampliada,
-     * incorporando detectores de gestos táctiles para zoom por pellizco y desplazamiento libre.
+     * Despliega un visor de imagen a pantalla completa con zoom fluido hacia el punto focal,
+     * doble toque, arrastre sin saltos entre dedos y límites de borde para no perder la foto.
      */
     @SuppressLint("ClickableViewAccessibility")
     private void abrirImagenAmpliada(Object fuenteImagen) {
@@ -526,13 +717,11 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         contenedor.setBackgroundColor(Color.BLACK);
 
         ImageView imgZoom = new ImageView(this);
-        FrameLayout.LayoutParams paramsImg = new FrameLayout.LayoutParams(
+        imgZoom.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        paramsImg.gravity = Gravity.CENTER;
-        imgZoom.setLayoutParams(paramsImg);
-        imgZoom.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        ));
+        imgZoom.setScaleType(ImageView.ScaleType.MATRIX);
         contenedor.addView(imgZoom);
 
         ImageButton btnCerrar = new ImageButton(this);
@@ -551,64 +740,183 @@ public class DetalleVueloRadarActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(contenedor);
         dialog.setCancelable(true);
-
-        com.bumptech.glide.RequestManager glideReq = Glide.with(this);
-        if (fuenteImagen instanceof String) {
-            glideReq.load((String) fuenteImagen).fitCenter().into(imgZoom);
-        } else if (fuenteImagen instanceof Integer) {
-            glideReq.load((Integer) fuenteImagen).fitCenter().into(imgZoom);
-        } else {
-            glideReq.load(fuenteImagen).fitCenter().into(imgZoom);
-        }
-
         btnCerrar.setOnClickListener(v -> dialog.dismiss());
 
+        final android.graphics.Matrix matriz = new android.graphics.Matrix();
+        final float[] valoresMatriz = new float[9];
+        final float[] escalaBase = {1.0f};
         final float[] escalaActual = {1.0f};
-        final boolean[] estaArrastrando = {false};
-        final float[] ultimaX = {0f};
-        final float[] ultimaY = {0f};
+        final float[] ultimoX = {0f};
+        final float[] ultimoY = {0f};
+        final int[] punteroActivoId = {MotionEvent.INVALID_POINTER_ID};
+        final boolean[] inicializado = {false};
+
+        Runnable centrarImagenInicial = () -> {
+            if (imgZoom.getDrawable() == null || imgZoom.getWidth() == 0 || imgZoom.getHeight() == 0) return;
+
+            float viewW = imgZoom.getWidth();
+            float viewH = imgZoom.getHeight();
+            float imgW = imgZoom.getDrawable().getIntrinsicWidth();
+            float imgH = imgZoom.getDrawable().getIntrinsicHeight();
+            if (imgW <= 0 || imgH <= 0) return;
+
+            float escala = Math.min(viewW / imgW, viewH / imgH);
+            float dx = (viewW - imgW * escala) * 0.5f;
+            float dy = (viewH - imgH * escala) * 0.5f;
+
+            matriz.reset();
+            matriz.postScale(escala, escala);
+            matriz.postTranslate(dx, dy);
+            imgZoom.setImageMatrix(matriz);
+
+            escalaBase[0] = escala;
+            escalaActual[0] = 1.0f;
+            inicializado[0] = true;
+        };
+
+        Runnable ajustarLimitesBordes = () -> {
+            if (imgZoom.getDrawable() == null) return;
+            matriz.getValues(valoresMatriz);
+            float transX = valoresMatriz[android.graphics.Matrix.MTRANS_X];
+            float transY = valoresMatriz[android.graphics.Matrix.MTRANS_Y];
+            float escalaReal = valoresMatriz[android.graphics.Matrix.MSCALE_X];
+
+            float anchoContenido = imgZoom.getDrawable().getIntrinsicWidth() * escalaReal;
+            float altoContenido = imgZoom.getDrawable().getIntrinsicHeight() * escalaReal;
+            float viewW = imgZoom.getWidth();
+            float viewH = imgZoom.getHeight();
+
+            float correccionX = 0f;
+            float correccionY = 0f;
+
+            if (anchoContenido <= viewW) {
+                correccionX = (viewW - anchoContenido) * 0.5f - transX;
+            } else if (transX > 0) {
+                correccionX = -transX;
+            } else if (transX + anchoContenido < viewW) {
+                correccionX = viewW - (transX + anchoContenido);
+            }
+
+            if (altoContenido <= viewH) {
+                correccionY = (viewH - altoContenido) * 0.5f - transY;
+            } else if (transY > 0) {
+                correccionY = -transY;
+            } else if (transY + altoContenido < viewH) {
+                correccionY = viewH - (transY + altoContenido);
+            }
+
+            matriz.postTranslate(correccionX, correccionY);
+            imgZoom.setImageMatrix(matriz);
+        };
 
         ScaleGestureDetector detectorEscala = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                escalaActual[0] *= detector.getScaleFactor();
-                escalaActual[0] = Math.max(1.0f, Math.min(escalaActual[0], 5.0f));
-                imgZoom.setScaleX(escalaActual[0]);
-                imgZoom.setScaleY(escalaActual[0]);
+                if (!inicializado[0]) return false;
+                float factor = detector.getScaleFactor();
+                float nuevaEscala = escalaActual[0] * factor;
+                nuevaEscala = Math.max(1.0f, Math.min(nuevaEscala, 6.0f));
+                float factorAplicado = nuevaEscala / escalaActual[0];
+                escalaActual[0] = nuevaEscala;
+
+                matriz.postScale(factorAplicado, factorAplicado, detector.getFocusX(), detector.getFocusY());
+                ajustarLimitesBordes.run();
+                return true;
+            }
+        });
+
+        android.view.GestureDetector detectorDobleToque = new android.view.GestureDetector(this, new android.view.GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (!inicializado[0]) return true;
+                if (escalaActual[0] > 1.05f) {
+                    centrarImagenInicial.run();
+                } else {
+                    float factorObjetivo = 2.5f / escalaActual[0];
+                    escalaActual[0] = 2.5f;
+                    matriz.postScale(factorObjetivo, factorObjetivo, e.getX(), e.getY());
+                    ajustarLimitesBordes.run();
+                }
                 return true;
             }
         });
 
         imgZoom.setOnTouchListener((v, event) -> {
+            if (!inicializado[0]) centrarImagenInicial.run();
+            detectorDobleToque.onTouchEvent(event);
             detectorEscala.onTouchEvent(event);
 
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    ultimaX[0] = event.getRawX();
-                    ultimaY[0] = event.getRawY();
-                    estaArrastrando[0] = true;
+            final int accion = event.getActionMasked();
+            switch (accion) {
+                case MotionEvent.ACTION_DOWN: {
+                    int index = event.getActionIndex();
+                    ultimoX[0] = event.getX(index);
+                    ultimoY[0] = event.getY(index);
+                    punteroActivoId[0] = event.getPointerId(0);
                     break;
-                case MotionEvent.ACTION_MOVE:
-                    if (estaArrastrando[0] && escalaActual[0] > 1.0f) {
-                        float deltaX = event.getRawX() - ultimaX[0];
-                        float deltaY = event.getRawY() - ultimaY[0];
-                        imgZoom.setTranslationX(imgZoom.getTranslationX() + deltaX);
-                        imgZoom.setTranslationY(imgZoom.getTranslationY() + deltaY);
-                        ultimaX[0] = event.getRawX();
-                        ultimaY[0] = event.getRawY();
+                }
+                case MotionEvent.ACTION_MOVE: {
+                    if (!detectorEscala.isInProgress() && escalaActual[0] > 1.0f) {
+                        int pointerIndex = event.findPointerIndex(punteroActivoId[0]);
+                        if (pointerIndex >= 0) {
+                            float x = event.getX(pointerIndex);
+                            float y = event.getY(pointerIndex);
+                            matriz.postTranslate(x - ultimoX[0], y - ultimoY[0]);
+                            ajustarLimitesBordes.run();
+                            ultimoX[0] = x;
+                            ultimoY[0] = y;
+                        }
                     }
                     break;
+                }
                 case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    estaArrastrando[0] = false;
-                    if (escalaActual[0] <= 1.0f) {
-                        imgZoom.setTranslationX(0f);
-                        imgZoom.setTranslationY(0f);
+                case MotionEvent.ACTION_CANCEL: {
+                    punteroActivoId[0] = MotionEvent.INVALID_POINTER_ID;
+                    break;
+                }
+                case MotionEvent.ACTION_POINTER_UP: {
+                    int pointerIndex = event.getActionIndex();
+                    int pointerId = event.getPointerId(pointerIndex);
+                    if (pointerId == punteroActivoId[0]) {
+                        int nuevoIndice = (pointerIndex == 0) ? 1 : 0;
+                        ultimoX[0] = event.getX(nuevoIndice);
+                        ultimoY[0] = event.getY(nuevoIndice);
+                        punteroActivoId[0] = event.getPointerId(nuevoIndice);
                     }
                     break;
+                }
             }
             return true;
         });
+
+        Object cargaFinal = fuenteImagen;
+        if (fuenteImagen instanceof String) {
+            String str = (String) fuenteImagen;
+            if (str.startsWith("content://") || str.startsWith("file://") || str.startsWith("/")) {
+                cargaFinal = android.net.Uri.parse(str);
+            } else {
+                cargaFinal = construirModeloGlide(str);
+            }
+        }
+
+        Glide.with(this)
+                .load(cargaFinal)
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model,
+                                                   Target<Drawable> target, DataSource dataSource,
+                                                   boolean isFirstResource) {
+                        imgZoom.post(centrarImagenInicial);
+                        return false;
+                    }
+                })
+                .into(imgZoom);
 
         dialog.show();
     }

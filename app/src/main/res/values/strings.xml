@@ -85,7 +85,7 @@
     <string name="toast_acerca_mapa">Acerca más el mapa para ver los aviones</string>
     <string name="toast_limite_api">Límite de peticiones alcanzado. Reintentando en 1 minuto.</string>
     <string name="panel_vuelo_generico">Vuelo %1$s</string>
-    <string name="panel_distancia_lejos">Distancia: %1$d km (acércate a menos de 30 km)\n</string>
+    <string name="panel_distancia_lejos">Distancia: %1$d km (acércate a menos del radio cerca de tu ubicación)\n</string>
     <string name="panel_distancia_ok">Distancia: %1$d km\n</string>
     <string name="panel_ruta_formato">Ruta: %1$s\n</string>
     <string name="panel_tipo_formato">Tipo: %1$s\n</string>
@@ -236,4 +236,16 @@
     <!-- ID de cliente web OAuth para el inicio de sesión con Google -->
     <string name="default_web_client_id" translatable="false">122299812994-dpjmoffk7qsh5hd31mnqcbhv8glc0ltt.apps.googleusercontent.com</string>
 
+    <!-- Generador dinámico y fichas de radar -->
+    <string name="aeronave_matricula_generica">Aeronave %1$s</string>
+    <string name="aeronave_hex_generica">Aeronave [%1$s]</string>
+    <string name="fabricante_aviacion_general">Aviación General / Comercial</string>
+    <string name="error_cargar_vuelo">No se pudo cargar la información del vuelo</string>
+
+    <!-- Easter Egg Torre de Control -->
+    <string name="easter_egg_torre_modelo">Torre de Control (Transpondedor TWR)</string>
+    <string name="easter_egg_torre_fabricante">Control de Tráfico Aéreo</string>
+    <string name="easter_egg_torre_desc">Baliza fija de calibración ADS-B instalada en la torre de control del aeropuerto para verificar la precisión del radar.</string>
+
+    <string name="descripcion_transpondedor_anonimo">Aeronave operando con transpondedor ADS-B (ICAO: %1$s) sin ficha técnica pública registrada en bases de datos abiertas.</string>
 </resources>

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -53,7 +54,8 @@ import es.medac.skycollectorapp.models.Avion;
 import es.medac.skycollectorapp.utils.AvionGenerator;
 
 /**
- * Actividad que gestiona la visualización, edición de apodos y fotos personalizadas de un avión en la colección.
+ * Actividad que gestiona la visualización, edición de apodos y fotos personalizadas de un avión en la colección,
+ * aplicando estilo dorado y foto de operaciones si se trata de un Easter Egg.
  */
 public class DetalleAvionActivity extends AppCompatActivity {
 
@@ -229,9 +231,50 @@ public class DetalleAvionActivity extends AppCompatActivity {
     }
 
     /**
+     * Aplica un acabado visual dorado exclusivo cuando el elemento avistado es un Easter Egg.
+     */
+    private void aplicarEstiloDoradoSiEsEasterEgg() {
+        if (avion == null) return;
+        boolean esEasterEgg = "EASTER_EGG".equalsIgnoreCase(avion.getRareza())
+                || AvionGenerator.esEasterEggTerrestre(avion.getTipoIcao(), null, avion.getMatricula(), avion.getModelo());
+
+        if (!esEasterEgg) return;
+
+        View root = findViewById(android.R.id.content);
+        if (root instanceof ViewGroup && ((ViewGroup) root).getChildCount() > 0) {
+            View pantallaPrincipal = ((ViewGroup) root).getChildAt(0);
+            GradientDrawable fondoDorado = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{0xFF3B2800, 0xFF6B4C00, 0xFF1F1400}
+            );
+            pantallaPrincipal.setBackground(fondoDorado);
+        }
+
+        if (etNombreAvion != null) {
+            etNombreAvion.setTextColor(0xFFFFD700);
+        }
+        if (btnGuardar != null) {
+            btnGuardar.setBackgroundColor(0xFFFFD700);
+            btnGuardar.setTextColor(0xFF1F1400);
+        }
+    }
+
+    /**
      * Rellena la interfaz gráfica con los datos técnicos y fotografías del objeto Avion cargado.
      */
     private void cargarDatos() {
+        aplicarEstiloDoradoSiEsEasterEgg();
+
+        boolean esEasterEgg = "EASTER_EGG".equalsIgnoreCase(avion.getRareza())
+                || AvionGenerator.esEasterEggTerrestre(avion.getTipoIcao(), null, avion.getMatricula(), avion.getModelo());
+
+        if (esEasterEgg && (avion.getImagenUrl() == null || avion.getImagenUrl().isEmpty())) {
+            avion.setImagenUrl(AvionGenerator.URL_FOTO_EASTER_EGG_VEHICULO);
+            avion.setUrlImagenRemota(AvionGenerator.URL_FOTO_EASTER_EGG_VEHICULO);
+            guardarCambiosEnPreferencias(avion);
+            guardarCambiosEnFirestore(avion);
+        }
+
         etNombreAvion.setText(avion.getApodo());
 
         txtDetalleFabricante.setText(getString(R.string.detalle_fabricante_formato, avion.getFabricante()));
@@ -576,7 +619,8 @@ public class DetalleAvionActivity extends AppCompatActivity {
     }
 
     /**
-     * Abre un visor de zoom táctil en pantalla completa con botón de cierre.
+     * Despliega un visor de imagen a pantalla completa con zoom fluido hacia el punto focal,
+     * doble toque, arrastre sin saltos entre dedos y límites de borde para no perder la foto.
      */
     @SuppressLint("ClickableViewAccessibility")
     private void abrirImagenAmpliada(Object fuenteImagen) {
@@ -588,13 +632,11 @@ public class DetalleAvionActivity extends AppCompatActivity {
         contenedor.setBackgroundColor(Color.BLACK);
 
         ImageView imgZoom = new ImageView(this);
-        FrameLayout.LayoutParams paramsImg = new FrameLayout.LayoutParams(
+        imgZoom.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        paramsImg.gravity = Gravity.CENTER;
-        imgZoom.setLayoutParams(paramsImg);
-        imgZoom.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        ));
+        imgZoom.setScaleType(ImageView.ScaleType.MATRIX);
         contenedor.addView(imgZoom);
 
         ImageButton btnCerrar = new ImageButton(this);
@@ -613,69 +655,182 @@ public class DetalleAvionActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(contenedor);
         dialog.setCancelable(true);
-
-        com.bumptech.glide.RequestManager glideReq = com.bumptech.glide.Glide.with(this);
-        if (fuenteImagen instanceof String) {
-            String str = (String) fuenteImagen;
-            if (str.startsWith("content://") || str.startsWith("file://") || str.startsWith("/")) {
-                glideReq.load(Uri.parse(str)).fitCenter().into(imgZoom);
-            } else {
-                glideReq.load(str).fitCenter().into(imgZoom);
-            }
-        } else if (fuenteImagen instanceof Integer) {
-            glideReq.load((Integer) fuenteImagen).fitCenter().into(imgZoom);
-        } else {
-            glideReq.load(fuenteImagen).fitCenter().into(imgZoom);
-        }
-
         btnCerrar.setOnClickListener(v -> dialog.dismiss());
 
+        final android.graphics.Matrix matriz = new android.graphics.Matrix();
+        final float[] valoresMatriz = new float[9];
+        final float[] escalaBase = {1.0f};
         final float[] escalaActual = {1.0f};
-        final boolean[] estaArrastrando = {false};
-        final float[] ultimaX = {0f};
-        final float[] ultimaY = {0f};
+        final float[] ultimoX = {0f};
+        final float[] ultimoY = {0f};
+        final int[] punteroActivoId = {MotionEvent.INVALID_POINTER_ID};
+        final boolean[] inicializado = {false};
+
+        Runnable centrarImagenInicial = () -> {
+            if (imgZoom.getDrawable() == null || imgZoom.getWidth() == 0 || imgZoom.getHeight() == 0) return;
+
+            float viewW = imgZoom.getWidth();
+            float viewH = imgZoom.getHeight();
+            float imgW = imgZoom.getDrawable().getIntrinsicWidth();
+            float imgH = imgZoom.getDrawable().getIntrinsicHeight();
+            if (imgW <= 0 || imgH <= 0) return;
+
+            float escala = Math.min(viewW / imgW, viewH / imgH);
+            float dx = (viewW - imgW * escala) * 0.5f;
+            float dy = (viewH - imgH * escala) * 0.5f;
+
+            matriz.reset();
+            matriz.postScale(escala, escala);
+            matriz.postTranslate(dx, dy);
+            imgZoom.setImageMatrix(matriz);
+
+            escalaBase[0] = escala;
+            escalaActual[0] = 1.0f;
+            inicializado[0] = true;
+        };
+
+        Runnable ajustarLimitesBordes = () -> {
+            if (imgZoom.getDrawable() == null) return;
+            matriz.getValues(valoresMatriz);
+            float transX = valoresMatriz[android.graphics.Matrix.MTRANS_X];
+            float transY = valoresMatriz[android.graphics.Matrix.MTRANS_Y];
+            float escalaReal = valoresMatriz[android.graphics.Matrix.MSCALE_X];
+
+            float anchoContenido = imgZoom.getDrawable().getIntrinsicWidth() * escalaReal;
+            float altoContenido = imgZoom.getDrawable().getIntrinsicHeight() * escalaReal;
+            float viewW = imgZoom.getWidth();
+            float viewH = imgZoom.getHeight();
+
+            float correccionX = 0f;
+            float correccionY = 0f;
+
+            if (anchoContenido <= viewW) {
+                correccionX = (viewW - anchoContenido) * 0.5f - transX;
+            } else if (transX > 0) {
+                correccionX = -transX;
+            } else if (transX + anchoContenido < viewW) {
+                correccionX = viewW - (transX + anchoContenido);
+            }
+
+            if (altoContenido <= viewH) {
+                correccionY = (viewH - altoContenido) * 0.5f - transY;
+            } else if (transY > 0) {
+                correccionY = -transY;
+            } else if (transY + altoContenido < viewH) {
+                correccionY = viewH - (transY + altoContenido);
+            }
+
+            matriz.postTranslate(correccionX, correccionY);
+            imgZoom.setImageMatrix(matriz);
+        };
 
         ScaleGestureDetector detectorEscala = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                escalaActual[0] *= detector.getScaleFactor();
-                escalaActual[0] = Math.max(1.0f, Math.min(escalaActual[0], 5.0f));
-                imgZoom.setScaleX(escalaActual[0]);
-                imgZoom.setScaleY(escalaActual[0]);
+                if (!inicializado[0]) return false;
+                float factor = detector.getScaleFactor();
+                float nuevaEscala = escalaActual[0] * factor;
+                nuevaEscala = Math.max(1.0f, Math.min(nuevaEscala, 6.0f));
+                float factorAplicado = nuevaEscala / escalaActual[0];
+                escalaActual[0] = nuevaEscala;
+
+                matriz.postScale(factorAplicado, factorAplicado, detector.getFocusX(), detector.getFocusY());
+                ajustarLimitesBordes.run();
+                return true;
+            }
+        });
+
+        android.view.GestureDetector detectorDobleToque = new android.view.GestureDetector(this, new android.view.GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (!inicializado[0]) return true;
+                if (escalaActual[0] > 1.05f) {
+                    centrarImagenInicial.run();
+                } else {
+                    float factorObjetivo = 2.5f / escalaActual[0];
+                    escalaActual[0] = 2.5f;
+                    matriz.postScale(factorObjetivo, factorObjetivo, e.getX(), e.getY());
+                    ajustarLimitesBordes.run();
+                }
                 return true;
             }
         });
 
         imgZoom.setOnTouchListener((v, event) -> {
+            if (!inicializado[0]) centrarImagenInicial.run();
+            detectorDobleToque.onTouchEvent(event);
             detectorEscala.onTouchEvent(event);
 
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    ultimaX[0] = event.getRawX();
-                    ultimaY[0] = event.getRawY();
-                    estaArrastrando[0] = true;
+            final int accion = event.getActionMasked();
+            switch (accion) {
+                case MotionEvent.ACTION_DOWN: {
+                    int index = event.getActionIndex();
+                    ultimoX[0] = event.getX(index);
+                    ultimoY[0] = event.getY(index);
+                    punteroActivoId[0] = event.getPointerId(0);
                     break;
-                case MotionEvent.ACTION_MOVE:
-                    if (estaArrastrando[0] && escalaActual[0] > 1.0f) {
-                        float deltaX = event.getRawX() - ultimaX[0];
-                        float deltaY = event.getRawY() - ultimaY[0];
-                        imgZoom.setTranslationX(imgZoom.getTranslationX() + deltaX);
-                        imgZoom.setTranslationY(imgZoom.getTranslationY() + deltaY);
-                        ultimaX[0] = event.getRawX();
-                        ultimaY[0] = event.getRawY();
+                }
+                case MotionEvent.ACTION_MOVE: {
+                    if (!detectorEscala.isInProgress() && escalaActual[0] > 1.0f) {
+                        int pointerIndex = event.findPointerIndex(punteroActivoId[0]);
+                        if (pointerIndex >= 0) {
+                            float x = event.getX(pointerIndex);
+                            float y = event.getY(pointerIndex);
+                            matriz.postTranslate(x - ultimoX[0], y - ultimoY[0]);
+                            ajustarLimitesBordes.run();
+                            ultimoX[0] = x;
+                            ultimoY[0] = y;
+                        }
                     }
                     break;
+                }
                 case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    estaArrastrando[0] = false;
-                    if (escalaActual[0] <= 1.0f) {
-                        imgZoom.setTranslationX(0f);
-                        imgZoom.setTranslationY(0f);
+                case MotionEvent.ACTION_CANCEL: {
+                    punteroActivoId[0] = MotionEvent.INVALID_POINTER_ID;
+                    break;
+                }
+                case MotionEvent.ACTION_POINTER_UP: {
+                    int pointerIndex = event.getActionIndex();
+                    int pointerId = event.getPointerId(pointerIndex);
+                    if (pointerId == punteroActivoId[0]) {
+                        int nuevoIndice = (pointerIndex == 0) ? 1 : 0;
+                        ultimoX[0] = event.getX(nuevoIndice);
+                        ultimoY[0] = event.getY(nuevoIndice);
+                        punteroActivoId[0] = event.getPointerId(nuevoIndice);
                     }
                     break;
+                }
             }
             return true;
         });
+
+        Object cargaFinal = fuenteImagen;
+        if (fuenteImagen instanceof String) {
+            String str = (String) fuenteImagen;
+            if (str.startsWith("content://") || str.startsWith("file://") || str.startsWith("/")) {
+                cargaFinal = android.net.Uri.parse(str);
+            }
+        }
+
+        Glide.with(this)
+                .load(cargaFinal)
+                .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(com.bumptech.glide.load.engine.GlideException e, Object model,
+                                                com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model,
+                                                   com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                   com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                        imgZoom.post(centrarImagenInicial);
+                        return false;
+                    }
+                })
+                .into(imgZoom);
 
         dialog.show();
     }

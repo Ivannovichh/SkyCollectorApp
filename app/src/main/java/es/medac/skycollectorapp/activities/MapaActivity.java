@@ -41,6 +41,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -83,7 +85,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Actividad que gestiona el radar aéreo en tiempo real sobre Google Maps,
- * mostrando vuelos activos, rutas, trayectorias y permitiendo avistar aeronaves cercanas.
+ * mostrando vuelos activos, rutas validadas, trayectorias, el radio visual de 40 km
+ * y carga inmediata al desplazar la cámara del mapa.
  */
 public class MapaActivity extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -93,10 +96,13 @@ public class MapaActivity extends AppCompatActivity
 
     private static final String URL_API_VUELOS = "https://api.adsb.lol/";
     private static final int RADIO_MAXIMO_NM = 250;
-    private static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 40f;
+    public static final float DISTANCIA_MAXIMA_AVISTAMIENTO_KM = 40f;
     private static final String URL_API_DETALLES = "https://api.adsbdb.com/";
 
-    private static final long INTERVALO_ACTUALIZACION_MS = 15000;
+    // Tiempos optimizados para carga rápida al mover el mapa y refresco ágil
+    private static final long INTERVALO_ACTUALIZACION_MS = 8000;
+    private static final long DEBOUNCE_MOVIMIENTO_CAMARA_MS = 450;
+    private static final long COOLDOWN_DESCARGA_MOVIMIENTO_MS = 1200;
     private static final long INTERVALO_ANIMACION_MS = 300;
     private static final float ZOOM_MINIMO_ANIMACION = 7f;
     private static final double RADIO_TIERRA = 6371000.0;
@@ -109,14 +115,25 @@ public class MapaActivity extends AppCompatActivity
 
     private boolean activa = false;
     private boolean descargando = false;
+    private boolean descargaPendienteTrasMovimiento = false;
     private boolean avisoLimiteMostrado = false;
     private long ultimaDescargaManual = 0;
+    private long ultimaDescargaPorMovimiento = 0;
 
     private final Runnable tareaActualizar = new Runnable() {
         @Override
         public void run() {
             descargar(false);
             handler.postDelayed(this, INTERVALO_ACTUALIZACION_MS);
+        }
+    };
+
+    private final Runnable tareaDescargaPorCamara = () -> {
+        if (!activa || mMap == null) return;
+        long ahora = SystemClock.elapsedRealtime();
+        if (ahora - ultimaDescargaPorMovimiento >= COOLDOWN_DESCARGA_MOVIMIENTO_MS) {
+            ultimaDescargaPorMovimiento = ahora;
+            descargar(false);
         }
     };
 
@@ -140,6 +157,7 @@ public class MapaActivity extends AppCompatActivity
     private final Map<String, EstadoVuelo> estados = new HashMap<>();
     private final List<LatLng> puntosTrayectoria = new ArrayList<>();
 
+    private Circle circuloRadioAvistamiento;
     private Polyline lineaHistorial;
     private Polyline lineaActual;
     private long ultimoPuntoTrayectoria = 0;
@@ -276,24 +294,26 @@ public class MapaActivity extends AppCompatActivity
         }
 
         handler.removeCallbacks(tareaActualizar);
-        handler.postDelayed(tareaActualizar, 1000);
+        handler.postDelayed(tareaActualizar, 300);
         handler.removeCallbacks(tareaAnimar);
         handler.postDelayed(tareaAnimar, INTERVALO_ANIMACION_MS);
     }
 
     /**
-     * Detiene las tareas periódicas de descarga y animación al pausar la actividad.
+     * Detiene las tareas periódicas de descarga, movimiento y animación al pausar la actividad.
      */
     @Override
     protected void onPause() {
         super.onPause();
         activa = false;
         handler.removeCallbacks(tareaActualizar);
+        handler.removeCallbacks(tareaDescargaPorCamara);
         handler.removeCallbacks(tareaAnimar);
     }
 
     /**
-     * Configura los listeners de Google Maps y solicita los permisos de ubicación GPS al estar listo el mapa.
+     * Configura los listeners de Google Maps, la detección inmediata de movimiento de cámara
+     * y solicita los permisos de ubicación GPS al estar listo el mapa.
      */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -306,12 +326,26 @@ public class MapaActivity extends AppCompatActivity
             borrarTrayectoria();
         });
 
+        // Dispara una descarga rápida en cuanto el usuario termina de arrastrar o hacer zoom en el mapa
+        mMap.setOnCameraIdleListener(() -> {
+            if (!activa) return;
+            handler.removeCallbacks(tareaDescargaPorCamara);
+            handler.postDelayed(tareaDescargaPorCamara, DEBOUNCE_MOVIMIENTO_CAMARA_MS);
+        });
+
+        // Cancela descargas pendientes mientras el dedo sigue arrastrando el mapa
+        mMap.setOnCameraMoveStartedListener(reason -> {
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                handler.removeCallbacks(tareaDescargaPorCamara);
+            }
+        });
+
         mMap.getUiSettings().setZoomControlsEnabled(true);
         pedirOActivarUbicacion();
 
         if (activa) {
             handler.removeCallbacks(tareaActualizar);
-            handler.postDelayed(tareaActualizar, 1000);
+            handler.postDelayed(tareaActualizar, 300);
         }
     }
 
@@ -334,7 +368,8 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Activa la capa de ubicación del usuario en el mapa y suscribe listeners de actualización GPS/Red.
+     * Activa la capa de ubicación del usuario en el mapa, dibuja el círculo de 40 km
+     * y suscribe listeners de actualización GPS/Red.
      */
     @SuppressLint("MissingPermission")
     @SuppressWarnings("deprecation")
@@ -342,15 +377,24 @@ public class MapaActivity extends AppCompatActivity
         if (mMap == null) return;
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.setOnMyLocationChangeListener(location -> ultimaUbicacion = location);
+        mMap.setOnMyLocationChangeListener(location -> {
+            ultimaUbicacion = location;
+            actualizarCirculoAvistamiento(location);
+        });
 
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (lm != null) {
             Location gps = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             Location net = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             ultimaUbicacion = gps != null ? gps : net;
+            if (ultimaUbicacion != null) {
+                actualizarCirculoAvistamiento(ultimaUbicacion);
+            }
 
-            LocationListener locListener = location -> ultimaUbicacion = location;
+            LocationListener locListener = location -> {
+                ultimaUbicacion = location;
+                actualizarCirculoAvistamiento(location);
+            };
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10f, locListener);
             }
@@ -360,6 +404,28 @@ public class MapaActivity extends AppCompatActivity
         }
 
         centrarEnUbicacionActual();
+    }
+
+    /**
+     * Dibuja o actualiza sobre el mapa el perímetro visual de 40 km dentro del cual se pueden avistar aeronaves.
+     */
+    private void actualizarCirculoAvistamiento(Location location) {
+        if (mMap == null || location == null) return;
+        LatLng centro = new LatLng(location.getLatitude(), location.getLongitude());
+        double radioMetros = DISTANCIA_MAXIMA_AVISTAMIENTO_KM * 1000.0;
+
+        if (circuloRadioAvistamiento == null) {
+            circuloRadioAvistamiento = mMap.addCircle(new CircleOptions()
+                    .center(centro)
+                    .radius(radioMetros)
+                    .strokeColor(Color.parseColor("#661E88E5"))
+                    .strokeWidth(3f)
+                    .fillColor(Color.parseColor("#141E88E5"))
+                    .clickable(false));
+        } else {
+            circuloRadioAvistamiento.setCenter(centro);
+            circuloRadioAvistamiento.setRadius(radioMetros);
+        }
     }
 
     /**
@@ -377,7 +443,8 @@ public class MapaActivity extends AppCompatActivity
 
         if (ultimaUbicacion != null) {
             LatLng miPosicion = new LatLng(ultimaUbicacion.getLatitude(), ultimaUbicacion.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 10f));
+            actualizarCirculoAvistamiento(ultimaUbicacion);
             return;
         }
 
@@ -392,7 +459,8 @@ public class MapaActivity extends AppCompatActivity
         if (ubicacion != null) {
             ultimaUbicacion = ubicacion;
             LatLng miPosicion = new LatLng(ubicacion.getLatitude(), ubicacion.getLongitude());
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 10f));
+            actualizarCirculoAvistamiento(ubicacion);
         } else {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(40.4168, -3.7038), 6f));
             String proveedor = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
@@ -402,7 +470,8 @@ public class MapaActivity extends AppCompatActivity
             locationManager.requestSingleUpdate(proveedor, location -> {
                 ultimaUbicacion = location;
                 LatLng miPosicion = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 11f));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(miPosicion, 10f));
+                actualizarCirculoAvistamiento(location);
             }, null);
         }
     }
@@ -423,7 +492,8 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Valida la distancia al avión seleccionado y lanza la actividad para registrarlo en el hangar.
+     * Valida la distancia al avión seleccionado, detecta si es un Easter Egg terrestre
+     * y lanza la actividad para registrarlo en el hangar.
      */
     private void avistarSeleccionado() {
         if (icaoSeleccionado == null || vueloSeleccionado == null) {
@@ -449,17 +519,40 @@ public class MapaActivity extends AppCompatActivity
         Marker m = marcadores.get(icaoSeleccionado);
         LatLng posAvion = m != null ? m.getPosition() : new LatLng(vueloSeleccionado.latitude, vueloSeleccionado.longitude);
 
-        String nombre = modeloCompleto(cacheAeronaves.get(icaoSeleccionado));
-        if (nombre == null && !AvionGenerator.esModeloDesconocido(this, vueloSeleccionado.descripcion)) {
-            nombre = vueloSeleccionado.descripcion;
+        boolean esEasterEgg = AvionGenerator.esEasterEggTerrestre(
+                tipoSeleccionado,
+                vueloSeleccionado.callsign,
+                matriculaSeleccionada,
+                vueloSeleccionado.descripcion
+        );
+
+        String nombre;
+        String tipoGuardar = tipoSeleccionado;
+        String urlFotoGuardar = null;
+        if (esEasterEgg) {
+            nombre = getString(R.string.easter_egg_vehiculo_modelo);
+            urlFotoGuardar = AvionGenerator.URL_FOTO_EASTER_EGG_VEHICULO;
+            if (tipoGuardar == null || tipoGuardar.trim().isEmpty()) {
+                tipoGuardar = (vueloSeleccionado.callsign != null && !vueloSeleccionado.callsign.trim().isEmpty())
+                        ? vueloSeleccionado.callsign.trim().toUpperCase(Locale.ROOT)
+                        : "OPS";
+            }
+        } else {
+            nombre = modeloCompleto(cacheAeronaves.get(icaoSeleccionado));
+            if (nombre == null && !AvionGenerator.esModeloDesconocido(this, vueloSeleccionado.descripcion)) {
+                nombre = vueloSeleccionado.descripcion;
+            }
         }
 
         getSharedPreferences("SkyCollectorDatos", MODE_PRIVATE)
                 .edit()
                 .putString("icao_seleccionado", icaoSeleccionado)
-                .putString("tipo_seleccionado", tipoSeleccionado)
+                .putString("callsign_seleccionado", vueloSeleccionado.callsign)
+                .putString("tipo_seleccionado", tipoGuardar)
                 .putString("matricula_seleccionada", matriculaSeleccionada)
                 .putString("descripcion_seleccionada", nombre)
+                .putString("url_imagen_remota_seleccionada", urlFotoGuardar)
+                .putBoolean("es_easter_egg_seleccionado", esEasterEgg)
                 .putLong("fecha_seleccionada", System.currentTimeMillis())
                 .putFloat("distancia_seleccionada", distancia)
                 .putFloat("lat_avion_seleccionado", (float) posAvion.latitude)
@@ -471,20 +564,34 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Abre la pantalla de detalle completo del vuelo pasando telemetría, tipo ICAO resuelto y ruta.
+     * Abre la pantalla de detalle completo del vuelo pasando telemetría, callsign,
+     * indicadores de Easter Egg y ruta validada.
      */
     private void abrirDetalleVueloCompleto() {
         if (icaoSeleccionado == null || vueloSeleccionado == null) return;
 
+        boolean esEasterEgg = AvionGenerator.esEasterEggTerrestre(
+                tipoSeleccionado,
+                vueloSeleccionado.callsign,
+                matriculaSeleccionada,
+                vueloSeleccionado.descripcion
+        );
+
         AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(icaoSeleccionado);
-        AdsbdbResponse.RutaVuelo ruta = vueloSeleccionado.callsign != null ? cacheRutas.get(vueloSeleccionado.callsign) : null;
+        String callsignKey = vueloSeleccionado.callsign != null
+                ? vueloSeleccionado.callsign.trim().toUpperCase(Locale.ROOT)
+                : null;
+        AdsbdbResponse.RutaVuelo ruta = callsignKey != null ? cacheRutas.get(callsignKey) : null;
 
         String tipoEfectivo = tipoSeleccionado;
         if ((tipoEfectivo == null || tipoEfectivo.trim().isEmpty()) && aeronave != null && aeronave.icaoType != null) {
             tipoEfectivo = aeronave.icaoType.trim().toUpperCase(Locale.ROOT);
         }
+        if ((tipoEfectivo == null || tipoEfectivo.trim().isEmpty()) && esEasterEgg) {
+            tipoEfectivo = (callsignKey != null && !callsignKey.isEmpty()) ? callsignKey : "OPS";
+        }
 
-        String modeloOficial = modeloCompleto(aeronave);
+        String modeloOficial = esEasterEgg ? getString(R.string.easter_egg_vehiculo_modelo) : modeloCompleto(aeronave);
         if (modeloOficial == null && vueloSeleccionado.descripcion != null
                 && !AvionGenerator.esModeloDesconocido(this, vueloSeleccionado.descripcion)) {
             modeloOficial = vueloSeleccionado.descripcion;
@@ -496,13 +603,15 @@ public class MapaActivity extends AppCompatActivity
             apodoUsuario = avistadoSeleccionado.getModelo().trim();
         }
 
-        String empresa = null;
-        if (ruta != null && ruta.airline != null && ruta.airline.name != null) {
-            empresa = ruta.airline.name;
-        } else if (aeronave != null && aeronave.registeredOwner != null) {
-            empresa = formatearNombre(aeronave.registeredOwner);
-        } else if (avistadoSeleccionado != null) {
-            empresa = avistadoSeleccionado.getFabricante();
+        String empresa = esEasterEgg ? getString(R.string.easter_egg_vehiculo_fabricante) : null;
+        if (empresa == null) {
+            if (ruta != null && ruta.airline != null && ruta.airline.name != null) {
+                empresa = ruta.airline.name;
+            } else if (aeronave != null && aeronave.registeredOwner != null) {
+                empresa = formatearNombre(aeronave.registeredOwner);
+            } else if (avistadoSeleccionado != null) {
+                empresa = avistadoSeleccionado.getFabricante();
+            }
         }
 
         String origen = ruta != null ? describirAeropuerto(ruta.origin) : null;
@@ -521,6 +630,7 @@ public class MapaActivity extends AppCompatActivity
 
         Intent intent = new Intent(this, DetalleVueloRadarActivity.class);
         intent.putExtra("icao", icaoSeleccionado);
+        intent.putExtra("callsign", vueloSeleccionado.callsign);
         intent.putExtra("tipo", tipoEfectivo);
         intent.putExtra("matricula", matriculaSeleccionada);
         intent.putExtra("modelo", modeloOficial);
@@ -533,6 +643,7 @@ public class MapaActivity extends AppCompatActivity
         intent.putExtra("lat_avion", lat);
         intent.putExtra("lon_avion", lon);
         intent.putExtra("ya_avistado", avistadoSeleccionado != null);
+        intent.putExtra("es_easter_egg", esEasterEgg);
         startActivity(intent);
     }
 
@@ -604,13 +715,18 @@ public class MapaActivity extends AppCompatActivity
 
     /**
      * Descarga los vuelos activos dentro de la región visible actual del mapa.
+     * Si ya hay una petición en curso, encola una actualización inmediata para la nueva zona.
      */
     private void descargar(boolean avisar) {
-        if (mMap == null || descargando) return;
+        if (mMap == null) return;
+        if (descargando) {
+            descargaPendienteTrasMovimiento = true;
+            return;
+        }
 
         if (avisar) {
             long ahora = SystemClock.elapsedRealtime();
-            if (ahora - ultimaDescargaManual < 10000) {
+            if (ahora - ultimaDescargaManual < 3000) {
                 Toast.makeText(this, getString(R.string.toast_espera_refrescar), Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -632,6 +748,7 @@ public class MapaActivity extends AppCompatActivity
         }
 
         descargando = true;
+        descargaPendienteTrasMovimiento = false;
 
         service.getVuelosEnZona(
                 String.format(Locale.US, "%.4f", centro.latitude),
@@ -649,17 +766,22 @@ public class MapaActivity extends AppCompatActivity
                         Toast.makeText(MapaActivity.this, getString(R.string.toast_limite_api), Toast.LENGTH_LONG).show();
                     }
                     handler.removeCallbacks(tareaActualizar);
-                    handler.postDelayed(tareaActualizar, 60000);
+                    handler.postDelayed(tareaActualizar, 45000);
                     return;
                 }
 
-                if (response.body() == null || response.body().getAviones() == null) return;
-
-                List<Vuelo> vuelos = new ArrayList<>();
-                for (AdsbResponse.AdsbAircraft a : response.body().getAviones()) {
-                    vuelos.add(a.toVuelo());
+                if (response.body() != null && response.body().getAviones() != null) {
+                    List<Vuelo> vuelos = new ArrayList<>();
+                    for (AdsbResponse.AdsbAircraft a : response.body().getAviones()) {
+                        vuelos.add(a.toVuelo());
+                    }
+                    procesar(vuelos);
                 }
-                procesar(vuelos);
+
+                if (descargaPendienteTrasMovimiento && activa) {
+                    descargaPendienteTrasMovimiento = false;
+                    handler.postDelayed(tareaDescargaPorCamara, 250);
+                }
             }
 
             @Override
@@ -670,6 +792,15 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
+     * Comprueba que el código ICAO24 sea un identificador hexadecimal oficial y no un blanco temporal TIS-B ('~').
+     */
+    private boolean esIcaoValido(String icao24) {
+        if (icao24 == null) return false;
+        String limpio = icao24.trim();
+        return !limpio.isEmpty() && !limpio.startsWith("~");
+    }
+
+    /**
      * Actualiza posiciones, iconos y estados de los marcadores de vuelos recibidos desde la API.
      */
     private void procesar(List<Vuelo> vuelos) {
@@ -677,7 +808,7 @@ public class MapaActivity extends AppCompatActivity
         long ahora = SystemClock.elapsedRealtime();
 
         for (Vuelo api : vuelos) {
-            if (api.icao24 == null || api.latitude == null || api.longitude == null) continue;
+            if (!esBlancoRadarValido(api)) continue;
 
             Avion avistado = buscarPorIcao(api.icao24);
             if (modoActual == ModoMapa.AVISTADOS && avistado == null) continue;
@@ -685,7 +816,6 @@ public class MapaActivity extends AppCompatActivity
             visibles.add(api.icao24);
             LatLng pos = new LatLng(api.latitude, api.longitude);
 
-            // Conservamos el tipo ICAO si ya lo habíamos resuelto previamente por red
             if ((api.tipo == null || api.tipo.trim().isEmpty()) && api.icao24.equals(icaoSeleccionado) && tipoSeleccionado != null) {
                 api.tipo = tipoSeleccionado;
             }
@@ -867,14 +997,14 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Lanza las consultas asíncronas utilizando el generador global (HexDB + ADSBDB + OpenSky + Búsqueda por Matrícula)
-     * y la ruta comercial del vuelo.
+     * Lanza las consultas asíncronas utilizando el generador global y valida la ruta comercial del vuelo.
      */
     private void pedirDetalles(Vuelo api) {
-        // Pasamos api.matricula (ej: N47470) para que el generador pueda buscar por matrícula si el hex es desconocido
-        AvionGenerator.resolverAvionGlobalAsync(this, api.icao24, api.matricula, api.tipo, api.descripcion, null, avionResuelto -> {
-            if (isDestroyed() || isFinishing()) return;
+        if (!esIcaoValido(api.icao24)) return;
 
+        pedirAeronave(api.icao24);
+
+        AvionGenerator.resolverAvionGlobalAsync(this, api.icao24, api.callsign, api.matricula, api.tipo, api.descripcion, null, avionResuelto -> {
             if (avionResuelto != null && api.icao24.equalsIgnoreCase(icaoSeleccionado)) {
                 if (avionResuelto.getTipoIcao() != null && !avionResuelto.getTipoIcao().isEmpty()) {
                     tipoSeleccionado = avionResuelto.getTipoIcao();
@@ -882,12 +1012,17 @@ public class MapaActivity extends AppCompatActivity
                         vueloSeleccionado.tipo = tipoSeleccionado;
                     }
                 }
+                if (avionResuelto.getModelo() != null && !AvionGenerator.esModeloDesconocido(this, avionResuelto.getModelo())) {
+                    if (vueloSeleccionado != null) {
+                        vueloSeleccionado.descripcion = avionResuelto.getModelo();
+                    }
+                }
                 pintarPanel();
             }
         });
 
-        if (api.callsign != null && !api.callsign.isEmpty()) {
-            pedirRuta(api.callsign);
+        if (esCallsignComercialValido(api.callsign, api.matricula)) {
+            pedirRuta(api);
         }
     }
 
@@ -930,9 +1065,10 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Consulta el origen, destino y aerolínea de un vuelo comercial a partir de su indicativo (callsign).
+     * Consulta el origen, destino y aerolínea de un vuelo comercial y valida su coherencia geográfica.
      */
-    private void pedirRuta(String indicativo) {
+    private void pedirRuta(Vuelo vuelo) {
+        String indicativo = vuelo.callsign.trim().toUpperCase(Locale.ROOT);
         if (cacheRutas.containsKey(indicativo) || rutasNoDisponibles.contains(indicativo)) return;
 
         serviceDetalles.getRuta(indicativo).enqueue(new Callback<AdsbdbResponse>() {
@@ -946,8 +1082,17 @@ public class MapaActivity extends AppCompatActivity
                     return;
                 }
 
-                cacheRutas.put(indicativo, body.getRespuesta().flightroute);
-                if (vueloSeleccionado != null && indicativo.equals(vueloSeleccionado.callsign)) pintarPanel();
+                AdsbdbResponse.RutaVuelo ruta = body.getRespuesta().flightroute;
+
+                if (!esRutaCoherenteConVuelo(ruta, vuelo)) {
+                    rutasNoDisponibles.add(indicativo);
+                    return;
+                }
+
+                cacheRutas.put(indicativo, ruta);
+                if (vueloSeleccionado != null && indicativo.equalsIgnoreCase(vueloSeleccionado.callsign)) {
+                    pintarPanel();
+                }
             }
 
             @Override
@@ -958,23 +1103,141 @@ public class MapaActivity extends AppCompatActivity
     }
 
     /**
-     * Actualiza los textos del panel inferior con el modelo, aerolínea, tipo ICAO y telemetría en vivo.
+     * Filtra indicativos que corresponden a matrículas privadas o vuelos no comerciales.
+     */
+    private boolean esCallsignComercialValido(String callsign, String matricula) {
+        if (callsign == null) return false;
+        String cs = callsign.trim().toUpperCase(Locale.ROOT);
+        if (cs.length() < 4 || cs.length() > 8) return false;
+
+        if (matricula != null && cs.replace("-", "").equalsIgnoreCase(matricula.trim().replace("-", ""))) {
+            return false;
+        }
+
+        return cs.matches("^[A-Z]{3}[0-9][A-Z0-9]{0,4}$");
+    }
+
+    /**
+     * Comprueba mediante geometría esférica si la posición, el corredor lateral y el rumbo
+     * actuales del avión encajan físicamente con el origen y destino devueltos por la API.
+     */
+    private boolean esRutaCoherenteConVuelo(AdsbdbResponse.RutaVuelo ruta, Vuelo vuelo) {
+        if (ruta == null || ruta.origin == null || ruta.destination == null) return false;
+        if (vuelo == null || vuelo.latitude == null || vuelo.longitude == null) return true;
+
+        Double latOrig = ruta.origin.latitude;
+        Double lonOrig = ruta.origin.longitude;
+        Double latDest = ruta.destination.latitude;
+        Double lonDest = ruta.destination.longitude;
+
+        if (latOrig == null || lonOrig == null || latDest == null || lonDest == null) return true;
+
+        double distRutaTotalKm = calcularDistanciaKm(latOrig, lonOrig, latDest, lonDest);
+        double distDesdeOrigenKm = calcularDistanciaKm(latOrig, lonOrig, vuelo.latitude, vuelo.longitude);
+        double distHastaDestinoKm = calcularDistanciaKm(vuelo.latitude, vuelo.longitude, latDest, lonDest);
+
+        // 1. Desvío longitudinal máximo estricto (evita aceptar vuelos de aeropuertos cercanos como SVQ por GRX)
+        double desvioKm = (distDesdeOrigenKm + distHastaDestinoKm) - distRutaTotalKm;
+        double margenDesvio = Math.min(120.0, Math.max(45.0, distRutaTotalKm * 0.08));
+        if (desvioKm > margenDesvio) {
+            return false;
+        }
+
+        // 2. Distancia perpendicular (cross-track) respecto a la ortodrómica origen -> destino
+        double desvioLateralKm = calcularDistanciaTransversalKm(
+                latOrig, lonOrig, latDest, lonDest, vuelo.latitude, vuelo.longitude
+        );
+        if (desvioLateralKm > 110.0) {
+            return false;
+        }
+
+        // 3. Validación estricta del rumbo en aire hacia el destino
+        if (!vuelo.enTierra && vuelo.trueTrack != null && distHastaDestinoKm > 40.0) {
+            double rumboHaciaDestino = calcularRumboGrados(vuelo.latitude, vuelo.longitude, latDest, lonDest);
+            double diferenciaAngular = Math.abs(vuelo.trueTrack - rumboHaciaDestino);
+            if (diferenciaAngular > 180.0) {
+                diferenciaAngular = 360.0 - diferenciaAngular;
+            }
+            // Margen más amplio solo en maniobras iniciales de despegue (< 70 km del origen)
+            double limiteAngular = (distDesdeOrigenKm < 70.0) ? 75.0 : 50.0;
+            if (diferenciaAngular > limiteAngular) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Calcula la distancia perpendicular mínima (cross-track en km) desde la posición del avión
+     * hasta el arco de círculo máximo que une el aeropuerto de origen y el de destino.
+     */
+    private double calcularDistanciaTransversalKm(double lat1, double lon1,
+                                                  double lat2, double lon2,
+                                                  double latP, double lonP) {
+        double dist13Rad = (calcularDistanciaKm(lat1, lon1, latP, lonP) * 1000.0) / RADIO_TIERRA;
+        double rumbo13Rad = Math.toRadians(calcularRumboGrados(lat1, lon1, latP, lonP));
+        double rumbo12Rad = Math.toRadians(calcularRumboGrados(lat1, lon1, lat2, lon2));
+
+        double dXtRad = Math.asin(Math.sin(dist13Rad) * Math.sin(rumbo13Rad - rumbo12Rad));
+        return Math.abs(dXtRad * RADIO_TIERRA) / 1000.0;
+    }
+
+    /**
+     * Calcula la distancia en kilómetros entre dos coordenadas geográficas.
+     */
+    private double calcularDistanciaKm(double lat1, double lon1, double lat2, double lon2) {
+        float[] res = new float[1];
+        Location.distanceBetween(lat1, lon1, lat2, lon2, res);
+        return res[0] / 1000.0;
+    }
+
+    /**
+     * Calcula el rumbo inicial (azimut en grados 0-360) desde un punto A hacia un punto B.
+     */
+    private double calcularRumboGrados(double lat1, double lon1, double lat2, double lon2) {
+        double phi1 = Math.toRadians(lat1);
+        double phi2 = Math.toRadians(lat2);
+        double dLambda = Math.toRadians(lon2 - lon1);
+
+        double y = Math.sin(dLambda) * Math.cos(phi2);
+        double x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLambda);
+        double theta = Math.atan2(y, x);
+        return (Math.toDegrees(theta) + 360.0) % 360.0;
+    }
+
+    /**
+     * Actualiza los textos del panel inferior con el modelo, aerolínea, tipo ICAO,
+     * etiqueta de Easter Egg si corresponde y telemetría en vivo.
      */
     private void pintarPanel() {
         Vuelo api = vueloSeleccionado;
         Avion a = avistadoSeleccionado;
         if (api == null) return;
 
+        boolean esEasterEgg = AvionGenerator.esEasterEggTerrestre(
+                api.tipo != null ? api.tipo : tipoSeleccionado,
+                api.callsign,
+                api.matricula,
+                api.descripcion
+        );
+
         String tipoEfectivo = (api.tipo != null && !api.tipo.trim().isEmpty()) ? api.tipo : tipoSeleccionado;
         AdsbdbResponse.Aeronave aeronave = cacheAeronaves.get(api.icao24);
         if ((tipoEfectivo == null || tipoEfectivo.trim().isEmpty()) && aeronave != null && aeronave.icaoType != null) {
             tipoEfectivo = aeronave.icaoType.trim().toUpperCase(Locale.ROOT);
         }
+        if ((tipoEfectivo == null || tipoEfectivo.trim().isEmpty()) && esEasterEgg) {
+            tipoEfectivo = (api.callsign != null && !api.callsign.trim().isEmpty())
+                    ? api.callsign.trim().toUpperCase(Locale.ROOT)
+                    : "OPS";
+        }
 
-        AdsbdbResponse.RutaVuelo ruta = api.callsign != null ? cacheRutas.get(api.callsign) : null;
+        String callsignKey = api.callsign != null ? api.callsign.trim().toUpperCase(Locale.ROOT) : null;
+        AdsbdbResponse.RutaVuelo ruta = callsignKey != null ? cacheRutas.get(callsignKey) : null;
         Avion modeloCatalogo = a == null ? AvionGenerator.getAvionPorTipoIcao(tipoEfectivo) : null;
 
-        String modelo = modeloCompleto(aeronave);
+        String modelo = esEasterEgg ? getString(R.string.easter_egg_vehiculo_modelo) : modeloCompleto(aeronave);
         if (modelo == null) {
             if (a != null) {
                 modelo = a.getModelo();
@@ -989,21 +1252,25 @@ public class MapaActivity extends AppCompatActivity
             }
         }
 
-        String empresa = null;
-        if (ruta != null && ruta.airline != null && ruta.airline.name != null && !ruta.airline.name.isEmpty()) {
-            empresa = ruta.airline.name;
-        } else if (aeronave != null && aeronave.registeredOwner != null && !aeronave.registeredOwner.isEmpty()) {
-            empresa = formatearNombre(aeronave.registeredOwner);
-        } else if (a != null) {
-            empresa = a.getFabricante();
-        } else if (modeloCatalogo != null) {
-            empresa = modeloCatalogo.getFabricante();
+        String empresa = esEasterEgg ? getString(R.string.easter_egg_vehiculo_fabricante) : null;
+        if (empresa == null) {
+            if (ruta != null && ruta.airline != null && ruta.airline.name != null && !ruta.airline.name.isEmpty()) {
+                empresa = ruta.airline.name;
+            } else if (aeronave != null && aeronave.registeredOwner != null && !aeronave.registeredOwner.isEmpty()) {
+                empresa = formatearNombre(aeronave.registeredOwner);
+            } else if (a != null) {
+                empresa = a.getFabricante();
+            } else if (modeloCatalogo != null) {
+                empresa = modeloCatalogo.getFabricante();
+            }
         }
 
         String nuevoModelo = (empresa != null && !empresa.isEmpty()) ? modelo + " | " + empresa : modelo;
 
         int vel = api.velocity != null ? (int) (api.velocity * 3.6) : 0;
-        String rareza = a != null ? a.getRareza() : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null);
+        String rareza = esEasterEgg
+                ? "EASTER EGG"
+                : (a != null ? a.getRareza() : (modeloCatalogo != null ? modeloCatalogo.getRareza() : null));
         String altitud = api.enTierra
                 ? getString(R.string.altitud_en_tierra)
                 : (api.altitude != null ? Math.round(api.altitude) + " m" : "—");
@@ -1101,7 +1368,8 @@ public class MapaActivity extends AppCompatActivity
             case "RARE": res = R.drawable.avionraro; break;
             case "EPIC": res = R.drawable.avionepico; break;
             case "LEGENDARY":
-            case "MYTHIC": res = R.drawable.avionlegendario; break;
+            case "MYTHIC":
+            case "EASTER_EGG": res = R.drawable.avionlegendario; break;
             default: res = R.drawable.avioncomun;
         }
         return iconoDesdeDrawable(res);
@@ -1146,5 +1414,33 @@ public class MapaActivity extends AppCompatActivity
             listaLimpia.add(avion);
         }
         return listaLimpia;
+    }
+
+    /**
+     * Filtra transpondedores fijos de torre (TWR), balizas de calibración y blancos fantasma
+     * que Flightradar24 oculta, conservando aeronaves reales y vehículos terrestres válidos.
+     */
+    private boolean esBlancoRadarValido(Vuelo api) {
+        if (!esIcaoValido(api.icao24) || api.latitude == null || api.longitude == null) {
+            return false;
+        }
+
+        String tipo = api.tipo != null ? api.tipo.trim().toUpperCase(Locale.ROOT) : "";
+        String callsign = api.callsign != null ? api.callsign.trim().toUpperCase(Locale.ROOT) : "";
+        String matricula = api.matricula != null ? api.matricula.trim().toUpperCase(Locale.ROOT) : "";
+
+        // Descartar transpondedores fijos de torre de control y balizas de prueba (ej. TWR, GND, RADAR)
+        if ("TWR".equals(tipo) || "TWR".equals(matricula) || callsign.startsWith("TWR")
+                || "RADAR".equals(tipo) || "TEST".equals(callsign)) {
+            return false;
+        }
+
+        // Descartar objetos estáticos en tierra sin indicativo ni tipo que no sean vehículos Follow-Me/Ops
+        boolean esVehiculoValido = AvionGenerator.esEasterEggTerrestre(tipo, callsign, matricula, api.descripcion);
+        if (api.enTierra && !esVehiculoValido && tipo.isEmpty() && callsign.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 }

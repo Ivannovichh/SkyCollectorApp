@@ -15,7 +15,7 @@ android {
         applicationId "es.medac.skycollectorapp" // Identificador único de la app
         minSdk 24 // Versión mínima de Android soportada (Android 7.0)
         targetSdk 34 // Versión objetivo de Android
-        versionCode 1 // Código numérico interno de versión
+        versionCode 2 // Código numérico interno de versión
         versionName "1.0" // Nombre visible de la versión
     }
 
