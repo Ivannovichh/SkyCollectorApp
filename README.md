@@ -13,7 +13,7 @@
 ## 📱 Características principales
 
 * **Radar en directo:** Mapa interactivo con los vuelos activos en la zona visible, desplazamiento suave interpolado y estela del recorrido de la aeronave seleccionada.
-* **Captura por proximidad:** Avistamiento de aviones dentro de un radio máximo de **30 km** mediante verificación GPS y fotografía tomada en el momento.
+* **Captura por proximidad:** Avistamiento de aviones dentro de un radio máximo de **40 km** mediante verificación GPS y fotografía tomada en el momento.
 * **Hangar personal:** Colección agrupada por modelo con contador de unidades, matrícula, fecha, distancia de captura y fotografía verificada.
 * **Sistema de rareza y puntuación:** Clasificación automática de ~280 modelos comerciales, privados, militares e históricos.
 * **Ranking global y perfiles públicos:** Clasificación en tiempo real del Top 50 de pilotos y consulta de hangares de otros usuarios.
