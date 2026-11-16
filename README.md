@@ -116,38 +116,6 @@ app/
 
 ---
 
-## 🖼️ Capturas de la aplicación
-
-### 🔐 Inicio de sesión
-
-![Inicio de sesión](capturas/InicioDeSesion.png)
-
-### 🛩️ Colección de aviones
-
-![Colección](capturas/ColeccionDeAviones.png)
-
-### 🤖 Chatbot
-
-![Chatbot](capturas/ChatBot.png)
-
-### 👤 Perfil
-
-![Perfil](capturas/Perfil.png)
-
-### 🗺️ Mapa Genérico y Avistados filtrados (Radar en vivo)
-
-![Mapa](capturas/Mapa.png) ![Aviones avistados](capturas/AvionesAvistados.png)
-
-### ✈️ Detalle de los Aviones
-
-![Detalle 1](capturas/Detalle1.png) ![Detalle 2](capturas/Detalle2.png)
-
-### 📸 Registro de Aviones
-
-![Registro foto](capturas/RegistrarConFoto.png) ![Registro aviones](capturas/RegistroConAviones.png)
-
----
-
 ## ▶️ Ejecución
 
 ```bash
