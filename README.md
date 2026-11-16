@@ -114,18 +114,6 @@ app/
 * **Ranking Global:** Clasificación pública sincronizada según rareza y fotos verificadas.
 * **Chatbot interno:** Asistente integrado en la aplicación.
 
----
-
-## ▶️ Ejecución
-
-```bash
-git clone [https://github.com/Ivannovichh/SkyCollectorApp.git](https://github.com/Ivannovichh/SkyCollectorApp.git)
-```
-
-1. Abrir en **Android Studio**.
-2. Asegurarse de incluir el archivo `google-services.json` en la carpeta `app/` para los servicios de Firebase.
-3. Realizar **Sync Gradle** (y *Rebuild Project* si es necesario).
-4. Ejecutar en emulador o dispositivo físico con permisos de ubicación GPS y cámara activados.
 
 ---
 
@@ -133,22 +121,6 @@ git clone [https://github.com/Ivannovichh/SkyCollectorApp.git](https://github.co
 
 **Iván Sánchez**  
 **Ángel Japón**
-
----
-
-## 🧩 Enlaces de interés
-
-- Enlace a Google Forms sobre la encuesta:  
-  https://forms.gle/a42kbaB4RF5ejABD9
-
-- Enlace a Figma v1:  
-  https://attic-froze-16880795.figma.site
-  
-- Enlace a Figma v2:  
-  https://malt-easy-43617739.figma.site
-  
-- Enlace a Presentación Canva:  
-  https://www.canva.com/design/DAHA662muww/UUBLTHJHiU7Lalhx1Sw4bQ/edit?utm_content=DAHA662muww&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 ---
 
