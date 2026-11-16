@@ -110,7 +110,7 @@ app/
   * Caché de doble capa: aciertos guardados permanentemente en `SharedPreferences` y fallos temporales en RAM para reintentos automáticos sin mantenimiento manual.
   * **Easter Eggs operativos:** Reconocimiento automático de vehículos de servicio en tierra (`GRND`, `SERV`, `GND`) y Torres de Control (`TWR`) con categoría de rareza especial.
 * **Ficha Técnica en Vivo (`DetalleVueloRadarActivity`):** Vista previa completa antes de capturar, con resolución dinámica de modelos, rareza, telemetría y visor de fotos ampliable por gestos.
-* **Registro de Avistamientos con Cámara (`AddAvionActivity`):** Captura directa desde la cámara dentro del radio permitido (30 km), compresión Base64 y subida a Firestore.
+* **Registro de Avistamientos con Cámara (`AddAvionActivity`):** Captura directa desde la cámara dentro del radio permitido (40 km), compresión Base64 y subida a Firestore.
 * **Ranking Global:** Clasificación pública sincronizada según rareza y fotos verificadas.
 * **Chatbot interno:** Asistente integrado en la aplicación.
 
