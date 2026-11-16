@@ -231,7 +231,7 @@ service cloud.firestore {
 | Permiso | Finalidad |
 | :--- | :--- |
 | `INTERNET` / `ACCESS_NETWORK_STATE` | Consulta de APIs de tráfico aéreo, Wikipedia y sincronización con Firebase |
-| `ACCESS_FINE_LOCATION` / `COARSE` | Posicionamiento en el mapa y verificación del radio de 30 km para avistar |
+| `ACCESS_FINE_LOCATION` / `COARSE` | Posicionamiento en el mapa y verificación del radio de 40 km para avistar |
 | `CAMERA` | Captura fotográfica verificada de aeronaves y actualización de foto de perfil |
 
 ---
