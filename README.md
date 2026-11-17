@@ -185,25 +185,21 @@ service cloud.firestore {
 
 ## 🖼️ Capturas de pantalla
 
-| Inicio de sesión | Colección (Hangar) | Radar en directo |
+| Inicio de sesión | Colección (Hangar) | Colección con duplicados |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Colección](capturas/Coleccion.png) | ![Mapa](capturas/Mapa.png) |
+| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Colección](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
 
-| Avistados | Radar con aviso | Proceso de avistamiento |
+| Gestión de duplicados | Radar en directo | Avistados |
 | :---: | :---: | :---: |
-| ![Avistados](capturas/Avistados.png) | ![Mapa con aviso](capturas/MapaAvisto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) |
+| ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) | ![Mapa](capturas/Mapa.png) | ![Avistados](capturas/Avistados.png) |
 
-| Avistamiento (Básico) | Avistamiento con foto | Ficha técnica detallada |
+| Proceso de avistamiento | Avistamiento con foto | Ficha técnica detallada |
 | :---: | :---: | :---: |
-| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Info detallada](capturas/InfoDetallada.png) |
+| ![Proceso avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Info detallada](capturas/info-detallada-ranking.png) |
 
-| Chatbot asistente | Perfil de usuario | Establecimiento de nombre |
+| Hangar de piloto (Perfil) | Tabla de clasificación (Leaderboard) | Chatbot asistente |
 | :---: | :---: | :---: |
-| ![Chatbot](capturas/Chatbot.png) | ![Perfil](capturas/Perifl.png) | ![Nombre de usuario](capturas/nombre-usuario.png) |
-
-| Clasificación (Ranking) | | |
-| :---: | :---: | :---: |
-| ![Ranking](capturas/ranking.png) | | |
+| ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Ranking](capturas/ranking.png) | ![Chatbot](capturas/Chatbot.png) |
 
 ---
 
