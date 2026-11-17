@@ -182,21 +182,40 @@ service cloud.firestore {
 > **Nota de arquitectura:** Para blindar el sistema de puntuación frente a manipulaciones en cliente en un entorno de producción, el cálculo de puntos debería delegarse a **Firebase Cloud Functions**.
 
 ---
-
 ## 🖼️ Capturas de pantalla
 
-| Inicio de sesión | Colección (Hangar) | Radar en directo |
+### 👤 Usuario
+| Inicio de sesión | Configuración de usuario | Perfil de usuario |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/InicioDeSesion.png) | ![Colección](capturas/ColeccionDeAviones.png) | ![Mapa](capturas/Mapa.png) |
+| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Perfil](capturas/Perifl.png) |
 
-| Filtro de avistados | Detalle de aeronave | Registro con cámara |
+### 🛩️ Colección
+| Colección (Hangar) | Colección con foto añadida | Colección de repetidos |
 | :---: | :---: | :---: |
-| ![Aviones avistados](capturas/AvionesAvistados.png) | ![Detalle](capturas/Detalle1.png) | ![Registro foto](capturas/RegistrarConFoto.png) |
+| ![Colección](capturas/Coleccion.png) | ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
 
-| Ficha técnica | Chatbot | Perfil de usuario |
+| Avistamiento básico | Avistamiento con foto | Proceso de avistamiento |
 | :---: | :---: | :---: |
-| ![Detalle 2](capturas/Detalle2.png) | ![Chatbot](capturas/ChatBot.png) | ![Perfil](capturas/Perfil.png) |
+| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) |
 
+| Eliminación de aviones | Eliminación de duplicados |
+| :---: | :---: |
+| ![Eliminación simple](capturas/Eliminacion-hangar.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+
+### 🗺️ Mapa
+| Radar en directo | Mapa de avistados | Radar con alerta | Ficha técnica de alerta |
+| :---: | :---: | :---: | :---: |
+| ![Mapa](capturas/Mapa.png) | ![Mapa de avistados](capturas/Avistados.png) | ![Mapa con aviso](capturas/MapaAvisto.png) | ![Info detallada alerta](capturas/InfoDetallada.png) |
+
+### 🏆 Ranking
+| Tabla de clasificación (Ranking) | Hangar de piloto en ranking | Ficha técnica ranking |
+| :---: | :---: | :---: |
+| ![Ranking](capturas/ranking.png) | ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) |
+
+### 🤖 Chatbot
+| Chatbot asistente | Chatbot sin conexión |
+| :---: | :---: |
+| ![Chatbot](capturas/Chatbot.png) | ![Chatbot sin conexión](capturas/chatbot-sin-conexion.png) |
 ---
 
 ## ▶️ Instalación y configuración
