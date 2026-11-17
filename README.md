@@ -6,94 +6,94 @@
 ![Google Maps](https://img.shields.io/badge/Google%20Maps-SDK-4285F4?style=for-the-badge&logo=googlemaps)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)
 
-**SkyCollectorApp** es una aplicación nativa para Android que convierte el tráfico aéreo real en un juego de colección (*plane spotting*). Permite visualizar vuelos en directo sobre un mapa interactivo, capturar aeronaves cercanas mediante la cámara del dispositivo, clasificarlas según su rareza y competir en un ranking global sincronizado en la nube.
+**SkyCollectorApp** is a native Android application that turns real-time air traffic into a gamified collection game (*plane spotting*). It allows users to view live flights on an interactive map, capture nearby aircraft using the device's camera, classify them by rarity, and compete on a cloud-synchronized global leaderboard.
 
 ---
 
-## 📱 Características principales
+## 📱 Main Features
 
-* **Radar en directo:** Mapa interactivo con los vuelos activos en la zona visible, desplazamiento suave interpolado y estela del recorrido de la aeronave seleccionada.
-* **Captura por proximidad:** Avistamiento de aviones dentro de un radio máximo de **40 km** mediante verificación GPS y fotografía tomada en el momento.
-* **Hangar personal:** Colección agrupada por modelo con contador de unidades, matrícula, fecha, distancia de captura y fotografía verificada.
-* **Sistema de rareza y puntuación:** Clasificación automática de ~280 modelos comerciales, privados, militares e históricos.
-* **Ranking global y perfiles públicos:** Clasificación en tiempo real del Top 50 de pilotos y consulta de hangares de otros usuarios.
-* **Ficha técnica enriquecida:** Identificación automática de modelo, aerolínea, ruta comercial, telemetría y descripción enciclopédica.
-* **Chatbot aeronáutico:** Asistente conversacional capaz de identificar modelos y resumir sus características técnicas.
-* **Multi-idioma y temas:** Soporte completo para **Español e Inglés**, con adaptación a **tema claro y oscuro**.
+- **Live Radar:** Interactive map featuring active flights in the visible area, smooth interpolated movement, and flight trails for selected aircraft.
+- **Proximity Capture:** Spot aircraft within a maximum radius of **40 km** using GPS verification and a real-time photograph.
+- **Personal Hangar:** Collection grouped by model with unit counts, registration numbers, capture dates, distances, and verified photos.
+- **Rarity & Scoring System:** Automatic classification of ~280 commercial, private, military, and historical models.
+- **Global Leaderboard & Public Profiles:** Real-time Top 50 pilot rankings and inspection of other users' hangars.
+- **Enriched Technical Sheet:** Automatic identification of models, airlines, commercial routes, telemetry, and encyclopedic descriptions.
+- **Aeronautical Chatbot:** Conversational assistant capable of identifying models and summarizing their technical specs.
+- **Multi-language & Themes:** Full support for **Spanish and English**, complete with **light and dark theme** adaptation.
 
 ---
 
-## 🧩 Funcionalidades en detalle
+## 🧩 Detailed Features
 
-### 🗺️ Mapa y radar en tiempo real
-* Descarga de vuelos en un radio de hasta **250 millas náuticas** con refresco automático cada **15 segundos**.
-* Interpolación de movimiento entre actualizaciones calculada a partir de la velocidad terrestre y el rumbo (*track*).
-* Control de *rate-limiting* (tiempos de espera y bloqueo de peticiones concurrentes) para evitar saturar las APIs públicas.
-* Filtro rápido entre **todos los vuelos activos** y **aviones ya avistados**, diferenciando los iconos en el mapa según su rareza.
+### 🗺️ Real-Time Map & Radar
+- Download flights within a radius of up to **250 nautical miles** with automatic refreshing every **15 seconds**.
+- Movement interpolation between updates calculated using ground speed and track angle.
+- Rate-limiting control (cooldowns and concurrent request blocking) to prevent public API throttling.
+- Quick filtering between **all active flights** and **already spotted aircraft**, with map icons styled according to rarity.
 
-### 🎯 Reglas de avistamiento
-1. **Proximidad GPS:** El dispositivo debe encontrarse a **$\le$ 40 km** de la aeronave.
-2. **Unicidad:** Cada avión físico (identificado por su código hexadecimal ICAO de 24 bits) solo puede registrarse una vez por usuario.
-3. **Verificación automática:** El modelo se asigna directamente desde la telemetría del radar y el motor de identificación; no es editable manualmente.
-4. **Fotografía en directo:** La captura se realiza exclusivamente desde la cámara de la app (sin acceso a galería) y se comprime antes de subirla a la nube.
+### 🎯 Spotting Rules
+1. **GPS Proximity:** The device must be located **$\le$ 40 km** from the aircraft.
+2. **Uniqueness:** Each physical aircraft (identified by its 24-bit ICAO hex code) can only be registered once per user.
+3. **Automatic Verification:** The model is assigned directly from radar telemetry and the identification engine; it is not manually editable.
+4. **Live Photography:** Captures are taken exclusively through the app's camera (no gallery access) and compressed before cloud upload.
 
-### 🧰 Catálogo y sistema de rarezas
+### 🧰 Catalog & Rarity System
 
-La aplicación incluye una base de datos local con **~280 modelos** (aviación comercial, regional, ejecutiva, ligera, helicópteros, transporte y aeronaves históricas en activo). Los modelos sin fotografía real disponen de siluetas vectoriales específicas por categoría.
+The application includes a local database with **~280 models** (commercial, regional, executive, light aviation, helicopters, cargo, and active historical aircraft). Models without a real photograph feature category-specific vector silhouettes.
 
-| Rareza | Puntos | Ejemplos de aeronaves |
+| Rarity | Points | Example Aircraft |
 | :--- | :---: | :--- |
-| ⚪ **COMMON** (Común) | **10** | Airbus A320, Boeing 737, Cessna 172 |
-| 🔵 **RARE** (Raro) | **25** | Boeing 787, Airbus A330, jets privados, turbohélices regionales |
-| 🟣 **EPIC** (Épico) | **50** | Airbus A380, Boeing 747, cargueros pesados y cazas modernos |
-| 🟡 **LEGENDARY** (Legendario) | **100** | Douglas DC-3, Supermarine Spitfire, P-51 Mustang |
-| 🔴 **MYTHIC** (Mítico) | **200** | *Reservada en el motor de puntuación para eventos especiales* |
+| ⚪ **COMMON** | **10** | Airbus A320, Boeing 737, Cessna 172 |
+| 🔵 **RARE** | **25** | Boeing 787, Airbus A330, private jets, regional turboprops |
+| 🟣 **EPIC** | **50** | Airbus A380, Boeing 747, heavy cargo, modern fighters |
+| 🟡 **LEGENDARY** | **100** | Douglas DC-3, Supermarine Spitfire, P-51 Mustang |
+| 🔴 **MYTHIC** | **200** | *Reserved in the scoring engine for special events* |
 
 ---
 
-## 🧠 Motor híbrido de identificación (`AvionGenerator`)
+## 🧠 Hybrid Identification Engine (`AvionGenerator`)
 
-Para evitar entradas genéricas (*"Unknown Aircraft"*) cuando un transpondedor no emite el tipo de aeronave, la aplicación ejecuta un **pipeline de resolución en cascada** con caché de doble capa:
+To prevent generic entries (*"Unknown Aircraft"*) when a transponder does not broadcast the aircraft type, the app executes a **cascading resolution pipeline** with a double-layer cache:
 
 ```text
-[ Radar ADS-B ] ──▶ ¿Trae tipo ICAO? ──(SÍ)──▶ [ Catálogo Local (~280 modelos) ]
-                          │                                   │
-                         (NO)                           (No catalogado)
-                          ▼                                   ▼
+[ ADS-B Radar ] ──▶ Has ICAO type? ──(YES)──▶ [ Local Catalog (~280 models) ]
+                      │                                   │
+                     (NO)                              (Not cataloged)
+                      ▼                                   ▼
          [ HexDB → ADSBDB → OpenSky ] ─────────▶ [ Wikipedia API (ES / EN) ]
-         (Búsqueda por Hex y Matrícula)              (Ficha e imagen remota)
+         (Hex & Registration Lookup)               (Remote sheet & image)
 ```
 
-* **Caché inteligente:** Los aciertos se persisten en disco (`SharedPreferences`) para ahorrar datos y llamadas de red, mientras que los fallos se almacenan únicamente en memoria RAM para permitir reintentos futuros sin invalidaciones manuales.
-* **Easter Eggs de aeropuerto:** Detección automática de balizas terrestres que emiten en frecuencias ADS-B, como vehículos de asistencia en pista (`GRND`, `SERV`, `GND`) y torres de control (`TWR`).
+- **Smart Cache:** Hits are persisted on disk (`SharedPreferences`) to save data and network calls, while misses are stored solely in RAM to allow future retries without manual invalidation.
+- **Airport Easter Eggs:** Automatic detection of ground beacons broadcasting on ADS-B frequencies, such as ground service vehicles (`GRND`, `SERV`, `GND`) and control towers (`TWR`).
 
 ---
 
-## 🌍 Fuentes de datos
+## 🌍 Data Sources
 
-| Servicio | Función en la aplicación |
+| Service | Application Function |
 | :--- | :--- |
-| **adsb.lol** | Posición geográfica, altitud, velocidad y rumbo en tiempo real (datos ADS-B abiertos) |
-| **ADSBDB** | Resolución de modelo exacto, aerolínea y ruta comercial por ICAO Hex o matrícula (*N-Number*) |
-| **HexDB & OpenSky Network** | Respaldo secundario para identificación de aeronaves recientes mediante código Modo S |
-| **MediaWiki / Wikipedia** | Descripciones técnicas, fotografías de modelos y base de conocimiento del chatbot (CC BY-SA 4.0) |
-| **Google Maps SDK** | Renderizado del mapa, marcadores personalizados y geolocalización del usuario |
-| **Firebase** | Autenticación multicanal (Email, Google, SMS), base de datos Firestore y analíticas |
+| **adsb.lol** | Real-time geographic position, altitude, speed, and track (open ADS-B data) |
+| **ADSBDB** | Exact model resolution, airline, and commercial route via ICAO Hex or registration (*N-Number*) |
+| **HexDB & OpenSky Network** | Secondary backup for identifying recent aircraft via Mode S code |
+| **MediaWiki / Wikipedia** | Technical descriptions, model photographs, and chatbot knowledge base (CC BY-SA 4.0) |
+| **Google Maps SDK** | Map rendering, custom markers, and user geolocation |
+| **Firebase** | Multi-channel authentication (Email, Google, SMS), Cloud Firestore database, and analytics |
 
 ---
 
-## 🛠️ Stack tecnológico
+## 🛠️ Tech Stack
 
-* **Lenguaje:** Java 8
-* **SDK & Build:** Android SDK (`minSdk 24`, `targetSdk 34`), Gradle con AGP 8.2.0 y ViewBinding
-* **Interfaz de usuario:** XML, Material Design, `ConstraintLayout`, `RecyclerView`, `PhotoView`
-* **Red y serialización:** Retrofit 2, Gson, Volley y `HttpURLConnection`
-* **Gestión de imágenes:** Glide, Coil y compresión Base64 personalizada
-* **Backend as a Service:** Firebase Authentication, Cloud Firestore y Analytics (BoM 32.7.1)
+- **Language:** Java 8
+- **SDK & Build:** Android SDK (`minSdk 24`, `targetSdk 34`), Gradle with AGP 8.2.0 and ViewBinding
+- **User Interface:** XML, Material Design, `ConstraintLayout`, `RecyclerView`, `PhotoView`
+- **Network & Serialization:** Retrofit 2, Gson, Volley, and `HttpURLConnection`
+- **Image Management:** Glide, Coil, and custom Base64 compression
+- **Backend as a Service:** Firebase Authentication, Cloud Firestore, and Analytics (BoM 32.7.1)
 
 ---
 
-## 🏗️ Arquitectura del proyecto
+## 🏗️ Project Architecture
 
 ```text
 app/
@@ -102,62 +102,62 @@ app/
 │
 ├── java/es.medac.skycollectorapp/
 │   ├── activities/
-│   │   ├── LoginActivity.java              # Autenticación (Correo, Google y SMS)
-│   │   ├── MainActivity.java               # Hangar personal agrupado por modelo
-│   │   ├── MapaActivity.java               # Radar en directo y control de avistamientos
-│   │   ├── DetalleVueloRadarActivity.java  # Ficha previa de vuelo y telemetría en vivo
-│   │   ├── AddAvionActivity.java           # Captura fotográfica y registro en la nube
-│   │   ├── DetalleAvionActivity.java       # Vista detallada de un avión coleccionado
-│   │   ├── RankingActivity.java            # Clasificación global Top 50
-│   │   ├── PerfilPublicoActivity.java      # Estadísticas y colección de otros pilotos
-│   │   ├── PerfilActivity.java             # Gestión de cuenta y preferencias
-│   │   └── ChatbotActivity.java            # Asistente conversacional de aeronaves
+│   │   ├── LoginActivity.java              # Authentication (Email, Google, and SMS)
+│   │   ├── MainActivity.java               # Personal hangar grouped by model
+│   │   ├── MapaActivity.java               # Live radar and sighting control
+│   │   ├── DetalleVueloRadarActivity.java  # Preliminary flight sheet & live telemetry
+│   │   ├── AddAvionActivity.java           # Photo capture and cloud registration
+│   │   ├── DetalleAvionActivity.java       # Detailed view of a collected aircraft
+│   │   ├── RankingActivity.java            # Global Top 50 leaderboard
+│   │   ├── PerfilPublicoActivity.java      # Statistics and collections of other pilots
+│   │   ├── PerfilActivity.java             # Account management and preferences
+│   │   └── ChatbotActivity.java            # Conversational aircraft assistant
 │   │
 │   ├── adapters/                           # AvionAdapter, ChatAdapter, RankingAdapter...
 │   │
 │   ├── models/
-│   │   ├── Avion.java                      # Entidad principal de avistamiento
-│   │   ├── GrupoAvion.java                 # Agrupación por modelo en el hangar
-│   │   ├── Vuelo.java                      # Objeto de telemetría del radar
-│   │   ├── AdsbResponse.java               # Mapeo JSON de adsb.lol
-│   │   ├── AdsbdbResponse.java             # Mapeo JSON de adsbdb
-│   │   └── Mensaje.java                    # Modelo de mensajes del chatbot
+│   │   ├── Avion.java                      # Main sighting entity
+│   │   ├── GrupoAvion.java                 # Model grouping in the hangar
+│   │   ├── Vuelo.java                      # Radar telemetry object
+│   │   ├── AdsbResponse.java               # adsb.lol JSON mapping
+│   │   ├── AdsbdbResponse.java             # adsbdb JSON mapping
+│   │   └── Mensaje.java                    # Chatbot message model
 │   │
 │   ├── network/
-│   │   ├── AdsbService.java                # Interfaz Retrofit de tráfico aéreo
-│   │   └── AdsbdbService.java              # Interfaz Retrofit de metadatos y rutas
+│   │   ├── AdsbService.java                # Retrofit interface for air traffic
+│   │   └── AdsbdbService.java              # Retrofit interface for metadata and routes
 │   │
 │   └── utils/
-│       ├── AvionGenerator.java             # Catálogo maestro y motor híbrido
-│       ├── RankingManager.java             # Cálculo de puntos y sincronización en Firestore
-│       └── ImagenBase64Utils.java          # Compresión y codificación de fotografías
+│       ├── AvionGenerator.java             # Master catalog & hybrid engine
+│       ├── RankingManager.java             # Point calculation and Firestore sync
+│       └── ImagenBase64Utils.java          # Photo compression and encoding
 │
 ├── res/
 │   ├── layout/ drawable/ menu/ mipmap/ xml/
-│   └── values/ values-en/ values-night/    # Internacionalización y modo oscuro
+│   └── values/ values-en/ values-night/    # Internationalization and dark mode
 │
-├── Documentacion/                          # Memoria técnica y documentación del proyecto
-└── capturas/                               # Recursos visuales de la aplicación
+├── Documentacion/                          # Technical memory and project documentation
+└── capturas/                               # Visual assets of the application
 ```
 
 ---
 
-## ☁️ Estructura en Cloud Firestore
+## ☁️ Cloud Firestore Structure
 
-| Ruta del documento | Descripción |
+| Document Path | Description |
 | :--- | :--- |
-| `usuarios/{uid}` | Datos privados de configuración del perfil del usuario |
-| `usuarios/{uid}/aviones/{id}` | Colección privada con cada avistamiento, coordenadas y fotografía |
-| `ranking/{uid}` | Perfil público con nombre, avatar, puntuación total y contador de verificados |
+| `usuarios/{uid}` | Private user profile configuration data |
+| `usuarios/{uid}/aviones/{id}` | Private collection containing each sighting, coordinates, and photo |
+| `ranking/{uid}` | Public profile containing name, avatar, total score, and verified count |
 
-### Reglas de seguridad recomendadas
+### Recommended Security Rules
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Datos privados: acceso exclusivo para el propietario
+    // Private data: exclusive access for the owner
     match /usuarios/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
       match /{document=**} {
@@ -165,7 +165,7 @@ service cloud.firestore {
       }
     }
 
-    // Ranking público: lectura para usuarios autenticados; escritura solo en el propio perfil
+    // Public leaderboard: readable for authenticated users; writable only on own profile
     match /ranking/{uid} {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null && request.auth.uid == uid;
@@ -179,101 +179,102 @@ service cloud.firestore {
 }
 ```
 
-> **Nota de arquitectura:** Para blindar el sistema de puntuación frente a manipulaciones en cliente en un entorno de producción, el cálculo de puntos debería delegarse a **Firebase Cloud Functions**.
+> **Architectural Note:** To protect the scoring system against client-side tampering in a production environment, point calculations should be delegated to **Firebase Cloud Functions**.
 
 ---
-## 🖼️ Capturas de pantalla
+## 🖼️ Screenshots
 
-### 👤 Usuario
-| Inicio de sesión | Configuración de usuario | Perfil de usuario |
+### 👤 User
+| Login | User Configuration | User Profile |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Perfil](capturas/Perifl.png) |
+| ![Login](capturas/inicio-sesion.png) | ![Username](capturas/nombre-usuario.png) | ![Profile](capturas/Perifl.png) |
 
-### 🛩️ Colección
-| Colección (Hangar) | Colección con foto añadida | Colección de repetidos |
+### 🛩️ Collection
+| Collection (Hangar) | Collection with Added Photo | Duplicate Collection |
 | :---: | :---: | :---: |
-| ![Colección](capturas/Coleccion.png) | ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
+| ![Collection](capturas/Coleccion.png) | ![Collection photo](capturas/Coleccion-foto.png) | ![Duplicate collection](capturas/Coleccion-repetidos.png) |
 
-| Avistamiento básico | Avistamiento con foto | Proceso de avistamiento |
+| Basic Sighting | Sighting with Photo | Sighting Process |
 | :---: | :---: | :---: |
-| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) |
+| ![Sighting](capturas/Avistamiento.png) | ![Sighting photo](capturas/Avistamiento-foto.png) | ![Sighting process](capturas/ProcesoAvistamiento.png) |
 
-| Eliminación de aviones | Eliminación de duplicados |
+| Aircraft Deletion | Duplicate Deletion |
 | :---: | :---: |
-| ![Eliminación simple](capturas/Eliminacion-hangar.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+| ![Simple deletion](capturas/Eliminacion-hangar.png) | ![Duplicate deletion](capturas/Eliminacion-repetidos.png) |
 
-### 🗺️ Mapa
-| Radar en directo | Mapa de avistados | Radar con alerta | Ficha técnica de alerta |
+### 🗺️ Map
+| Live Radar | Spotted Map | Radar with Alert | Alert Technical Sheet |
 | :---: | :---: | :---: | :---: |
-| ![Mapa](capturas/Mapa.png) | ![Mapa de avistados](capturas/Avistados.png) | ![Mapa con aviso](capturas/MapaAvisto.png) | ![Info detallada alerta](capturas/InfoDetallada.png) |
+| ![Map](capturas/Mapa.png) | ![Spotted map](capturas/Avistados.png) | ![Map with alert](capturas/MapaAvisto.png) | ![Detailed alert info](capturas/InfoDetallada.png) |
 
-### 🏆 Ranking
-| Tabla de clasificación (Ranking) | Hangar de piloto en ranking | Ficha técnica ranking |
+### 🏆 Leaderboard
+| Leaderboard Table | Pilot Hangar in Leaderboard | Leaderboard Technical Sheet |
 | :---: | :---: | :---: |
-| ![Ranking](capturas/ranking.png) | ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) |
+| ![Leaderboard](capturas/ranking.png) | ![Leaderboard view / Hangar](capturas/Vista-ranking.png) | ![Detailed leaderboard info](capturas/info-detallada-ranking.png) |
 
 ### 🤖 Chatbot
-| Chatbot asistente | Chatbot sin conexión |
+| Assistant Chatbot | Offline Chatbot |
 | :---: | :---: |
-| ![Chatbot](capturas/Chatbot.png) | ![Chatbot sin conexión](capturas/chatbot-sin-conexion.png) |
+| ![Chatbot](capturas/Chatbot.png) | ![Offline chatbot](capturas/chatbot-sin-conexion.png) |
+
 ---
 
-## ▶️ Instalación y configuración
+## ▶️ Installation & Setup
 
-### Requisitos previos
-* **Android Studio** (versión Iguana o superior) con **JDK 17**.
-* Dispositivo físico o emulador con **Android 7.0 (API 24)** o superior.
-* Cuenta de Google con acceso a **Firebase Console** y **Google Cloud Platform**.
+### Prerequisites
+- **Android Studio** (Iguana version or higher) with **JDK 17**.
+- Physical device or emulator running **Android 7.0 (API 24)** or higher.
+- Google account with access to **Firebase Console** and **Google Cloud Platform**.
 
-### Pasos de despliegue
+### Deployment Steps
 
-1. **Clonar el repositorio:**
+1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/Ivannovichh/SkyCollectorApp.git](https://github.com/Ivannovichh/SkyCollectorApp.git)
+   git clone https://github.com/Ivannovichh/SkyCollectorApp.git
    ```
-2. **Configurar Firebase:**
-   * Crea un proyecto en Firebase y registra una app Android con el paquete `es.medac.skycollectorapp`.
-   * Descarga el archivo `google-services.json` y ubícalo dentro de la carpeta `app/`.
-   * Habilita **Cloud Firestore** y los proveedores de **Authentication** (Correo/Contraseña, Google y Teléfono).
-3. **Registrar huellas SHA-1 y SHA-256:**
-   * Obtén las huellas de tu entorno ejecutando `./gradlew signingReport` y añádelas en la configuración de tu app en Firebase (imprescindibles para Google Sign-In y autenticación por SMS).
-4. **Configurar Google Maps API Key:**
-   * Habilita **Maps SDK for Android** en Google Cloud, genera una clave de API y añádela en `app/src/main/AndroidManifest.xml` dentro de `com.google.android.geo.API_KEY`.
-   * *Recomendación:* Restringe la clave por nombre de paquete y huella SHA-1 antes de publicar cambios.
-5. **Compilar y ejecutar:**
-   * Sincroniza Gradle en Android Studio y ejecuta la aplicación otorgando permisos de ubicación y cámara.
+2. **Configure Firebase:**
+   * Create a Firebase project and register an Android app with the package name `es.medac.skycollectorapp`.
+   * Download the `google-services.json` file and place it inside the `app/` folder.
+   * Enable **Cloud Firestore** and **Authentication** providers (Email/Password, Google, and Phone).
+3. **Register SHA-1 and SHA-256 Fingerprints:**
+   * Obtain your environment fingerprints by running `./gradlew signingReport` and add them to your Firebase app configuration (essential for Google Sign-In and SMS authentication).
+4. **Configure Google Maps API Key:**
+   * Enable **Maps SDK for Android** in Google Cloud, generate an API key, and add it in `app/src/main/AndroidManifest.xml` under `com.google.android.geo.API_KEY`.
+   * *Recommendation:* Restrict the key by package name and SHA-1 fingerprint before publishing changes.
+5. **Build and Run:**
+   * Sync Gradle in Android Studio and run the application by granting location and camera permissions.
 
 ---
 
-## 🔐 Permisos requeridos
+## 🔐 Required Permissions
 
-| Permiso | Finalidad |
+| Permission | Purpose |
 | :--- | :--- |
-| `INTERNET` / `ACCESS_NETWORK_STATE` | Consulta de APIs de tráfico aéreo, Wikipedia y sincronización con Firebase |
-| `ACCESS_FINE_LOCATION` / `COARSE` | Posicionamiento en el mapa y verificación del radio de 40 km para avistar |
-| `CAMERA` | Captura fotográfica verificada de aeronaves y actualización de foto de perfil |
+| `INTERNET` / `ACCESS_NETWORK_STATE` | Querying air traffic APIs, Wikipedia, and Firebase synchronization |
+| `ACCESS_FINE_LOCATION` / `COARSE` | Map positioning and checking the 40 km spotting radius |
+| `CAMERA` | Verified photographic capture of aircraft and profile picture updates |
 
 ---
 
-## 🚀 Hoja de ruta (Próximos pasos)
+## 🚀 Roadmap
 
-* [ ] Seguimiento personalizado de matrículas específicas (*Watchlist* / alertas de proximidad).
-* [ ] Modo de avistamientos especiales para aeronaves estáticas en museos o exhibiciones sin transpondedor activo.
-* [ ] Validación de puntuaciones en servidor mediante Cloud Functions.
-* [ ] Ampliación dinámica del catálogo de aeronaves desde Firestore sin necesidad de actualizar la APK.
-
----
-
-## 👨‍💻 Autores
-
-* **Iván Sánchez**
-* **Ángel Japón**
+- [ ] Custom tracking of specific registrations (*Watchlist* / proximity alerts).
+- [ ] Special spotting mode for static aircraft in museums or exhibitions without an active transponder.
+- [ ] Server-side score validation using Cloud Functions.
+- [ ] Dynamic expansion of the aircraft catalog from Firestore without requiring an APK update.
 
 ---
 
-## ⚖️ Licencia y aviso legal
+## 👨‍💻 Authors
 
-Distribuido bajo la licencia **MIT**. Consulta el archivo `LICENSE` para más información.
+- **Iván Sánchez**
+- **Ángel Japón**
 
-* Los datos de tráfico aéreo proceden de redes colaborativas ADS-B abiertas y pueden presentar latencia o datos incompletos; **no deben utilizarse para navegación aérea ni fines operativos**.
-* Los textos enciclopédicos proceden de Wikipedia bajo licencia **CC BY-SA 4.0**.
+---
+
+## ⚖️ License & Legal Disclaimer
+
+Distributed under the **MIT** license. See the `LICENSE` file for more information.
+
+- Air traffic data comes from open collaborative ADS-B networks and may present latency or incomplete data; **it must not be used for air navigation or operational purposes**.
+- Encyclopedic texts come from Wikipedia under the **CC BY-SA 4.0** license.
