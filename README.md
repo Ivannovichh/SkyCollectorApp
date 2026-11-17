@@ -197,7 +197,7 @@ service cloud.firestore {
 | :---: | :---: | :---: |
 | ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Info detallada](capturas/InfoDetallada.png) |
 
-| Chatbot asistente | Perfil de usuario | Edición de nombre |
+| Chatbot asistente | Perfil de usuario | Establecimiento de nombre |
 | :---: | :---: | :---: |
 | ![Chatbot](capturas/Chatbot.png) | ![Perfil](capturas/Perifl.png) | ![Nombre de usuario](capturas/nombre-usuario.png) |
 
