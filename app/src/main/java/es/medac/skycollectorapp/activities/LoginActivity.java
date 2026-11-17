@@ -158,13 +158,13 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin); // Vincular botón de iniciar sesión
         btnRegistro = findViewById(R.id.btnRegistro); // Vincular botón de registro
         btnGoogleLogin = findViewById(R.id.btnGoogleLogin); // Vincular botón de acceso con Google
-        btnSmsLogin = findViewById(R.id.btnSmsLogin); // Vincular botón de acceso por SMS
+        //btnSmsLogin = findViewById(R.id.btnSmsLogin);  //Vincular botón de acceso por SMS
 
         // Asignar las acciones a ejecutar cuando el usuario pulse cada botón
         btnLogin.setOnClickListener(v -> iniciarSesionCorreo()); // Ejecutar login por correo al pulsar
         btnRegistro.setOnClickListener(v -> registrarUsuarioCorreo()); // Ejecutar registro por correo al pulsar
         btnGoogleLogin.setOnClickListener(v -> iniciarSesionGoogle()); // Abrir selector de Google al pulsar
-        btnSmsLogin.setOnClickListener(v -> mostrarDialogoTelefono()); // Abrir diálogo de teléfono al pulsar
+        // btnSmsLogin.setOnClickListener(v -> mostrarDialogoTelefono()); // Abrir diálogo de teléfono al pulsar
     }
 
     @Override
