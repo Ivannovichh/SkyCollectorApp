@@ -8,6 +8,10 @@
 
 **SkyCollectorApp** is a native Android application that turns real-time air traffic into a gamified collection game (*plane spotting*). It allows users to view live flights on an interactive map, capture nearby aircraft using the device's camera, classify them by rarity, and compete on a cloud-synchronized global leaderboard.
 
+<p align="center">
+  <img src="app/Logotipodefi.png" width="150" alt="SkyCollectorApp Logo"/>
+</p>
+
 ---
 
 ## 📱 Main Features
