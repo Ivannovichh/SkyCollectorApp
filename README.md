@@ -182,22 +182,29 @@ service cloud.firestore {
 > **Nota de arquitectura:** Para blindar el sistema de puntuación frente a manipulaciones en cliente en un entorno de producción, el cálculo de puntos debería delegarse a **Firebase Cloud Functions**.
 
 ---
-
 ## 🖼️ Capturas de pantalla
 
-| Inicio de sesión | Colección (Hangar) | Colección con duplicados |
+| Inicio de sesión | Configuración de usuario | Radar en directo |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Colección](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
+| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Mapa](capturas/Mapa.png) |
 
-| Gestión de duplicados | Radar en directo | Avistados |
+| Radar con alerta | Proceso de avistamiento | Avistamiento básico |
 | :---: | :---: | :---: |
-| ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) | ![Mapa](capturas/Mapa.png) | ![Avistados](capturas/Avistados.png) |
+| ![Mapa con aviso](capturas/MapaAvisto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistamiento](capturas/Avistamiento.png) |
 
-| Proceso de avistamiento | Avistamiento con foto | Ficha técnica detallada |
+| Avistamiento con foto | Lista de avistados | Colección (Hangar) |
 | :---: | :---: | :---: |
-| ![Proceso avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Info detallada](capturas/info-detallada-ranking.png) |
+| ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Avistados](capturas/Avistados.png) | ![Colección](capturas/Coleccion.png) |
 
-| Hangar de piloto (Perfil) | Tabla de clasificación (Leaderboard) | Chatbot asistente |
+| Colección con fotos | Colección de repetidos | Gestión de duplicados |
+| :---: | :---: | :---: |
+| ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+
+| Ficha técnica (Detalle 1) | Ficha técnica (Detalle 2) | Perfil de usuario |
+| :---: | :---: | :---: |
+| ![Info detallada](capturas/InfoDetallada.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) | ![Perfil](capturas/Perifl.png) |
+
+| Hangar de piloto | Tabla de clasificación (Ranking) | Chatbot asistente |
 | :---: | :---: | :---: |
 | ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Ranking](capturas/ranking.png) | ![Chatbot](capturas/Chatbot.png) |
 
