@@ -187,15 +187,23 @@ service cloud.firestore {
 
 | Inicio de sesión | Colección (Hangar) | Radar en directo |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/InicioDeSesion.png) | ![Colección](capturas/ColeccionDeAviones.png) | ![Mapa](capturas/Mapa.png) |
+| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Colección](capturas/Coleccion.png) | ![Mapa](capturas/Mapa.png) |
 
-| Filtro de avistados | Detalle de aeronave | Registro con cámara |
+| Avistados | Radar con aviso | Proceso de avistamiento |
 | :---: | :---: | :---: |
-| ![Aviones avistados](capturas/AvionesAvistados.png) | ![Detalle](capturas/Detalle1.png) | ![Registro foto](capturas/RegistrarConFoto.png) |
+| ![Avistados](capturas/Avistados.png) | ![Mapa con aviso](capturas/MapaAvisto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) |
 
-| Ficha técnica | Chatbot | Perfil de usuario |
+| Avistamiento (Básico) | Avistamiento con foto | Ficha técnica detallada |
 | :---: | :---: | :---: |
-| ![Detalle 2](capturas/Detalle2.png) | ![Chatbot](capturas/ChatBot.png) | ![Perfil](capturas/Perfil.png) |
+| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Info detallada](capturas/InfoDetallada.png) |
+
+| Chatbot asistente | Perfil de usuario | Edición de nombre |
+| :---: | :---: | :---: |
+| ![Chatbot](capturas/Chatbot.png) | ![Perfil](capturas/Perifl.png) | ![Nombre de usuario](capturas/nombre-usuario.png) |
+
+| Clasificación (Ranking) | | |
+| :---: | :---: | :---: |
+| ![Ranking](capturas/ranking.png) | | |
 
 ---
 
