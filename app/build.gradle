@@ -1,89 +1,88 @@
 // Plugins principales para compilar la aplicación Android y conectar los servicios de Firebase
 plugins {
-    id 'com.android.application' // Plugin principal de aplicación Android
-    id 'com.google.gms.google-services'
-    alias(libs.plugins.kotlin.android) // Plugin encargado de leer google-services.json
+    id 'com.android.application' // Plugin principal para empaquetar la aplicación Android
+    id 'com.google.gms.google-services' // Plugin encargado de procesar y leer el archivo de credenciales 'google-services.json'
+    alias(libs.plugins.kotlin.android) // Plugin de soporte para código y sintaxis en Kotlin dentro del proyecto
 }
 
-// Bloque principal de configuración de compilación de Android
+// Bloque principal de configuración de compilación y empaquetado de Android
 android {
-    namespace 'es.medac.skycollectorapp' // Espacio de nombres base del proyecto
-    compileSdk 34 // Versión del SDK de Android usada para compilar
+    namespace 'es.medac.skycollectorapp' // Espacio de nombres único base del proyecto y los paquetes Java
+    compileSdk 34 // Versión del SDK de Android utilizada para compilar el código fuente
 
-    // Parámetros por defecto de la aplicación
+    // Parámetros y valores por defecto aplicados a toda la compilación de la aplicación
     defaultConfig {
-        applicationId "es.medac.skycollectorapp" // Identificador único de la app
-        minSdk 24 // Versión mínima de Android soportada (Android 7.0)
-        targetSdk 34 // Versión objetivo de Android
-        versionCode 3 // Código numérico interno de versión
-        versionName "1.0.0-beta" // Nombre visible de la versión
+        applicationId "es.medac.skycollectorapp" // Identificador único global de la app para Google Play y Firebase
+        minSdk 24 // Versión mínima de Android soportada por la aplicación (Android 7.0 Nougat)
+        targetSdk 34 // Versión objetivo de Android para la que está optimizada la app
+        versionCode 3 // Código numérico interno de versión incremental para actualizaciones
+        versionName "1.0.0-beta" // Nombre visible de la versión mostrada a los usuarios y testers
     }
 
-    // Habilitar ViewBinding para vincular vistas XML de forma segura
+    // Configuración de características avanzadas de compilación activadas en el proyecto
     buildFeatures {
-        viewBinding true // Activa la generación automática de clases Binding
+        viewBinding true // Activa la generación automática de clases de enlace para interactuar de forma segura con los layouts XML
     }
 
-    // IMPORTANTE: Necesario para Retrofit y otras librerías modernas
+    // Configuración de compatibilidad de Java requerida por Retrofit y librerías modernas
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de código fuente con Java 8
-        targetCompatibility JavaVersion.VERSION_1_8 // Compatibilidad de bytecode destino con Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8 // Define la compatibilidad del código fuente con características de Java 8
+        targetCompatibility JavaVersion.VERSION_1_8 // Define la compatibilidad del bytecode generado con la máquina virtual Java 8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '1.8' // Fija la plataforma de destino de la máquina virtual Java para Kotlin en la versión 1.8
     }
 }
 
-// Declaración de dependencias y librerías externas del módulo
+// Declaración de dependencias, librerías externas y SDKs de terceros integrados en el módulo
 dependencies {
     // --- ANDROID BÁSICO ---
-    implementation 'androidx.appcompat:appcompat:1.6.1' // Compatibilidad de componentes visuales
-    implementation 'com.google.android.material:material:1.11.0' // Componentes de Material Design
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // Contenedor flexible de restricciones
+    implementation 'androidx.appcompat:appcompat:1.6.1' // Proporciona compatibilidad retrógrada para componentes visuales modernos de Android
+    implementation 'com.google.android.material:material:1.11.0' // Conjunto de componentes de diseño Material Design y estilos visuales avanzados
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // Contenedor flexible de restricciones para diseñar interfaces de usuario complejas y adaptativas
 
     // --- ALMACENAMIENTO Y RED ---
-    implementation "androidx.datastore:datastore-preferences:1.0.0" // Almacenamiento de preferencias
-    implementation 'com.google.code.gson:gson:2.10.1' // Serialización y deserialización JSON
-    implementation 'com.android.volley:volley:1.2.1' // Peticiones HTTP para el chatbot y APIs
+    implementation "androidx.datastore:datastore-preferences:1.0.0" // Almacenamiento seguro y asíncrono de preferencias de usuario basado en flujos
+    implementation 'com.google.code.gson:gson:2.10.1' // Librería ligera para serializar y deserializar objetos Java hacia y desde formato JSON
+    implementation 'com.android.volley:volley:1.2.1' // Cliente HTTP rápido para gestionar peticiones de red orientadas al chatbot y microservicios
 
     // --- MAPAS Y ACCESO CON GOOGLE ---
-    implementation 'com.google.android.gms:play-services-maps:18.2.0' // SDK de Google Maps
-    implementation 'com.google.android.gms:play-services-auth:21.0.0' // SDK para iniciar sesión con cuentas de Google
+    implementation 'com.google.android.gms:play-services-maps:18.2.0' // SDK oficial de Google Maps para renderizar mapas interactivos y marcadores
+    implementation 'com.google.android.gms:play-services-auth:21.0.0' // SDK de servicios de Google Play para gestionar el inicio de sesión con cuentas de Google
 
     // --- GLIDE (IMÁGENES) ---
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-    implementation libs.core.ktx// Carga y caché eficiente de imágenes
-    // Esta línea es la que te faltaba para que Glide compile bien:
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0' // Procesador de anotaciones de Glide
+    implementation 'com.github.bumptech.glide:glide:4.16.0' // Librería principal para la carga, transformación y gestión de caché de imágenes
+    implementation libs.core.ktx // Extensión del núcleo para optimizar compatibilidad de tipos en Kotlin
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0' // Procesador de anotaciones obligatorio para compilar correctamente las extensiones y caché de Glide
 
     // --- RETROFIT (API) ---
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0' // Cliente REST para APIs
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0' // Conversor JSON para Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0' // Cliente REST tipado para consumir servicios web y APIs de tráfico aéreo de forma eficiente
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0' // Conversor automático de JSON a modelos de datos de Java utilizando Gson para Retrofit
 
     // --- PHOTOVIEW (ZOOM) ---
-    implementation 'com.github.chrisbanes:PhotoView:2.3.0' // Visor de imágenes con zoom táctil
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0' // Componente ImageView ampliado que soporta zoom táctil multi-gesto para examinar fotografías de aviones
 
     // --- FIREBASE (MODO BOM - GESTIÓN AUTOMÁTICA) ---
-    // El BOM gestiona las versiones para que no choquen entre sí
-    implementation platform('com.google.firebase:firebase-bom:32.7.1') // Plataforma BOM de Firebase
+    implementation platform('com.google.firebase:firebase-bom:32.7.1') // Plataforma Bill of Materials (BOM) de Firebase para sincronizar versiones compatibles sin conflictos
 
-    // Al usar el BOM, no hace falta poner versiones aquí
-    implementation 'com.google.firebase:firebase-auth' // Autenticación de usuarios
-    implementation 'com.google.firebase:firebase-firestore' // Base de datos en la nube Firestore
-    implementation 'com.google.firebase:firebase-analytics' // Analíticas básicas de Firebase
+    // Módulos de Firebase dependientes del BOM (gestionan su versión automáticamente)
+    implementation 'com.google.firebase:firebase-auth' // Sistema de autenticación de usuarios por correo, Google y teléfono
+    implementation 'com.google.firebase:firebase-firestore' // Base de datos NoSQL en la nube en tiempo real para hangares y perfiles de usuarios
+    implementation 'com.google.firebase:firebase-analytics' // Herramienta de recolección de métricas y analíticas de uso de la aplicación
 
     // --- TESTING ---
-    testImplementation 'junit:junit:4.13.2' // Pruebas unitarias locales
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5' // Extensiones de JUnit para Android
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1' // Pruebas de interfaz de usuario
+    testImplementation 'junit:junit:4.13.2' // Librería estándar para la ejecución de pruebas unitarias locales en la máquina de desarrollo
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5' // Extensiones de JUnit diseñadas para ejecutar pruebas instrumentadas en dispositivos Android
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1' // Framework de pruebas de interfaz de usuario para validar interacciones visuales
 
-    // Librería Coil para la carga y caché automática de imágenes desde internet
+    // Librería Coil alternativa para la carga y gestión de caché de imágenes optimizada para Kotlin
     implementation("io.coil-kt:coil:2.6.0")
 }
 
+// Configuración global de estrategias de resolución de conflictos de dependencias
 configurations.all {
     resolutionStrategy {
-        force("androidx.core:core:1.13.1")
-        force("androidx.core:core-ktx:1.13.1")
+        force("androidx.core:core:1.13.1") // Fuerza una versión unificada del núcleo de Android para evitar desajustes de compilación
+        force("androidx.core:core-ktx:1.13.1") // Fuerza una versión unificada de las extensiones Kotlin del núcleo para garantizar estabilidad
     }
 }
