@@ -4,32 +4,32 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permiso para utilizar la cámara del dispositivo -->
+    <!-- ==================== PERMISOS DE RED ==================== -->
+    <!-- Permiso para conectarse a Internet (APIs de radar, Firebase y Wikipedia) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Permiso para consultar el estado de conectividad de red -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ==================== PERMISOS DE UBICACIÓN ==================== -->
+    <!-- Permiso para obtener ubicación GPS precisa en el mapa y cálculo de rango -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Permiso para obtener ubicación aproximada mediante red/Wi-Fi -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- ==================== PERMISOS DE CÁMARA Y ALMACENAMIENTO ==================== -->
+    <!-- Permiso para utilizar la cámara del dispositivo al capturar avistamientos -->
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Permiso para leer archivos del almacenamiento externo -->
+    <!-- Permiso para leer archivos e imágenes del almacenamiento externo -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <!-- Permiso para escribir en almacenamiento externo en versiones antiguas -->
+    <!-- Permiso para escribir en almacenamiento externo en versiones anteriores a Android 10 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
-    <!-- Permiso para conectarse a Internet -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Permiso para consultar el estado de la red -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Permiso para obtener ubicación precisa -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- Permiso para obtener ubicación aproximada -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- Indica que la cámara es opcional en el dispositivo -->
+    <!-- ==================== CARACTERÍSTICAS DE HARDWARE ==================== -->
+    <!-- Indica que la cámara física no es estrictamente obligatoria para instalar la app -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
-    <!-- Bloque que define la configuración general de la aplicación -->
+    <!-- ==================== CONFIGURACIÓN GENERAL DE LA APLICACIÓN ==================== -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -42,67 +42,59 @@
         android:localeConfig="@xml/locales_config"
         tools:targetApi="33">
 
-        <!-- Metadato que almacena la clave de Google Maps -->
+        <!-- ==================== METADATOS Y PROVEEDORES ==================== -->
+        <!-- Clave de API de Google Maps SDK -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAqFuJEgJghaeTj9v6y1WodAFl149eHk00" />
 
-        <!-- Proveedor que permite compartir archivos de forma segura -->
+        <!-- Proveedor seguro de URIs para compartir fotografías tomadas con la cámara -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
 
-            <!-- Archivo XML que define las rutas compartidas -->
+            <!-- Archivo XML que define los directorios internos autorizados -->
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Actividad inicial que se abre al lanzar la aplicación -->
+        <!-- ==================== PANTALLA DE INICIO Y AUTENTICACIÓN ==================== -->
+        <!-- Actividad inicial de acceso que actúa como punto de entrada desde el launcher -->
         <activity
             android:name=".activities.LoginActivity"
             android:exported="true">
-
-            <!-- Filtro que define esta actividad como punto de entrada -->
             <intent-filter>
-
-                <!-- Acción principal de inicio -->
                 <action android:name="android.intent.action.MAIN" />
-
-                <!-- Categoría que permite que aparezca en el launcher -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Actividad principal tras iniciar sesión -->
-        <activity android:name=".activities.MainActivity" android:exported="false"/>
+        <!-- ==================== HANGAR Y COLECCIÓN PERSONAL ==================== -->
+        <!-- Actividad principal con la colección privada de aeronaves del usuario -->
+        <activity android:name=".activities.MainActivity" android:exported="false" />
+        <!-- Actividad que muestra y permite editar los detalles de un avión coleccionado -->
+        <activity android:name=".activities.DetalleAvionActivity" android:exported="false" />
+        <!-- Actividad para registrar y verificar con foto un nuevo avistamiento -->
+        <activity android:name=".activities.AddAvionActivity" android:exported="false" />
 
-        <!-- Actividad que muestra detalles de un avión -->
-        <activity android:name=".activities.DetalleAvionActivity" android:exported="false"/>
+        <!-- ==================== RADAR EN VIVO Y CONSULTA ==================== -->
+        <!-- Actividad que gestiona el mapa interactivo y el radar aéreo en tiempo real -->
+        <activity android:name=".activities.MapaActivity" android:exported="false" />
+        <!-- Actividad que muestra la ficha previa de un vuelo detectado en el radar -->
+        <activity android:name=".activities.DetalleVueloRadarActivity" android:exported="false" />
+        <!-- Actividad del asistente/chatbot de consulta enciclopédica de aeronaves -->
+        <activity android:name=".activities.ChatbotActivity" android:exported="false" />
 
-        <!-- Actividad que permite añadir un avión -->
-        <activity android:name=".activities.AddAvionActivity" android:exported="false"/>
-
-        <!-- Actividad encargada del chatbot -->
-        <activity android:name=".activities.ChatbotActivity" android:exported="false"/>
-
-        <!-- Actividad que gestiona el mapa -->
-        <activity android:name=".activities.MapaActivity" android:exported="false"/>
-
-        <!-- Actividad que gestiona el perfil del usuario -->
-        <activity android:name=".activities.PerfilActivity" android:exported="false"/>
-
-        <!-- Actividad que muestra detalles de un avión antes de avistar -->
-        <activity
-            android:name=".activities.DetalleVueloRadarActivity" android:exported="false" />
-
-        <!-- Actividad que gestiona el ranking del usuario -->
-        <activity android:name=".activities.RankingActivity" />
-
-        <!-- Actividad que gestiona el perfil del usuario publico -->
-        <activity android:name=".activities.PerfilPublicoActivity" />
+        <!-- ==================== PERFIL, RANKING Y COMUNIDAD ==================== -->
+        <!-- Actividad para editar los datos privados y públicos del perfil del piloto -->
+        <activity android:name=".activities.PerfilActivity" android:exported="false" />
+        <!-- Actividad que muestra la clasificación global de pilotos por puntuación -->
+        <activity android:name=".activities.RankingActivity" android:exported="false" />
+        <!-- Actividad que muestra el hangar público en modo solo lectura de otro piloto -->
+        <activity android:name=".activities.PerfilPublicoActivity" android:exported="false" />
 
     </application>
 

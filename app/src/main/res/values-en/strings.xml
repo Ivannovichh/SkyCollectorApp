@@ -85,7 +85,7 @@
     <string name="toast_acerca_mapa">Zoom in closer to view aircraft</string>
     <string name="toast_limite_api">Rate limit reached. Retrying in 1 minute.</string>
     <string name="panel_vuelo_generico">Flight %1$s</string>
-    <string name="panel_distancia_lejos">Distance: %1$d km (get closer to your location´s circle)\n</string>
+    <string name="panel_distancia_lejos">Distance: %1$d km (get closer to your location\'s circle)\n</string>
     <string name="panel_distancia_ok">Distance: %1$d km\n</string>
     <string name="panel_ruta_formato">Route: %1$s\n</string>
     <string name="panel_tipo_formato">Type: %1$s\n</string>
@@ -97,14 +97,32 @@
     <!-- Radar Flight Sheet (DetalleVueloRadarActivity) -->
     <string name="titulo_ficha_aeronave_radar">Radar Aircraft Sheet</string>
     <string name="icao_placeholder">ICAO: ---</string>
+    <string name="icao_badge_formato">ICAO: %1$s</string>
     <string name="placeholder_modelo_aeronave">Aircraft Model</string>
     <string name="placeholder_fabricante_aerolinea">Manufacturer / Airline</string>
     <string name="seccion_datos_vuelo_vivo">LIVE FLIGHT DATA</string>
     <string name="seccion_especificaciones_tecnicas">TECHNICAL SPECIFICATIONS</string>
+    <string name="telemetria_ruta_estimada">Estimated route: %1$s\n</string>
+    <string name="telemetria_tipo_icao">ICAO type: %1$s\n</string>
+    <string name="telemetria_velocidad">Speed: %1$d km/h\n</string>
+    <string name="telemetria_altitud">Altitude: %1$s</string>
+    <string name="telemetria_distancia_captura">Spotting distance: %1$d km\n</string>
+    <string name="telemetria_fecha_captura">Spotting date: %1$s</string>
+    <string name="consultando_base_datos">Querying database...</string>
+    <string name="obteniendo_ficha_tecnica">Fetching technical sheet and description...</string>
+    <string name="specs_detalle_formato">Manufacturer: %1$s\n• Rarity: %2$s\n• Current speed: %3$d km/h\n\n%4$s</string>
+    <string name="specs_detalle_solo_lectura_formato">Manufacturer: %1$s\n• Rarity: %2$s\n\n%3$s</string>
+    <string name="btn_ya_avistado">Already spotted</string>
+    <string name="msg_ya_en_hangar">This aircraft is already in your collection</string>
+    <string name="msg_gps_no_disponible">GPS location not available yet</string>
+    <string name="msg_fuera_rango">Out of range (%1$d km). Get within 30 km</string>
+    <string name="msg_en_rango">Within spotting range (%1$d km)</string>
+    <string name="toast_activar_gps">Enable location to check distance to the aircraft</string>
+    <string name="error_cargar_vuelo">Could not load flight information</string>
 
     <!-- Log Sighting (AddAvionActivity) -->
     <string name="registrar_avistamiento">Log Sighting</string>
-    <string name="_1_selecciona_el_modelo">1. Identified model</string>
+    <string name="_1_selecciona_el_modelo">Identified model</string>
     <string name="_2_a_ade_tu_foto_opcional">2. Add your photo (optional)</string>
     <string name="a_adir_foto">Take live photo</string>
     <string name="cancelar">Cancel</string>
@@ -167,44 +185,33 @@
     <string name="chat_error_red">Network error while downloading data.</string>
     <string name="chat_error_solicitar">Error requesting content.</string>
 
-    <!-- Identification Engine & Rarities (AvionGenerator) -->
+    <!-- Identification Engine, Rarities & Wikipedia (AvionGenerator) -->
     <string name="fabricante_internacional">International Manufacturer</string>
+    <string name="fabricante_aviacion_general">General / Commercial Aviation</string>
     <string name="aeronave_generica">%1$s Aircraft</string>
+    <string name="aeronave_matricula_generica">Aircraft %1$s</string>
+    <string name="aeronave_hex_generica">Aircraft [%1$s]</string>
     <string name="aeronave_desconocida">Unknown Aircraft</string>
     <string name="descripcion_fallback">Aircraft manufactured by %1$s, model %2$s.</string>
+    <string name="descripcion_transpondedor_anonimo">Aircraft operating with ADS-B transponder (ICAO: %1$s) with no public technical record in open databases.</string>
     <string name="sin_descripcion_detallada">No detailed description available.</string>
+    <string name="wiki_sufijo_busqueda">\u0020aircraft</string>
+    <string name="wiki_atribucion_formato">\n\nSource: Wikipedia (CC BY-SA) - %1$s</string>
     <string name="rareza_common">COMMON</string>
     <string name="rareza_rare">RARE</string>
     <string name="rareza_epic">EPIC</string>
     <string name="rareza_legendary">LEGENDARY</string>
     <string name="rareza_mythic">MYTHIC</string>
 
-    <!-- Accessibility Descriptions (ContentDescriptions) & Helper Views -->
-    <string name="cd_volver_atras">Go back</string>
-    <string name="cd_volver">Back</string>
-    <string name="cd_volver_mapa">Back to map</string>
-    <string name="cd_ver_ficha_completa">View full sheet</string>
-    <string name="cd_foto_perfil">Profile photo</string>
-    <string name="cd_icono_piloto">Pilot icon</string>
-    <string name="cd_foto_adjunta">Attached photo</string>
-    <string name="cd_imagen_modelo_avion">Aircraft model image</string>
-    <string name="boeing_737_boeing">Boeing 737 (Boeing)</string>
-    <string name="callsign_ibe324_pa_s_spain">Callsign: IBE324 | Country: Spain</string>
-
-    <!-- DetalleVueloRadarActivity (specific keys) -->
-    <string name="telemetria_ruta_estimada">Estimated route: %1$s\n</string>
-    <string name="telemetria_tipo_icao">ICAO type: %1$s\n</string>
-    <string name="telemetria_velocidad">Speed: %1$d km/h\n</string>
-    <string name="telemetria_altitud">Altitude: %1$s</string>
-    <string name="consultando_base_datos">Querying database...</string>
-    <string name="obteniendo_ficha_tecnica">Fetching technical sheet and description...</string>
-    <string name="specs_detalle_formato">• Manufacturer: %1$s\n• Rarity: %2$s\n• Current speed: %3$d km/h\n\n%4$s</string>
-    <string name="btn_ya_avistado">Already spotted</string>
-    <string name="msg_ya_en_hangar">This aircraft is already in your collection</string>
-    <string name="msg_gps_no_disponible">GPS location not available yet</string>
-    <string name="msg_fuera_rango">Out of range (%1$d km). Get within 30 km</string>
-    <string name="msg_en_rango">Within spotting range (%1$d km)</string>
-    <string name="toast_activar_gps">Enable location to check distance to the aircraft</string>
+    <!-- Easter Eggs (Ground Vehicle & Control Tower) -->
+    <string name="easter_egg_vehiculo_modelo">Airport Operations Vehicle</string>
+    <string name="easter_egg_vehiculo_fabricante">Airport</string>
+    <string name="easter_egg_vehiculo_capacidad">Operations</string>
+    <string name="easter_egg_vehiculo_pais">Global</string>
+    <string name="easter_egg_vehiculo_descripcion">Easter Egg found! This is not an aircraft, but an airport ground operations vehicle equipped with an ADS-B transponder for runway traffic control.</string>
+    <string name="easter_egg_torre_modelo">Air Traffic Control Tower (TWR)</string>
+    <string name="easter_egg_torre_fabricante">Air Traffic Control</string>
+    <string name="easter_egg_torre_desc">Fixed ADS-B calibration transponder located at the airport control tower to verify radar accuracy.</string>
 
     <!-- Leaderboard & Public Profile -->
     <string name="titulo_ranking_pilotos">Pilot Leaderboard</string>
@@ -213,41 +220,31 @@
     <string name="toast_error_cargar_ranking">Error loading leaderboard</string>
     <string name="ranking_avistados_formato">%1$d verified sightings</string>
     <string name="ranking_puntos_formato">%1$d pts</string>
+    <string name="ranking_tu_usuario_formato">%1$s (You)</string>
+    <string name="ranking_sin_puntos_aviso">Spot your first aircraft to enter the ranking</string>
     <string name="titulo_hangar_piloto">Pilot Hangar</string>
     <string name="hangar_publico_vacio">This pilot has no verified sightings yet.</string>
     <string name="perfil_publico_stats_con_puesto">Rank #%1$d  •  %2$d pts  •  %3$d aircraft</string>
     <string name="perfil_publico_stats">%1$d pts  •  %2$d aircraft</string>
     <string name="toast_error_cargar_perfil_publico">Error loading pilot profile</string>
 
-    <string name="telemetria_distancia_captura">Spotting distance: %1$d km\n</string>
-    <string name="telemetria_fecha_captura">Spotting date: %1$s</string>
-    <string name="specs_detalle_solo_lectura_formato">• Manufacturer: %1$s\n• Rarity: %2$s\n\n%3$s</string>
-
-    <!-- Flight, Radar & Catalog Details -->
-    <string name="icao_badge_formato">ICAO: %1$s</string>
-    <string name="wiki_sufijo_busqueda">\u0020aircraft</string>
-    <string name="wiki_atribucion_formato">\n\nSource: Wikipedia (CC BY-SA) - %1$s</string>
-    <string name="easter_egg_vehiculo_modelo">Airport Operations Vehicle</string>
-    <string name="easter_egg_vehiculo_fabricante">Airport</string>
-    <string name="easter_egg_vehiculo_capacidad">Operations</string>
-    <string name="easter_egg_vehiculo_pais">Global</string>
-    <string name="easter_egg_vehiculo_descripcion">Easter Egg found! This is not an aircraft, but an airport ground operations vehicle equipped with an ADS-B transponder for runway traffic control.</string>
-
-    <!-- Dynamic generator & radar cards -->
-    <string name="aeronave_matricula_generica">Aircraft %1$s</string>
-    <string name="aeronave_hex_generica">Aircraft [%1$s]</string>
-    <string name="fabricante_aviacion_general">General / Commercial Aviation</string>
-    <string name="error_cargar_vuelo">Could not load flight information</string>
-
-    <!-- Control Tower Easter Egg -->
-    <string name="easter_egg_torre_modelo">Air Traffic Control Tower (TWR)</string>
-    <string name="easter_egg_torre_fabricante">Air Traffic Control</string>
-    <string name="easter_egg_torre_desc">Fixed ADS-B calibration transponder located at the airport control tower to verify radar accuracy.</string>
-
-    <string name="ranking_tu_usuario_formato">%1$s (You)</string>
-    <string name="ranking_sin_puntos_aviso">Spot your first aircraft to enter the ranking</string>
+    <!-- Accessibility Descriptions (ContentDescriptions) -->
+    <string name="cd_volver_atras">Go back</string>
+    <string name="cd_volver">Back</string>
+    <string name="cd_volver_mapa">Back to map</string>
+    <string name="cd_ver_ficha_completa">View full sheet</string>
+    <string name="cd_foto_perfil">Profile photo</string>
     <string name="cd_avatar_piloto">Pilot avatar</string>
+    <string name="cd_icono_piloto">Pilot icon</string>
+    <string name="cd_foto_adjunta">Attached photo</string>
+    <string name="cd_imagen_modelo_avion">Aircraft model image</string>
 
-    <string name="descripcion_transpondedor_anonimo">Aircraft operating with ADS-B transponder (ICAO: %1$s) with no public technical record in open databases.</string>
+
+    <!-- XML Preview / Placeholder Texts -->
+    <string name="boeing_737_boeing">Boeing 737 (Boeing)</string>
+    <string name="callsign_ibe324_pa_s_spain">Callsign: IBE324 | Country: Spain</string>
+
+
+    <!-- Technical Configuration (non-translatable) -->
+    <string name="default_web_client_id" translatable="false">122299812994-dpjmoffk7qsh5hd31mnqcbhv8glc0ltt.apps.googleusercontent.com</string>
 </resources>
-

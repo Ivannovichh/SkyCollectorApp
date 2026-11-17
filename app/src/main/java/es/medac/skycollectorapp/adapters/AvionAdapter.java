@@ -40,18 +40,21 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
 
     // Interfaz para gestionar las pulsaciones sobre los elementos de la lista
     public interface OnItemClickListener {
-        void onItemClick(GrupoAvion grupo, int position);
+        void onItemClick(GrupoAvion grupo, int position); // Método ejecutado al pulsar una tarjeta
     }
 
     // Interfaz para notificar cambios en el estado de las casillas de verificación
     public interface OnSelectionChangedListener {
-        void onSelectionChanged();
+        void onSelectionChanged(); // Método ejecutado al marcar o desmarcar cualquier casilla
     }
 
     // Constructor que inicializa los datos y los escuchadores del adaptador
     public AvionAdapter(List<GrupoAvion> listaGrupos, OnItemClickListener listener, OnSelectionChangedListener selectionListener) {
+        // Asigna la lista de grupos recibida al atributo interno
         this.listaGrupos = listaGrupos;
+        // Asigna el callback de pulsación sobre tarjeta
         this.listener = listener;
+        // Asigna el callback de cambio de selección múltiple
         this.selectionListener = selectionListener;
     }
 
@@ -62,43 +65,52 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     @NonNull
     @Override
     public AvionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflar el diseño XML del elemento individual de la lista
+        // Infla el diseño XML del elemento individual de la lista sin adjuntarlo aún al padre
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_avion, parent, false);
-        return new AvionViewHolder(view); // Devolver nueva instancia delViewHolder
+        // Devuelve una nueva instancia del ViewHolder con las vistas ya enlazadas
+        return new AvionViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AvionViewHolder holder, int position) {
-        GrupoAvion grupo = listaGrupos.get(position); // Recuperar el grupo en la posición actual
-        Avion avion = grupo.getRepresentante(); // Obtener el avión representante del grupo
+        // Recupera el grupo de aviones correspondiente a la posición actual
+        GrupoAvion grupo = listaGrupos.get(position);
+        // Obtiene el avión representante del grupo (el más reciente o destacado)
+        Avion avion = grupo.getRepresentante();
 
-        // Mostrar apodo si hay un único avistamiento o el nombre del modelo si hay varios
+        // Muestra el apodo personalizado si hay un único avistamiento o el nombre del modelo si hay varios
         holder.txtModelo.setText(grupo.getCantidad() == 1 ? avion.getApodo() : avion.getModelo());
 
-        // Configurar la etiqueta con el contador de avistamientos acumulados
+        // Si el grupo contiene más de un avistamiento, muestra la insignia multiplicadora (ej. "×3")
         if (grupo.getCantidad() > 1) {
             holder.txtCantidad.setText("×" + grupo.getCantidad());
             holder.txtCantidad.setVisibility(View.VISIBLE);
         } else {
+            // Oculta la insignia de cantidad cuando solo hay un ejemplar
             holder.txtCantidad.setVisibility(View.GONE);
         }
 
-        holder.txtFabricante.setText(avion.getFabricante()); // Asignar fabricante
-        holder.txtRareza.setText(avion.getRareza()); // Asignar categoría de rareza
+        // Asigna el nombre del fabricante en la etiqueta inferior
+        holder.txtFabricante.setText(avion.getFabricante());
+        // Asigna el texto de la categoría de rareza en la etiqueta superior
+        holder.txtRareza.setText(avion.getRareza());
 
-        // Aplicar el color distintivo según la rareza del avión
+        // Obtiene el color asociado a la rareza del avión
         int color = avion.getColorRareza();
-        if (color == 0) color = Color.GRAY; // Asignar gris por defecto si es cero
+        // Si no tiene un color definido (0), asigna gris por defecto
+        if (color == 0) color = Color.GRAY;
 
-        holder.cardView.setStrokeColor(color); // Ajustar color del borde de la tarjeta
-        holder.cardView.setStrokeWidth(4); // Ajustar grosor del borde
-        holder.txtRareza.setBackgroundColor(color); // Ajustar fondo de la etiqueta de rareza
+        // Aplica el color de rareza al borde de la tarjeta y establece su grosor en 4px
+        holder.cardView.setStrokeColor(color);
+        holder.cardView.setStrokeWidth(4);
+        // Aplica el mismo color de rareza como fondo de la etiqueta superior
+        holder.txtRareza.setBackgroundColor(color);
 
         // ----------------------------------------------------
         // SELECCIÓN INTELIGENTE DE LA FUENTE DE IMAGEN (COLECCIÓN)
         // ----------------------------------------------------
         if (avion.getUriFotoUsuario() != null && !avion.getUriFotoUsuario().isEmpty()) {
-            // 1. Prioridad: Foto propia tomada o cargada por el usuario
+            // 1. Prioridad: Carga la foto propia tomada o elegida por el usuario omitiendo cachés antiguas
             Glide.with(holder.itemView.getContext())
                     .load(Uri.parse(avion.getUriFotoUsuario()))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -109,7 +121,7 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
                     .into(holder.imgAvion);
 
         } else if (avion.getUrlImagenRemota() != null && !avion.getUrlImagenRemota().isEmpty()) {
-            // 2. Segunda prioridad: Foto real descargada de internet (Wikipedia) ya guardada previamente
+            // 2. Segunda prioridad: Carga la fotografía real descargada de internet (Wikimedia/Wikipedia)
             Glide.with(holder.itemView.getContext())
                     .load(avion.getUrlImagenRemota())
                     .centerCrop()
@@ -118,9 +130,10 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
                     .into(holder.imgAvion);
 
         } else {
-            // 3. Última opción: Recurrir al recurso local del catálogo o silueta por defecto
+            // 3. Última opción: Selecciona el recurso vectorial del catálogo o la silueta genérica sil_jet
             Object imagenCarga = (avion.getImagenResId() != 0) ? avion.getImagenResId() : R.drawable.sil_jet;
 
+            // Renderiza la silueta ajustada al centro del contenedor
             Glide.with(holder.itemView.getContext())
                     .load(imagenCarga)
                     .fitCenter()
@@ -129,26 +142,32 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
                     .into(holder.imgAvion);
         }
 
-        // Evitar activaciones accidentales del listener durante la configuración
+        // Desvincula cualquier listener previo antes de asignar el estado para evitar disparos falsos al reciclar
         holder.chkSeleccion.setOnCheckedChangeListener(null);
-        holder.chkSeleccion.setChecked(grupo.isSeleccionado()); // Marcar o desmarcar casilla
+        // Sincroniza el estado visual de la casilla con el estado booleano del grupo
+        holder.chkSeleccion.setChecked(grupo.isSeleccionado());
 
-        // Listener de interacción con la casilla de verificación
+        // Configura el evento al pulsar directamente sobre la casilla de verificación
         holder.chkSeleccion.setOnClickListener(v -> {
+            // Lee el nuevo estado marcado o desmarcado
             boolean isChecked = holder.chkSeleccion.isChecked();
-            grupo.setSeleccionado(isChecked); // Actualizar estado en el modelo
-            if (selectionListener != null) selectionListener.onSelectionChanged(); // Notificar cambio
+            // Actualiza el estado de selección dentro del objeto GrupoAvion
+            grupo.setSeleccionado(isChecked);
+            // Notifica a MainActivity para mostrar u ocultar el botón de papelera
+            if (selectionListener != null) selectionListener.onSelectionChanged();
         });
 
-        // Listener de interacción al hacer clic en cualquier parte de la tarjeta
+        // Configura el evento al pulsar sobre el cuerpo de la tarjeta
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onItemClick(grupo, position); // Notificar clic
+            // Delega la acción al listener principal pasando el grupo pulsado y su índice
+            if (listener != null) listener.onItemClick(grupo, position);
         });
     }
 
     @Override
     public int getItemCount() {
-        return listaGrupos != null ? listaGrupos.size() : 0; // Devolver tamaño de la lista
+        // Devuelve el número total de grupos en la lista o 0 si la lista es nula
+        return listaGrupos != null ? listaGrupos.size() : 0;
     }
 
     // ------------------------------
@@ -158,13 +177,19 @@ public class AvionAdapter extends RecyclerView.Adapter<AvionAdapter.AvionViewHol
     // Clase interna que mantiene las referencias visuales de los elementos del layout
     public static class AvionViewHolder extends RecyclerView.ViewHolder {
 
-        TextView txtModelo, txtFabricante, txtRareza, txtCantidad; // Elementos de texto
-        ImageView imgAvion; // Imagen del avión
-        MaterialCardView cardView; // Contenedor de tarjeta
-        CheckBox chkSeleccion; // Casilla de marcado
+        // Referencias a las etiquetas de texto del modelo, fabricante, rareza y contador
+        TextView txtModelo, txtFabricante, txtRareza, txtCantidad;
+        // Referencia al componente ImageView de la fotografía o silueta del avión
+        ImageView imgAvion;
+        // Referencia a la tarjeta MaterialCardView que envuelve todo el ítem
+        MaterialCardView cardView;
+        // Referencia a la casilla CheckBox de selección múltiple
+        CheckBox chkSeleccion;
 
         public AvionViewHolder(@NonNull View v) {
+            // Llama al constructor de RecyclerView.ViewHolder
             super(v);
+            // Enlaza cada componente Java con su correspondiente ID en item_avion.xml
             txtModelo = v.findViewById(R.id.txtModelo);
             txtFabricante = v.findViewById(R.id.txtFabricante);
             txtRareza = v.findViewById(R.id.txtRareza);

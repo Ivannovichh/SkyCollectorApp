@@ -16,6 +16,7 @@
         android:elevation="6dp"
         android:padding="14dp">
 
+        <!-- Botón circular sin borde para cerrar la actividad y volver atrás -->
         <ImageButton
             android:id="@+id/btnVolverRanking"
             android:layout_width="40dp"
@@ -27,6 +28,7 @@
             android:src="@android:drawable/ic_menu_revert"
             app:tint="#00E5FF" />
 
+        <!-- Título centrado de la pantalla de clasificación global -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -49,12 +51,13 @@
         android:textColor="#90A4AE"
         android:textSize="11sp" />
 
-    <!-- Contenedor central con indicador de carga, estado vacío y lista -->
+    <!-- Contenedor central superpuesto para la lista, el spinner de carga y el mensaje vacío -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
+        <!-- Lista reciclable que muestra el Top 50 de pilotos ordenados por puntos -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerRanking"
             android:layout_width="match_parent"
@@ -62,6 +65,7 @@
             android:clipToPadding="false"
             android:padding="12dp" />
 
+        <!-- Indicador circular de progreso visible mientras se consulta Firestore -->
         <ProgressBar
             android:id="@+id/progressRanking"
             android:layout_width="wrap_content"
@@ -69,6 +73,7 @@
             android:layout_gravity="center"
             android:indeterminateTint="#00E5FF" />
 
+        <!-- Etiqueta informativa mostrada cuando ningún piloto tiene puntuación positiva -->
         <TextView
             android:id="@+id/txtRankingVacio"
             android:layout_width="wrap_content"
@@ -82,7 +87,7 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <!-- Tarjeta fija inferior con la posición exacta del usuario actual -->
+    <!-- Tarjeta fija inferior destacada con borde cian para mostrar la posición del usuario actual -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardMiPosicionRanking"
         android:layout_width="match_parent"
@@ -96,6 +101,7 @@
         app:strokeColor="#00E5FF"
         app:strokeWidth="2dp">
 
+        <!-- Fila horizontal interna de la tarjeta propia -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -104,6 +110,7 @@
             android:paddingHorizontal="14dp"
             android:paddingVertical="10dp">
 
+            <!-- Número de puesto global del usuario actual (#1, #42 o #— sin puntos) -->
             <TextView
                 android:id="@+id/txtMiPosicionRanking"
                 android:layout_width="wrap_content"
@@ -114,6 +121,7 @@
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
+            <!-- Avatar circular del piloto autenticado -->
             <ImageView
                 android:id="@+id/imgMiAvatarRanking"
                 android:layout_width="40dp"
@@ -122,6 +130,7 @@
                 android:contentDescription="@string/cd_avatar_piloto"
                 android:src="@android:drawable/ic_menu_myplaces" />
 
+            <!-- Bloque central vertical con el nombre del usuario y su conteo de avistamientos -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -129,6 +138,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <!-- Nombre público del usuario formateado como "(Tú)" -->
                 <TextView
                     android:id="@+id/txtMiNombreRanking"
                     android:layout_width="wrap_content"
@@ -139,6 +149,7 @@
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
+                <!-- Subtítulo con los aviones verificados o aviso para empezar a puntuar -->
                 <TextView
                     android:id="@+id/txtMisAvistadosRanking"
                     android:layout_width="wrap_content"
@@ -147,6 +158,7 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <!-- Puntuación total acumulada del usuario actual -->
             <TextView
                 android:id="@+id/txtMisPuntosRanking"
                 android:layout_width="wrap_content"

@@ -27,7 +27,10 @@ import java.util.Map;
 // Importación del modelo de datos Avion
 import es.medac.skycollectorapp.models.Avion;
 
-// Clase de utilidad encargada de calcular puntuaciones por rareza y sincronizar el perfil público en Firestore
+/**
+ * Clase de utilidad encargada de calcular las puntuaciones según la rareza de cada
+ * aeronave verificada y sincronizar el perfil público del piloto en Cloud Firestore.
+ */
 public class RankingManager {
 
     // Etiqueta identificativa para los mensajes de depuración en Logcat
@@ -48,9 +51,14 @@ public class RankingManager {
         void onError(Exception e);
     }
 
-    // Devuelve los puntos correspondientes a una categoría de rareza concreta
+    /**
+     * Devuelve los puntos correspondientes a una categoría de rareza concreta
+     * admitiendo tanto etiquetas en inglés como en español.
+     */
     public static int obtenerPuntosPorRareza(String rareza) {
+        // Si la rareza es nula, aplica la puntuación base común
         if (rareza == null) return PUNTOS_COMMON;
+        // Normaliza el texto en mayúsculas y asigna el valor numérico de puntos
         switch (rareza.trim().toUpperCase(Locale.ROOT)) {
             case "RARE":
             case "RARO":
@@ -71,10 +79,15 @@ public class RankingManager {
         }
     }
 
-    // Calcula la puntuación total de una lista de aviones (solo suman los verificados con foto en directo)
+    /**
+     * Calcula la puntuación total acumulada de una lista de aviones,
+     * contabilizando únicamente aquellos que tienen fotografía verificada en directo.
+     */
     public static int calcularPuntosTotales(List<Avion> listaAviones) {
+        // Retorna 0 si la colección está vacía o no existe
         if (listaAviones == null || listaAviones.isEmpty()) return 0;
         int totalPuntos = 0;
+        // Suma los puntos de cada ejemplar verificado
         for (Avion avion : listaAviones) {
             if (avion != null && avion.isEsFotoVerificada()) {
                 totalPuntos += obtenerPuntosPorRareza(avion.getRareza());
@@ -83,13 +96,17 @@ public class RankingManager {
         return totalPuntos;
     }
 
-    // Sincroniza puntos, contadores y vitrina pública de aviones del usuario actual en Firestore
+    /**
+     * Sincroniza puntos, contadores y vitrina pública de aviones verificados
+     * del usuario autenticado actual dentro de la colección "ranking" en Firestore.
+     */
     public static void sincronizarRankingUsuario(
             List<Avion> listaAviones,
             String nombrePublicoOpcional,
             String fotoPerfilUrlOpcional,
             OnRankingSyncListener listener
     ) {
+        // Comprueba que exista una sesión activa en FirebaseAuth
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             if (listener != null) listener.onError(new IllegalStateException("Usuario no autenticado"));
@@ -104,6 +121,7 @@ public class RankingManager {
         // Recorre los aviones del usuario para sumar puntos y preparar los datos públicos
         if (listaAviones != null) {
             for (Avion avion : listaAviones) {
+                // Ignora ejemplares nulos o capturados sin foto verificada
                 if (avion == null || !avion.isEsFotoVerificada()) continue;
 
                 int puntosAvion = obtenerPuntosPorRareza(avion.getRareza());
@@ -163,18 +181,20 @@ public class RankingManager {
         final int puntosFinales = puntosTotales;
         final int verificadosFinales = totalVerificados;
 
-        // Guarda o fusiona los datos en Firestore bajo ranking/{uid}
+        // Guarda o fusiona los datos en Firestore bajo ranking/{uid} sin sobrescribir campos no incluidos
         FirebaseFirestore.getInstance()
                 .collection(COLECCION_RANKING)
                 .document(uid)
                 .set(datosRanking, SetOptions.merge())
                 .addOnSuccessListener(unused -> {
+                    // Registra el éxito y notifica los totales al callback si existe
                     Log.d(TAG, "Ranking sincronizado: " + puntosFinales + " pts (" + verificadosFinales + " aviones)");
                     if (listener != null) {
                         listener.onSincronizado(puntosFinales, verificadosFinales);
                     }
                 })
                 .addOnFailureListener(e -> {
+                    // Registra el fallo y propaga la excepción al callback si existe
                     Log.e(TAG, "Error al sincronizar ranking: " + e.getMessage());
                     if (listener != null) {
                         listener.onError(e);
@@ -182,11 +202,16 @@ public class RankingManager {
                 });
     }
 
-    // Actualiza únicamente los datos de identidad pública (nombre/foto) cuando el usuario edita su perfil
+    /**
+     * Actualiza únicamente los datos de identidad pública (nombre de usuario y avatar)
+     * en Firestore cuando el piloto edita su perfil sin recalcular toda su colección.
+     */
     public static void actualizarIdentidadPublica(String nombreUsuario, String fotoPerfilUrl) {
+        // Verifica que haya un usuario autenticado antes de escribir en Firestore
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
+        // Construye el mapa parcial solo con los campos válidos proporcionados
         Map<String, Object> identidad = new HashMap<>();
         identidad.put("uid", user.getUid());
         if (nombreUsuario != null && !nombreUsuario.trim().isEmpty()) {
@@ -196,6 +221,7 @@ public class RankingManager {
             identidad.put("fotoPerfilUrl", fotoPerfilUrl.trim());
         }
 
+        // Fusiona los cambios de identidad en el documento ranking/{uid}
         FirebaseFirestore.getInstance()
                 .collection(COLECCION_RANKING)
                 .document(user.getUid())

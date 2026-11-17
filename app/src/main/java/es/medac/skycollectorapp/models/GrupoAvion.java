@@ -23,22 +23,44 @@ public class GrupoAvion {
     }
 
     // Método para obtener el nombre del modelo del grupo
-    public String getModelo() { return modelo; }
+    public String getModelo() {
+        // Devuelve el nombre del modelo comercial que agrupa esta colección
+        return modelo;
+    }
 
     // Método para añadir un avistamiento al grupo
-    public void agregar(Avion avion) { avistamientos.add(avion); }
+    public void agregar(Avion avion) {
+        // Inserta el nuevo ejemplar al final de la lista cronológica de avistamientos
+        avistamientos.add(avion);
+    }
 
     // Método para obtener todos los avistamientos del grupo
-    public List<Avion> getAvistamientos() { return avistamientos; }
+    public List<Avion> getAvistamientos() {
+        // Devuelve la lista completa de ejemplares individuales del grupo
+        return avistamientos;
+    }
 
     // Método para obtener cuántos avistamientos tiene el grupo
-    public int getCantidad() { return avistamientos.size(); }
+    public int getCantidad() {
+        // Devuelve el tamaño actual de la lista de avistamientos
+        return avistamientos.size();
+    }
 
     // Método para obtener el avión que representa al grupo en la lista (el avistamiento más reciente)
-    public Avion getRepresentante() { return avistamientos.get(avistamientos.size() - 1); }
+    public Avion getRepresentante() {
+        // Recupera y devuelve el último elemento añadido a la lista (el más reciente)
+        return avistamientos.get(avistamientos.size() - 1);
+    }
 
     // Método para comprobar si el grupo está marcado como seleccionado
-    public boolean isSeleccionado() { return seleccionado; }
+    public boolean isSeleccionado() {
+        // Devuelve el estado booleano actual de selección de la tarjeta
+        return seleccionado;
+    }
+
     // Método para cambiar el estado de selección del grupo
-    public void setSeleccionado(boolean seleccionado) { this.seleccionado = seleccionado; }
+    public void setSeleccionado(boolean seleccionado) {
+        // Actualiza la bandera de selección para operaciones como el borrado múltiple
+        this.seleccionado = seleccionado;
+    }
 }

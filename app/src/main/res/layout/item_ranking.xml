@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Tarjeta horizontal de cada piloto en la clasificación -->
+<!-- Tarjeta horizontal de cada piloto en la clasificación global -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardItemRanking"
@@ -13,6 +13,7 @@
     app:strokeColor="#26324B"
     app:strokeWidth="1dp">
 
+    <!-- Fila horizontal principal que organiza posición, avatar, datos del piloto y puntuación -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +21,7 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <!-- Puesto numérico (#1, #2, #3...) -->
+        <!-- Puesto numérico (#1, #2, #3...) coloreado dinámicamente en oro, plata, bronce o cian -->
         <TextView
             android:id="@+id/txtPosicionRanking"
             android:layout_width="42dp"
@@ -30,7 +31,7 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- Avatar circular del piloto -->
+        <!-- Contenedor circular con recorte de esquinas para la fotografía de perfil del piloto -->
         <androidx.cardview.widget.CardView
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -40,6 +41,7 @@
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp">
 
+            <!-- Imagen de avatar del piloto cargada con Glide o icono por defecto -->
             <ImageView
                 android:id="@+id/imgAvatarRanking"
                 android:layout_width="match_parent"
@@ -49,13 +51,14 @@
                 android:src="@android:drawable/ic_menu_myplaces" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Nombre público y contador de avistamientos verificados -->
+        <!-- Bloque central flexible que apila el nombre público y el contador de avistamientos -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Nombre público del piloto truncado con puntos suspensivos si excede una línea -->
             <TextView
                 android:id="@+id/txtNombreRanking"
                 android:layout_width="match_parent"
@@ -66,6 +69,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+            <!-- Subtítulo informativo con el total de aviones verificados del piloto -->
             <TextView
                 android:id="@+id/txtAvistadosRanking"
                 android:layout_width="match_parent"
@@ -75,7 +79,7 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Puntuación total destacada en cian -->
+        <!-- Insignia derecha con la puntuación total acumulada del piloto -->
         <TextView
             android:id="@+id/txtPuntosRanking"
             android:layout_width="wrap_content"

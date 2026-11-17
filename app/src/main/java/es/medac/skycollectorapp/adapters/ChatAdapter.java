@@ -81,12 +81,16 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     // Método que devuelve la cantidad total de mensajes registrados en la lista
     @Override
-    public int getItemCount() { return listaMensajes.size(); }
+    public int getItemCount() {
+        // Retorno del tamaño total de la colección de mensajes
+        return listaMensajes.size();
+    }
 
     // Clase interna que define y vincula los componentes visuales de un mensaje individual
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
         // Declaración del componente de texto para el cuerpo del mensaje
         TextView txtMensaje;
+
         // Constructor del contenedor que asocia el componente con su ID del XML
         public ChatViewHolder(@NonNull View itemView) {
             // Llamada al constructor de la clase base con la vista recibida

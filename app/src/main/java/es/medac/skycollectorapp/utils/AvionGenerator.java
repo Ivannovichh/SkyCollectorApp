@@ -1,35 +1,61 @@
 // Paquete que agrupa las clases de utilidad del proyecto
 package es.medac.skycollectorapp.utils;
 
+// Importación para acceder al contexto de aplicación, recursos y preferencias locales
 import android.content.Context;
+// Importación para almacenar en disco las cachés persistentes de Wikipedia y códigos ICAO
 import android.content.SharedPreferences;
+// Importación para programar el envío de resultados hacia el hilo principal de interfaz
 import android.os.Handler;
+// Importación para asociar el Handler al Looper principal de Android
 import android.os.Looper;
+// Importación para registrar trazas de depuración y advertencias controladas
 import android.util.Log;
 
+// Importación para consultar el idioma activo configurado dentro de la aplicación
 import androidx.appcompat.app.AppCompatDelegate;
+// Importación para leer de forma compatible el versionCode de la aplicación instalada
 import androidx.core.content.pm.PackageInfoCompat;
+// Importación para manejar la lista de locales activos en AppCompat
 import androidx.core.os.LocaleListCompat;
 
+// Importación para parsear arreglos JSON de las respuestas de APIs aeronáuticas
 import org.json.JSONArray;
+// Importación para parsear objetos JSON de las respuestas de APIs aeronáuticas y Wikipedia
 import org.json.JSONObject;
 
+// Importación para leer flujos de texto de respuestas HTTP de manera eficiente
 import java.io.BufferedReader;
+// Importación para convertir flujos de bytes de red en caracteres legibles
 import java.io.InputStreamReader;
+// Importación para abrir y configurar peticiones HTTP/HTTPS nativas
 import java.net.HttpURLConnection;
+// Importación para construir direcciones URL de consulta
 import java.net.URL;
+// Importación para codificar parámetros de consulta en formato URL seguro
 import java.net.URLEncoder;
+// Importación para especificar la codificación estándar UTF-8
 import java.nio.charset.StandardCharsets;
+// Importación de listas dinámicas
 import java.util.ArrayList;
+// Importación de mapas hash estándar
 import java.util.HashMap;
+// Importación de la interfaz List
 import java.util.List;
+// Importación para normalización de cadenas independiente de la configuración regional
 import java.util.Locale;
+// Importación de la interfaz Map
 import java.util.Map;
+// Importación de mapas concurrentes seguros para acceso multihilo en caché de memoria
 import java.util.concurrent.ConcurrentHashMap;
+// Importación del gestor de grupos de hilos de ejecución en segundo plano
 import java.util.concurrent.ExecutorService;
+// Importación de la fábrica de pools de hilos cacheados
 import java.util.concurrent.Executors;
 
+// Importación de los recursos XML (cadenas localizadas y drawables) del proyecto
 import es.medac.skycollectorapp.R;
+// Importación del modelo de datos principal de aeronave
 import es.medac.skycollectorapp.models.Avion;
 
 /**
@@ -41,14 +67,22 @@ import es.medac.skycollectorapp.models.Avion;
  */
 public class AvionGenerator {
 
+    // Etiqueta de registro para trazas Logcat
     private static final String TAG = "AvionGenerator";
+    // Nombre del archivo SharedPreferences para la caché persistente de artículos de Wikipedia
     private static final String PREFS_WIKI_CACHE = "skycollector_wiki_cache";
+    // Nombre del archivo SharedPreferences para la caché persistente de resoluciones hex/matrícula
     private static final String PREFS_HEX_CACHE = "skycollector_hex_cache";
+    // Clave reservada en preferencias para detectar actualizaciones de versión de la app
     private static final String KEY_APP_VERSION = "_cached_app_version_";
+    // Delimitador interno para serializar descripción + URL de imagen en una sola cadena
     private static final String SEPARADOR_CACHE = "|||IMG|||";
+    // Delimitador interno para anteponer la marca de tiempo de caducidad (TTL)
     private static final String SEPARADOR_TTL = "|||TS|||";
-    private static final long CACHE_TTL_MS = 7L * 24L * 60L * 60L * 1000L; // 7 días de validez automática
+    // Tiempo máximo de vigencia en caché: 7 días expresados en milisegundos
+    private static final long CACHE_TTL_MS = 7L * 24L * 60L * 60L * 1000L;
 
+    // Cabecera identificativa enviada en todas las peticiones HTTP según políticas de Wikimedia/APIs
     public static final String USER_AGENT = "SkyCollectorApp/1.0 (https://github.com/Ivannovichh/SkyCollectorApp; contacto@skycollector.app)";
 
     // Fotos reales libres de Wikimedia Commons para cada Easter Egg terrestre
@@ -57,9 +91,13 @@ public class AvionGenerator {
     public static final String URL_FOTO_EASTER_EGG_TORRE =
             "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Air_traffic_control_tower_at_Frankfurt_Airport.jpg/800px-Air_traffic_control_tower_at_Frankfurt_Airport.jpg";
 
+    // Pool de hilos elástico para ejecutar consultas de red sin bloquear la interfaz
     private static final ExecutorService NETWORK_EXECUTOR = Executors.newCachedThreadPool();
+    // Handler vinculado al hilo principal para entregar callbacks seguros a la UI
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+    // Caché rápida en RAM para resultados ya resueltos de Wikipedia
     private static final ConcurrentHashMap<String, String> CACHE_MEMORIA_WIKI = new ConcurrentHashMap<>();
+    // Caché rápida en RAM para tipos ICAO resueltos a partir de hex o matrícula
     private static final ConcurrentHashMap<String, String> CACHE_MEMORIA_HEX = new ConcurrentHashMap<>();
 
     /**
@@ -80,13 +118,16 @@ public class AvionGenerator {
      * Estructura interna inmutable con los datos técnicos verificados de cada aeronave del catálogo.
      */
     private static class AvionData {
+        // Campos inmutables con la ficha técnica predefinida en el catálogo maestro
         final String modelo, fabricante, rareza, vel, cap, dim, pais, peso, codigoIcaoPrincipal;
+        // Identificador del recurso vectorial de silueta asociado
         final int siluetaId;
 
         /**
          * Construye una entrada técnica verificada para el catálogo estático.
          */
         AvionData(String m, String f, String r, int s, String v, String c, String d, String p, String pe, String icaoPrincipal) {
+            // Asigna todos los valores técnicos de la aeronave
             modelo = m;
             fabricante = f;
             rareza = r;
@@ -109,12 +150,14 @@ public class AvionGenerator {
     private static final int SIL_CARGA = R.drawable.sil_carga;
     private static final int SIL_HISTORICO = R.drawable.sil_historico;
 
-    // Estructuras de almacenamiento rápido en memoria
+    // Lista ordenada con todas las aeronaves registradas en el catálogo maestro
     private static final List<AvionData> DATOS_AVIONES = new ArrayList<>();
+    // Índice rápido O(1) para localizar una aeronave por cualquier código de tipo ICAO
     private static final Map<String, AvionData> MAPA_POR_ICAO = new HashMap<>();
+    // Índice rápido O(1) para localizar una aeronave por su nombre comercial normalizado
     private static final Map<String, AvionData> MAPA_POR_NOMBRE_NORMALIZADO = new HashMap<>();
 
-    // Inicialización estática del catálogo maestro local
+    // Bloque estático que puebla todo el catálogo maestro local al cargar la clase en memoria
     static {
         // --- EASTER EGGS ---
         registrar("Airport Operations Vehicle", "Airport", "EASTER_EGG", SIL_CARGA, "60 km/h", "Operations", "5m", "Global", "2t", "SERV", "GND", "OPS", "VEH");
@@ -322,6 +365,7 @@ public class AvionGenerator {
         registrar("Antonov An-32", "Antonov", "EPIC", SIL_TURBOHELICE, "530 km/h", "Carga", "29m", "URSS", "27t", "AN32");
         registrar("Ilyushin Il-18", "Ilyushin", "LEGENDARY", SIL_TURBOHELICE, "625 km/h", "110 pax", "37m", "URSS", "64t", "IL18");
 
+        // --- AVIACIÓN GENERAL Y PISTÓN ---
         registrar("Cessna 150", "Cessna", "COMMON", SIL_LIGERO, "200 km/h", "2 pax", "10m", "EE.UU.", "0.7t", "C150");
         registrar("Cessna 182 Skylane", "Cessna", "COMMON", SIL_LIGERO, "278 km/h", "4 pax", "11m", "EE.UU.", "1.4t", "C182", "C82S", "C82T", "C82R");
         registrar("Cessna 206 Stationair", "Cessna", "RARE", SIL_LIGERO, "280 km/h", "6 pax", "11m", "EE.UU.", "1.6t", "C206", "T206");
@@ -366,6 +410,7 @@ public class AvionGenerator {
         registrar("Mil Mi-26", "Mil", "EPIC", SIL_HELICOPTERO, "295 km/h", "90 tropas", "32m", "URSS", "56t", "MI26");
         registrar("Bell UH-1 Huey", "Bell", "LEGENDARY", SIL_HELICOPTERO, "204 km/h", "12 tropas", "15m", "EE.UU.", "4.3t", "UH1");
 
+        // --- CARGUEROS Y AVIACIÓN ESPECIAL ---
         registrar("Airbus A400M Atlas", "Airbus", "EPIC", SIL_CARGA, "780 km/h", "116 tropas", "42m", "Europa", "141t", "A400");
         registrar("Airbus Beluga ST", "Airbus", "EPIC", SIL_CARGA, "750 km/h", "Carga Esp.", "45m", "Europa", "155t", "A3ST");
         registrar("Ilyushin Il-76", "Ilyushin", "EPIC", SIL_CARGA, "850 km/h", "Carga", "50m", "URSS", "195t", "IL76");
@@ -399,6 +444,7 @@ public class AvionGenerator {
         registrar("Mikoyan MiG-15", "Mikoyan", "LEGENDARY", SIL_CAZA, "1075 km/h", "1 piloto", "10m", "URSS", "5t", "MG15");
         registrar("F-86 Sabre", "North American", "LEGENDARY", SIL_CAZA, "1100 km/h", "1 piloto", "12m", "EE.UU.", "7t", "F86");
 
+        // --- CLÁSICOS E HISTÓRICOS (LEGENDARY) ---
         registrar("Douglas DC-3", "Douglas", "LEGENDARY", SIL_HISTORICO, "333 km/h", "32 pax", "29m", "EE.UU.", "11t", "DC3");
         registrar("Douglas DC-4", "Douglas", "LEGENDARY", SIL_HISTORICO, "365 km/h", "44 pax", "36m", "EE.UU.", "33t", "DC4");
         registrar("Douglas DC-6", "Douglas", "LEGENDARY", SIL_HISTORICO, "507 km/h", "66 pax", "36m", "EE.UU.", "48t", "DC6");
@@ -454,15 +500,19 @@ public class AvionGenerator {
      */
     private static void validarYLimpiarCacheSiAppActualizada(Context appContext, SharedPreferences prefs, ConcurrentHashMap<String, String> memCache) {
         try {
+            // Obtiene el versionCode actual del paquete instalado
             long currentVersion = PackageInfoCompat.getLongVersionCode(
                     appContext.getPackageManager().getPackageInfo(appContext.getPackageName(), 0)
             );
+            // Recupera la versión con la que se guardó la caché anteriormente
             long savedVersion = prefs.getLong(KEY_APP_VERSION, -1L);
+            // Si la versión difiere, limpia RAM y disco y guarda el nuevo versionCode
             if (savedVersion != currentVersion) {
                 memCache.clear();
                 prefs.edit().clear().putLong(KEY_APP_VERSION, currentVersion).apply();
             }
         } catch (Exception ignored) {
+            // Ignora fallos puntuales de consulta al PackageManager
         }
     }
 
@@ -470,6 +520,7 @@ public class AvionGenerator {
      * Envuelve un valor con una marca de tiempo actual para gestionar su caducidad automática (TTL).
      */
     private static String empaquetarConTtl(String valor) {
+        // Concatena timestamp actual + separador + contenido real
         return System.currentTimeMillis() + SEPARADOR_TTL + valor;
     }
 
@@ -478,14 +529,17 @@ public class AvionGenerator {
      * Devuelve null si el registro está caducado para forzar su actualización limpia.
      */
     private static String desempaquetarSiVigente(String registroConTtl) {
+        // Verifica que exista el registro y contenga el delimitador de tiempo
         if (registroConTtl == null) return null;
         int idx = registroConTtl.indexOf(SEPARADOR_TTL);
         if (idx < 0) return null;
         try {
+            // Extrae el timestamp guardado y comprueba si superó los 7 días de validez
             long timestamp = Long.parseLong(registroConTtl.substring(0, idx));
             if (System.currentTimeMillis() - timestamp > CACHE_TTL_MS) {
                 return null;
             }
+            // Devuelve el contenido útil sin la cabecera de tiempo
             return registroConTtl.substring(idx + SEPARADOR_TTL.length());
         } catch (NumberFormatException e) {
             return null;
@@ -496,8 +550,10 @@ public class AvionGenerator {
      * Vacía manualmente toda la caché en memoria y en disco de Wikipedia e identificadores ICAO.
      */
     public static void limpiarTodaLaCache(Context context) {
+        // Limpia ambos mapas concurrentes en RAM
         CACHE_MEMORIA_WIKI.clear();
         CACHE_MEMORIA_HEX.clear();
+        // Borra ambos archivos de preferencias persistentes en disco
         Context appContext = context.getApplicationContext();
         appContext.getSharedPreferences(PREFS_WIKI_CACHE, Context.MODE_PRIVATE).edit().clear().apply();
         appContext.getSharedPreferences(PREFS_HEX_CACHE, Context.MODE_PRIVATE).edit().clear().apply();
@@ -510,9 +566,12 @@ public class AvionGenerator {
     private static void registrar(String modelo, String fabricante, String rareza, int siluetaId,
                                   String vel, String cap, String dim, String pais, String peso,
                                   String... codigos) {
+        // Toma el primer código ICAO de la lista como designador principal del modelo
         String icaoPrincipal = (codigos != null && codigos.length > 0) ? codigos[0].trim().toUpperCase(Locale.ROOT) : "";
+        // Crea la ficha técnica inmutable y la añade a la lista maestra
         AvionData data = new AvionData(modelo, fabricante, rareza, siluetaId, vel, cap, dim, pais, peso, icaoPrincipal);
         DATOS_AVIONES.add(data);
+        // Indexa por nombre normalizado y por cada código ICAO alternativo proporcionado
         MAPA_POR_NOMBRE_NORMALIZADO.put(normalizarNombre(modelo), data);
         for (String c : codigos) {
             MAPA_POR_ICAO.put(c.trim().toUpperCase(Locale.ROOT), data);
@@ -523,6 +582,7 @@ public class AvionGenerator {
      * Normaliza un nombre eliminando espacios y guiones en minúsculas para coincidencias exactas.
      */
     private static String normalizarNombre(String texto) {
+        // Convierte a minúsculas y elimina espacios, guiones, barras y puntos
         if (texto == null) return "";
         return texto.toLowerCase(Locale.ROOT).replaceAll("[\\s\\-_./]", "");
     }
@@ -531,6 +591,7 @@ public class AvionGenerator {
      * Construye un objeto Avion a partir de una ficha local verificada.
      */
     private static Avion crearAvionDesdeData(AvionData d) {
+        // Instancia un nuevo Avion con los datos técnicos de la ficha y asigna su tipo ICAO principal
         Avion a = new Avion(d.modelo, d.fabricante, d.rareza, d.siluetaId, d.vel, d.cap, d.dim, d.pais, d.peso);
         if (d.codigoIcaoPrincipal != null && !d.codigoIcaoPrincipal.isEmpty()) {
             a.setTipoIcao(d.codigoIcaoPrincipal);
@@ -543,11 +604,13 @@ public class AvionGenerator {
      * o baliza transpondedora fija de torre (ej: TWR, TOWER, PARROT).
      */
     public static boolean esEasterEggTorre(String tipoIcao, String callsign, String matricula, String descripcion) {
+        // Normaliza los cuatro campos recibidos en mayúsculas
         String t = (tipoIcao != null) ? tipoIcao.trim().toUpperCase(Locale.ROOT) : "";
         String c = (callsign != null) ? callsign.trim().toUpperCase(Locale.ROOT) : "";
         String m = (matricula != null) ? matricula.trim().toUpperCase(Locale.ROOT) : "";
         String d = (descripcion != null) ? descripcion.trim().toUpperCase(Locale.ROOT) : "";
 
+        // Evalúa patrones habituales de transpondedores fijos de torre de control
         if ("TWR".equals(t) || "TOWER".equals(t) || "TWR".equals(m) || m.startsWith("TWR")) {
             return true;
         }
@@ -563,15 +626,18 @@ public class AvionGenerator {
      * en pista (Follow-Me, Ops, mantenimiento, bomberos, etc.), excluyendo torres de control.
      */
     public static boolean esEasterEggVehiculo(String tipoIcao, String callsign, String matricula, String descripcion) {
+        // Excluye primero las torres de control para evitar solapamientos
         if (esEasterEggTorre(tipoIcao, callsign, matricula, descripcion)) {
             return false;
         }
 
+        // Normaliza los campos de identificación en mayúsculas
         String t = (tipoIcao != null) ? tipoIcao.trim().toUpperCase(Locale.ROOT) : "";
         String c = (callsign != null) ? callsign.trim().toUpperCase(Locale.ROOT) : "";
         String m = (matricula != null) ? matricula.trim().toUpperCase(Locale.ROOT) : "";
         String d = (descripcion != null) ? descripcion.trim().toUpperCase(Locale.ROOT) : "";
 
+        // Detecta códigos de tipo, indicativos o matrículas propios de vehículos de pista
         if ("SERV".equals(t) || "GND".equals(t) || t.contains("GRND") || "VEH".equals(t) || "OPS".equals(t)) {
             return true;
         }
@@ -589,6 +655,7 @@ public class AvionGenerator {
      * Comprueba si el blanco corresponde a cualquier Easter Egg terrestre (Torre de Control o Vehículo de Pista).
      */
     public static boolean esEasterEggTerrestre(String tipoIcao, String callsign, String matricula, String descripcion) {
+        // Combina la detección de torre de control y de vehículo terrestre
         return esEasterEggTorre(tipoIcao, callsign, matricula, descripcion)
                 || esEasterEggVehiculo(tipoIcao, callsign, matricula, descripcion);
     }
@@ -597,6 +664,7 @@ public class AvionGenerator {
      * Crea la instancia localizada del Easter Egg para vehículos terrestres aeroportuarios con su foto oficial.
      */
     public static Avion crearEasterEggVehiculo(Context appContext, String icao24, String tipoLimpio) {
+        // Construye el modelo especial EASTER_EGG con textos localizados y fotografía de coche Follow-Me
         String codigoTipo = (tipoLimpio != null && !tipoLimpio.isEmpty()) ? tipoLimpio : "OPS";
         Avion easterEgg = new Avion(
                 appContext.getString(R.string.easter_egg_vehiculo_modelo),
@@ -621,6 +689,7 @@ public class AvionGenerator {
      * Crea la instancia localizada del Easter Egg para Torres de Control / balizas fijas TWR con su foto oficial.
      */
     public static Avion crearEasterEggTorre(Context appContext, String icao24, String tipoLimpio) {
+        // Construye el modelo especial EASTER_EGG con textos localizados y fotografía de torre de control
         String codigoTipo = (tipoLimpio != null && !tipoLimpio.isEmpty()) ? tipoLimpio : "TWR";
         Avion torre = new Avion(
                 appContext.getString(R.string.easter_egg_torre_modelo),
@@ -645,6 +714,7 @@ public class AvionGenerator {
      * Devuelve la silueta correspondiente a partir del nombre del modelo o tipo ICAO.
      */
     public static int resolverImagenPorModelo(String modelo, String tipoIcao) {
+        // Busca primero coincidencia directa por código ICAO y después por nombre comercial
         if (tipoIcao != null && !tipoIcao.trim().isEmpty()) {
             AvionData data = MAPA_POR_ICAO.get(tipoIcao.trim().toUpperCase(Locale.ROOT));
             if (data != null) return data.siluetaId;
@@ -653,6 +723,7 @@ public class AvionGenerator {
             AvionData data = buscarEnCatalogoPorTexto(modelo);
             if (data != null) return data.siluetaId;
         }
+        // Si no hay coincidencia, devuelve la silueta genérica de reactor comercial
         return SIL_JET;
     }
 
@@ -660,6 +731,7 @@ public class AvionGenerator {
      * Comprueba si un nombre de modelo corresponde a un avión desconocido en cualquier idioma.
      */
     public static boolean esModeloDesconocido(Context context, String modelo) {
+        // Evalúa cadenas nulas, guiones o etiquetas localizadas de aeronave desconocida
         if (modelo == null || modelo.trim().isEmpty()) return true;
         String m = modelo.trim();
         String desconocidoLocalizado = context.getString(R.string.aeronave_desconocida);
@@ -673,6 +745,7 @@ public class AvionGenerator {
      * Limpia prefijos genéricos, paréntesis y corchetes del modelo para mejorar la búsqueda en Wikipedia.
      */
     public static String limpiarModeloParaWiki(Context context, String modelo) {
+        // Elimina palabras genéricas como "Aeronave ICAO" y signos de agrupación
         if (esModeloDesconocido(context, modelo)) return "";
         String formatoGenerico = context.getString(R.string.aeronave_generica, "");
         return modelo.replace(formatoGenerico, "")
@@ -685,6 +758,7 @@ public class AvionGenerator {
      * Determina la silueta adecuada cuando una aeronave genérica no está en el catálogo local.
      */
     private static int determinarSiluetaPorCategoriaRadar(String categoriaRadar) {
+        // Asocia la categoría textual reportada por el radar con su icono vectorial más cercano
         if (categoriaRadar == null) return SIL_JET;
         String cat = categoriaRadar.toLowerCase(Locale.ROOT);
         if (cat.contains("liger") || cat.contains("light") || cat.contains("small")) return SIL_LIGERO;
@@ -699,6 +773,7 @@ public class AvionGenerator {
      * Obtiene el idioma activo de la aplicación ("es" o "en") para las consultas de Wikipedia.
      */
     public static String obtenerCodigoIdiomaWiki() {
+        // Consulta el locale configurado en AppCompatDelegate o el del sistema por defecto
         LocaleListCompat appLocales = AppCompatDelegate.getApplicationLocales();
         String lang = (!appLocales.isEmpty() && appLocales.get(0) != null)
                 ? appLocales.get(0).getLanguage()
@@ -710,13 +785,16 @@ public class AvionGenerator {
      * Resuelve de forma asíncrona el código de tipo ICAO y su nombre de modelo a partir del ICAO24.
      */
     public static void resolverTipoIcaoAsync(Context context, String icao24, OnTipoIcaoResueltoListener listener) {
+        // Valida parámetros de entrada antes de lanzar tarea en segundo plano
         if (listener == null || icao24 == null || icao24.trim().isEmpty()) return;
         final Context appContext = context.getApplicationContext();
 
         NETWORK_EXECUTOR.execute(() -> {
+            // Consulta caché o APIs remotas para obtener el designador ICAO a partir del hex
             String recuperado = obtenerTipoIcaoDesdeHexDbCacheado(appContext, icao24);
             if (recuperado != null && !recuperado.isEmpty()) {
                 String upper = recuperado.trim().toUpperCase(Locale.ROOT);
+                // Cruza el resultado con el catálogo local para obtener el nombre comercial completo
                 AvionData data = MAPA_POR_ICAO.get(upper);
                 if (data == null) {
                     data = buscarEnCatalogoPorTexto(recuperado);
@@ -729,6 +807,7 @@ public class AvionGenerator {
                         ? data.modelo
                         : (!tipoFinal.isEmpty() ? appContext.getString(R.string.aeronave_generica, tipoFinal) : recuperado.trim());
 
+                // Entrega el resultado al hilo principal
                 MAIN_HANDLER.post(() -> listener.onTipoIcaoResuelto(tipoFinal, modeloFinal));
             }
         });
@@ -740,6 +819,7 @@ public class AvionGenerator {
     public static void resolverAvionGlobalAsync(Context context, String icao24, String matricula, String tipoIcao,
                                                 String modeloRadarFallback, String categoriaRadar,
                                                 OnAvionResueltoListener listener) {
+        // Invoca la versión completa pasando null como indicativo de llamada
         resolverAvionGlobalAsync(context, icao24, null, matricula, tipoIcao, modeloRadarFallback, categoriaRadar, listener);
     }
 
@@ -750,6 +830,7 @@ public class AvionGenerator {
     public static void resolverAvionGlobalAsync(Context context, String icao24, String callsign, String matricula,
                                                 String tipoIcao, String modeloRadarFallback, String categoriaRadar,
                                                 OnAvionResueltoListener listener) {
+        // Evita trabajar si no hay receptor para el resultado
         if (listener == null) return;
         final Context appContext = context.getApplicationContext();
 
@@ -807,6 +888,7 @@ public class AvionGenerator {
             String nombreModeloDinamico;
             int siluetaDinamica = determinarSiluetaPorCategoriaRadar(categoriaRadar);
 
+            // Construye un nombre descriptivo según los identificadores disponibles
             if (!codigoGenerico.isEmpty()) {
                 nombreModeloDinamico = appContext.getString(R.string.aeronave_generica, codigoGenerico);
             } else if (!matriculaLimpia.isEmpty()) {
@@ -817,6 +899,7 @@ public class AvionGenerator {
                 nombreModeloDinamico = appContext.getString(R.string.aeronave_desconocida);
             }
 
+            // Deduce país por bloque hexadecimal ICAO y fabricante si figura en el nombre
             String paisHex = deducirPaisPorHexIcao(icao24);
             String fabricanteDinamico = deducirFabricante(modeloRadarFallback);
             if ("—".equals(fabricanteDinamico)) {
@@ -861,6 +944,7 @@ public class AvionGenerator {
             String tipoEfectivo = avionBase.getTipoIcao() != null ? avionBase.getTipoIcao() : tipoLimpio;
             String terminoEfectivo = terminoBusquedaWiki;
 
+            // Si aún desconocemos el tipo exacto de aeronave, interrogamos las bases de datos remotas por ICAO24/matrícula
             if ((tipoEfectivo.isEmpty() || esModeloDesconocido(appContext, avionBase.getModelo()))
                     && (icao24 != null || !matriculaLimpia.isEmpty())) {
 
@@ -874,6 +958,7 @@ public class AvionGenerator {
 
                 if (recuperado != null) {
                     String recuperadoUpper = recuperado.trim().toUpperCase(Locale.ROOT);
+                    // Reevaluamos si el dato remoto revela que se trataba de un Easter Egg terrestre
                     if (esEasterEggTorre(recuperadoUpper, callsign, matriculaLimpia, recuperado)) {
                         Avion torre = crearEasterEggTorre(appContext, icao24, "TWR");
                         MAIN_HANDLER.post(() -> listener.onAvionResuelto(torre));
@@ -885,12 +970,14 @@ public class AvionGenerator {
                         return;
                     }
 
+                    // Intentamos mapear el tipo recuperado contra nuestro catálogo técnico verificado
                     AvionData dataRecuperada = MAPA_POR_ICAO.get(recuperadoUpper);
                     if (dataRecuperada == null) {
                         dataRecuperada = buscarEnCatalogoPorTexto(recuperado);
                     }
 
                     if (dataRecuperada != null) {
+                        // Actualiza el objeto con todos los datos técnicos verificados del catálogo
                         tipoEfectivo = (recuperadoUpper.length() <= 4 && recuperadoUpper.matches("[A-Z0-9]{2,4}"))
                                 ? recuperadoUpper
                                 : dataRecuperada.codigoIcaoPrincipal;
@@ -906,11 +993,13 @@ public class AvionGenerator {
                         avionBase.setPeso(dataRecuperada.peso);
                         terminoEfectivo = dataRecuperada.modelo;
                     } else if (recuperadoUpper.length() <= 4 && recuperadoUpper.matches("[A-Z0-9]{2,4}")) {
+                        // Si es un código ICAO válido fuera del catálogo, actualiza el identificador genérico
                         tipoEfectivo = recuperadoUpper;
                         avionBase.setTipoIcao(tipoEfectivo);
                         avionBase.setModelo(appContext.getString(R.string.aeronave_generica, tipoEfectivo));
                         terminoEfectivo = tipoEfectivo;
                     } else {
+                        // Si la API devolvió directamente el nombre comercial, lo formatea y deduce fabricante
                         String modeloLimpio = formatearTextoModelo(recuperado.trim());
                         avionBase.setModelo(modeloLimpio);
                         String fab = deducirFabricante(modeloLimpio);
@@ -942,6 +1031,7 @@ public class AvionGenerator {
                 }
             }
 
+            // Entrega el objeto final enriquecido al hilo principal de interfaz
             MAIN_HANDLER.post(() -> listener.onAvionResuelto(avionBase));
         });
     }
@@ -951,6 +1041,7 @@ public class AvionGenerator {
      * indicativo de llamada (callsign) o el sufijo de la matrícula.
      */
     private static String deducirIcaoPorCallsignOMatricula(String callsign, String matricula) {
+        // Asocia prefijos de aerolíneas comerciales frecuentes con su modelo de flota principal
         if (callsign != null && !callsign.trim().isEmpty()) {
             String cs = callsign.trim().toUpperCase(Locale.ROOT);
 
@@ -993,6 +1084,7 @@ public class AvionGenerator {
             if (cs.startsWith("RAM")) return "B738";
         }
 
+        // Comprueba sufijos de matrícula característicos de flotas regionales (ej. Horizon Air "QX")
         if (matricula != null && !matricula.trim().isEmpty()) {
             String reg = matricula.trim().toUpperCase(Locale.ROOT);
             if (reg.endsWith("QX")) {
@@ -1008,10 +1100,12 @@ public class AvionGenerator {
      * variantes comerciales devueltas por las APIs.
      */
     private static AvionData buscarEnCatalogoPorTexto(String texto) {
+        // Primero intenta coincidencia directa por nombre normalizado
         if (texto == null || texto.trim().isEmpty()) return null;
         AvionData exacta = MAPA_POR_NOMBRE_NORMALIZADO.get(normalizarNombre(texto));
         if (exacta != null) return exacta;
 
+        // Si no coincide exactamente, deduce el código ICAO estándar a partir del texto
         String icaoDeducido = deducirCodigoIcaoPorTexto(texto);
         if (icaoDeducido != null) {
             return MAPA_POR_ICAO.get(icaoDeducido);
@@ -1023,9 +1117,11 @@ public class AvionGenerator {
      * Traduce designaciones comerciales o de certificación FAA a su código ICAO estándar.
      */
     private static String deducirCodigoIcaoPorTexto(String texto) {
+        // Normaliza espacios y mayúsculas para evaluar subvariantes de modelos comerciales
         if (texto == null) return null;
         String u = texto.toUpperCase(Locale.ROOT).replaceAll("\\s+", " ").trim();
 
+        // Familia Embraer E-Jets y ERJ
         if (u.contains("170-200") || u.contains("170200") || u.contains("E175") || u.contains("EMB-175") || u.contains("EMB 175") || u.contains("ERJ-175") || u.contains("ERJ 175")) {
             return "E75L";
         }
@@ -1041,6 +1137,7 @@ public class AvionGenerator {
         if (u.contains("145") && (u.contains("EMB") || u.contains("ERJ"))) return "E145";
         if (u.contains("135") && (u.contains("EMB") || u.contains("ERJ"))) return "E135";
 
+        // Familia Boeing 737 Classic, NG y MAX
         if (u.contains("737")) {
             if (u.contains("MAX 7") || u.contains("737-7")) return "B37M";
             if (u.contains("MAX 8") || u.contains("737-8")) return "B38M";
@@ -1055,12 +1152,14 @@ public class AvionGenerator {
             return "B738";
         }
 
+        // Familia Airbus A320ceo/neo y A220
         if (u.contains("A320") || u.contains("320-2")) return u.contains("NEO") || u.contains("251N") || u.contains("271N") ? "A20N" : "A320";
         if (u.contains("A321") || u.contains("321-2")) return u.contains("NEO") || u.contains("251N") || u.contains("271N") ? "A21N" : "A321";
         if (u.contains("A319") || u.contains("319-1")) return u.contains("NEO") ? "A19N" : "A319";
         if (u.contains("A220-300") || u.contains("BD-500-1A11") || u.contains("CS300")) return "BCS3";
         if (u.contains("A220-100") || u.contains("BD-500-1A10") || u.contains("CS100")) return "BCS1";
 
+        // Reactores de fuselaje ancho Boeing y Airbus
         if (u.contains("787-8")) return "B788";
         if (u.contains("787-9")) return "B789";
         if (u.contains("787-10")) return "B78X";
@@ -1077,6 +1176,7 @@ public class AvionGenerator {
         if (u.contains("A330-9")) return "A339";
         if (u.contains("A380")) return "A388";
 
+        // Regionales, turbohélices y aviación ligera frecuentes
         if (u.contains("CRJ-900") || u.contains("CL-600-2D24")) return "CRJ9";
         if (u.contains("CRJ-700") || u.contains("CL-600-2C10")) return "CRJ7";
         if (u.contains("CRJ-200") || u.contains("CL-600-2B19")) return "CRJ2";
@@ -1095,6 +1195,7 @@ public class AvionGenerator {
      * Completa el nombre del fabricante en códigos abreviados de Boeing o Airbus.
      */
     private static String formatearTextoModelo(String modelo) {
+        // Antepone "Boeing " o "Airbus " si la cadena empieza directamente por su código numérico
         if (modelo == null) return "";
         if (modelo.matches("^7[0-8]7.*")) return "Boeing " + modelo;
         if (modelo.matches("^A3[0-8]\\d.*")) return "Airbus " + modelo;
@@ -1106,6 +1207,7 @@ public class AvionGenerator {
      * Valida automáticamente la versión de la aplicación y la caducidad temporal (TTL).
      */
     private static String obtenerTipoIcaoDesdeHexYMatriculaCacheado(Context appContext, String icao24, String matricula) {
+        // Normaliza las claves de búsqueda para RAM y SharedPreferences
         String claveHex = (icao24 != null && !icao24.trim().isEmpty())
                 ? icao24.trim().toLowerCase(Locale.ROOT)
                 : "";
@@ -1113,9 +1215,11 @@ public class AvionGenerator {
                 ? "reg_" + matricula.trim().toLowerCase(Locale.ROOT)
                 : "";
 
+        // Abre las preferencias de caché y purga si la app fue actualizada
         SharedPreferences prefs = appContext.getSharedPreferences(PREFS_HEX_CACHE, Context.MODE_PRIVATE);
         validarYLimpiarCacheSiAppActualizada(appContext, prefs, CACHE_MEMORIA_HEX);
 
+        // 1. Consulta en RAM y disco por código hexadecimal ICAO24
         if (!claveHex.isEmpty()) {
             String memHex = desempaquetarSiVigente(CACHE_MEMORIA_HEX.get(claveHex));
             if (memHex != null) return memHex;
@@ -1127,6 +1231,7 @@ public class AvionGenerator {
             }
         }
 
+        // 2. Consulta en RAM y disco por matrícula
         if (!claveReg.isEmpty()) {
             String memReg = desempaquetarSiVigente(CACHE_MEMORIA_HEX.get(claveReg));
             if (memReg != null) return memReg;
@@ -1138,6 +1243,7 @@ public class AvionGenerator {
             }
         }
 
+        // 3. Consulta en cascada en servidores remotos si no había copia vigente en caché
         String tipoRemoto = null;
         if (!claveHex.isEmpty()) {
             tipoRemoto = consultarTipoIcaoRemoto(claveHex);
@@ -1151,6 +1257,7 @@ public class AvionGenerator {
             tipoRemoto = consultarPlanespottersFallback(claveHex, matricula);
         }
 
+        // 4. Guarda el resultado resuelto con TTL en RAM y en disco
         if (tipoRemoto != null) {
             String registroConTtl = empaquetarConTtl(tipoRemoto);
             SharedPreferences.Editor editor = prefs.edit();
@@ -1172,8 +1279,10 @@ public class AvionGenerator {
      * Consulta el tipo de aeronave en servidores remotos utilizando la matrícula del aparato.
      */
     private static String consultarTipoIcaoPorMatriculaRemoto(String matricula) {
+        // Normaliza la matrícula en mayúsculas
         String regLimpia = matricula.trim().toUpperCase(Locale.ROOT);
 
+        // Primer intento: API pública ADSBDB por matrícula
         try {
             String urlAdsbReg = "https://api.adsbdb.com/v0/aircraft/" + URLEncoder.encode(regLimpia, "UTF-8");
             String respAdsb = peticionHttpGet(urlAdsbReg);
@@ -1182,6 +1291,7 @@ public class AvionGenerator {
         } catch (Exception ignored) {
         }
 
+        // Segundo intento: API pública adsb.lol por matrícula
         try {
             String urlLolReg = "https://api.adsb.lol/v2/reg/" + URLEncoder.encode(regLimpia, "UTF-8");
             String respLol = peticionHttpGet(urlLolReg);
@@ -1190,6 +1300,7 @@ public class AvionGenerator {
         } catch (Exception ignored) {
         }
 
+        // Tercer intento: Traducción matrícula -> hex en HexDB y posterior consulta de ficha
         try {
             String urlHexReg = "https://hexdb.io/api/v1/reg/icao/" + URLEncoder.encode(regLimpia, "UTF-8");
             String hexDesdeReg = peticionHttpGet(urlHexReg);
@@ -1210,23 +1321,28 @@ public class AvionGenerator {
      * Recupera el tipo ICAO desde caché o red usando exclusivamente el código ICAO24.
      */
     private static String obtenerTipoIcaoDesdeHexDbCacheado(Context appContext, String icao24) {
+        // Normaliza el código hexadecimal
         String hexLimpio = icao24.trim().toLowerCase(Locale.ROOT);
         if (hexLimpio.isEmpty()) return null;
 
+        // Comprueba validez de versión de app en caché
         SharedPreferences prefs = appContext.getSharedPreferences(PREFS_HEX_CACHE, Context.MODE_PRIVATE);
         validarYLimpiarCacheSiAppActualizada(appContext, prefs, CACHE_MEMORIA_HEX);
 
+        // Busca en caché en memoria RAM
         String cacheadoMemoria = desempaquetarSiVigente(CACHE_MEMORIA_HEX.get(hexLimpio));
         if (cacheadoMemoria != null) {
             return cacheadoMemoria;
         }
 
+        // Busca en caché persistente en disco
         String cacheadoDisco = desempaquetarSiVigente(prefs.getString(hexLimpio, null));
         if (cacheadoDisco != null) {
             CACHE_MEMORIA_HEX.put(hexLimpio, empaquetarConTtl(cacheadoDisco));
             return cacheadoDisco;
         }
 
+        // Consulta en red y almacena el resultado vigente en RAM y disco
         String tipoRemoto = consultarTipoIcaoRemoto(hexLimpio);
 
         if (tipoRemoto != null) {
@@ -1242,6 +1358,7 @@ public class AvionGenerator {
      * Consulta en cascada ADSBDB, HexDB, adsb.lol y OpenSky para identificar el modelo por hex.
      */
     private static String consultarTipoIcaoRemoto(String hexLimpio) {
+        // 1. Consulta en ADSBDB
         try {
             String urlAdsb = "https://api.adsbdb.com/v0/aircraft/" + URLEncoder.encode(hexLimpio, "UTF-8");
             String respAdsb = peticionHttpGet(urlAdsb);
@@ -1250,9 +1367,11 @@ public class AvionGenerator {
         } catch (Exception ignored) {
         }
 
+        // 2. Consulta en HexDB
         String extraidoHexDb = consultarHexDbPorIcao(hexLimpio);
         if (extraidoHexDb != null) return extraidoHexDb;
 
+        // 3. Consulta en adsb.lol
         try {
             String urlAdsbLol = "https://api.adsb.lol/v2/icao/" + URLEncoder.encode(hexLimpio, "UTF-8");
             String respLol = peticionHttpGet(urlAdsbLol);
@@ -1261,6 +1380,7 @@ public class AvionGenerator {
         } catch (Exception ignored) {
         }
 
+        // 4. Consulta en metadatos de OpenSky Network
         try {
             String urlOpenSky = "https://opensky-network.org/api/metadata/aircraft/icao/" + URLEncoder.encode(hexLimpio, "UTF-8");
             String respOs = peticionHttpGet(urlOpenSky);
@@ -1288,6 +1408,7 @@ public class AvionGenerator {
      * Consulta la base de datos pública HexDB por código hexadecimal ICAO24.
      */
     private static String consultarHexDbPorIcao(String hexLimpio) {
+        // Realiza petición GET a HexDB y extrae ICAOTypeCode o Manufacturer + Type
         try {
             String urlHex = "https://hexdb.io/api/v1/aircraft/" + URLEncoder.encode(hexLimpio, "UTF-8");
             String respHex = peticionHttpGet(urlHex);
@@ -1314,6 +1435,7 @@ public class AvionGenerator {
      * Extrae el código ICAO o nombre comercial desde la respuesta JSON de ADSBDB.
      */
     private static String extraerTipoDeJsonAdsbdb(String respJson) {
+        // Navega la estructura response -> aircraft buscando icao_type o manufacturer + type
         if (respJson == null || respJson.isEmpty()) return null;
         try {
             JSONObject root = new JSONObject(respJson);
@@ -1342,6 +1464,7 @@ public class AvionGenerator {
      * Extrae el código ICAO o descripción desde la respuesta JSON de adsb.lol.
      */
     private static String extraerTipoDeJsonAdsbLol(String respJson) {
+        // Lee el primer elemento del arreglo "ac" y extrae el campo "t" o "desc"
         if (respJson == null || respJson.isEmpty()) return null;
         try {
             JSONObject root = new JSONObject(respJson);
@@ -1366,12 +1489,14 @@ public class AvionGenerator {
      * Intenta deducir el tipo de aeronave analizando los metadatos de enlaces en Planespotters.
      */
     private static String consultarPlanespottersFallback(String hexLimpio, String matricula) {
+        // Prepara endpoints públicos por hex y por matrícula de Planespotters
         String[] urls = new String[]{
                 !hexLimpio.isEmpty() ? "https://api.planespotters.net/pub/photos/hex/" + hexLimpio : null,
                 (matricula != null && !matricula.trim().isEmpty())
                         ? "https://api.planespotters.net/pub/photos/reg/" + matricula.trim().toUpperCase(Locale.ROOT)
                         : null
         };
+        // Analiza la URL de la galería fotográfica para extraer el modelo del avión
         for (String u : urls) {
             if (u == null) continue;
             try {
@@ -1397,11 +1522,14 @@ public class AvionGenerator {
      */
     private static String[] obtenerInfoCacheadaORemota(Context appContext, String claveCache,
                                                        String terminoBusqueda, String fabricante, String modelo) {
+        // Verifica la validez de la caché según la versión actual de la app
         SharedPreferences prefs = appContext.getSharedPreferences(PREFS_WIKI_CACHE, Context.MODE_PRIVATE);
         validarYLimpiarCacheSiAppActualizada(appContext, prefs, CACHE_MEMORIA_WIKI);
 
+        // 1. Intenta recuperar el artículo vigente desde memoria RAM
         String empaquetado = desempaquetarSiVigente(CACHE_MEMORIA_WIKI.get(claveCache));
 
+        // 2. Si no está en RAM, intenta recuperarlo desde SharedPreferences en disco
         if (empaquetado == null) {
             String empaquetadoDisco = desempaquetarSiVigente(prefs.getString(claveCache, null));
             if (empaquetadoDisco != null) {
@@ -1414,6 +1542,7 @@ public class AvionGenerator {
             return desempaquetarWiki(empaquetado);
         }
 
+        // 3. Si no existe caché vigente, consulta Wikipedia en red y persiste el resultado
         String[] wikiRemoto = consultarWikipediaValidada(appContext, terminoBusqueda);
 
         if (wikiRemoto != null) {
@@ -1422,6 +1551,7 @@ public class AvionGenerator {
             prefs.edit().putString(claveCache, valorAGuardar).apply();
             return wikiRemoto;
         }
+        // Si Wikipedia no devuelve artículo aeronáutico válido, devuelve una descripción genérica localizada
         return new String[]{appContext.getString(R.string.descripcion_fallback, fabricante, modelo), null};
     }
 
@@ -1429,6 +1559,7 @@ public class AvionGenerator {
      * Serializa descripción e imagen en una sola cadena para persistencia en SharedPreferences.
      */
     private static String empaquetarWiki(String descripcion, String urlImagen) {
+        // Une descripción y URL de imagen mediante el separador interno
         return descripcion + SEPARADOR_CACHE + (urlImagen != null ? urlImagen : "");
     }
 
@@ -1436,6 +1567,7 @@ public class AvionGenerator {
      * Separa la descripción y la URL de imagen almacenadas en caché.
      */
     private static String[] desempaquetarWiki(String empaquetado) {
+        // Divide la cadena almacenada recuperando el texto y la URL opcional de la imagen
         int idx = empaquetado.indexOf(SEPARADOR_CACHE);
         if (idx < 0) return new String[]{empaquetado, null};
         String desc = empaquetado.substring(0, idx);
@@ -1447,6 +1579,7 @@ public class AvionGenerator {
      * Consulta Wikipedia en el idioma activo y recurre al inglés si no encuentra artículo válido.
      */
     private static String[] consultarWikipediaValidada(Context appContext, String terminoBusqueda) {
+        // Busca primero en el idioma de la interfaz y usa inglés como respaldo internacional
         if (terminoBusqueda == null || terminoBusqueda.trim().isEmpty()) return null;
         String lang = obtenerCodigoIdiomaWiki();
 
@@ -1462,6 +1595,7 @@ public class AvionGenerator {
      */
     private static String[] consultarWikipediaPorIdioma(Context appContext, String terminoBusqueda, String lang) {
         try {
+            // 1. Busca el título más relevante añadiendo un sufijo aeronáutico localizado
             String sufijo = appContext.getString(R.string.wiki_sufijo_busqueda);
             String searchUrl = "https://" + lang + ".wikipedia.org/w/api.php?action=query&list=search&srsearch="
                     + URLEncoder.encode(terminoBusqueda + sufijo, "UTF-8") + "&format=json&srlimit=1";
@@ -1479,6 +1613,7 @@ public class AvionGenerator {
             String titulo = resultados.getJSONObject(0).optString("title", "");
             if (titulo.isEmpty()) return null;
 
+            // 2. Descarga el resumen REST v1 del artículo encontrado
             String summaryUrl = "https://" + lang + ".wikipedia.org/api/rest_v1/page/summary/"
                     + URLEncoder.encode(titulo.replace(" ", "_"), "UTF-8");
             String summaryResp = peticionHttpGet(summaryUrl);
@@ -1488,10 +1623,12 @@ public class AvionGenerator {
             String descripcionCorta = summaryJson.optString("description", "").toLowerCase(Locale.ROOT);
             String extracto = summaryJson.optString("extract", "").trim();
 
+            // 3. Verifica que el artículo trate realmente sobre una aeronave
             if (!esArticuloAeronauticoValido(descripcionCorta, extracto)) {
                 return null;
             }
 
+            // 4. Extrae la imagen miniatura u original filtrando fotos de accidentes o banderas
             String urlImagen = null;
             JSONObject thumb = summaryJson.optJSONObject("thumbnail");
             if (thumb != null) {
@@ -1506,11 +1643,13 @@ public class AvionGenerator {
                 urlImagen = null;
             }
 
+            // 5. Recorta el extracto en el primer punto tras 140 caracteres si excede 260
             if (extracto.length() > 260) {
                 int punto = extracto.indexOf('.', 140);
                 if (punto > 0) extracto = extracto.substring(0, punto + 1);
             }
 
+            // 6. Añade la atribución y enlace directo al artículo fuente de Wikipedia
             String urlArticulo = "https://" + lang + ".wikipedia.org/wiki/" + titulo.replace(" ", "_");
             String atribucion = appContext.getString(R.string.wiki_atribucion_formato, urlArticulo);
 
@@ -1525,6 +1664,7 @@ public class AvionGenerator {
      * Filtra imágenes de accidentes, incendios, banderas o escudos no representativos del avión.
      */
     private static boolean esImagenNoDeseada(String url) {
+        // Comprueba palabras clave negativas en el nombre de archivo de Wikimedia
         String u = url.toLowerCase(Locale.ROOT);
         return u.contains("accident") || u.contains("crash") || u.contains("incident")
                 || u.contains("damage") || u.contains("destroy") || u.contains("fire")
@@ -1535,10 +1675,11 @@ public class AvionGenerator {
      * Verifica que el resumen de Wikipedia pertenezca realmente a una aeronave y no a objetos, plantas o listados.
      */
     private static boolean esArticuloAeronauticoValido(String descripcionCorta, String extracto) {
+        // Normaliza descripción corta y extracto en minúsculas
         String desc = (descripcionCorta != null) ? descripcionCorta.toLowerCase(Locale.ROOT) : "";
         String ext = (extracto != null) ? extracto.toLowerCase(Locale.ROOT) : "";
 
-        // Descartar listados, designadores ICAO o artículos no relacionados
+        // Descarta listados, designadores ICAO o artículos botánicos/genéricos
         if (desc.contains("type designator") || desc.contains("designador")
                 || desc.contains("list of") || desc.contains("lista de")
                 || desc.contains("seed") || desc.contains("plant") || desc.contains("grain")
@@ -1546,7 +1687,7 @@ public class AvionGenerator {
             return false;
         }
 
-        // La descripción corta de Wikipedia es la prueba más fiable
+        // Comprueba términos aeronáuticos en la descripción breve de Wikidata/Wikipedia
         boolean descEsAeronave = desc.contains("aircraft") || desc.contains("airliner")
                 || desc.contains("helicopter") || desc.contains("fighter") || desc.contains("monoplane")
                 || desc.contains("biplane") || desc.contains("glider") || desc.contains("seaplane")
@@ -1556,7 +1697,7 @@ public class AvionGenerator {
 
         if (descEsAeronave) return true;
 
-        // Si Wikipedia no tiene descripción corta, comprobamos los primeros 180 caracteres del extracto
+        // Si no hay descripción corta, inspecciona los primeros 180 caracteres del extracto
         String inicioExtracto = ext.length() > 180 ? ext.substring(0, 180) : ext;
         return inicioExtracto.contains("aircraft") || inicioExtracto.contains("airliner")
                 || inicioExtracto.contains("helicopter") || inicioExtracto.contains("fighter jet")
@@ -1568,6 +1709,7 @@ public class AvionGenerator {
      * Deduce el fabricante principal buscando palabras clave conocidas en el texto del modelo.
      */
     private static String deducirFabricante(String modelo) {
+        // Identifica constructores aeronáuticos habituales contenidos en la cadena del modelo
         if (modelo == null) return "—";
         String m = modelo.toLowerCase(Locale.ROOT);
         if (m.contains("boeing")) return "Boeing";
@@ -1592,6 +1734,7 @@ public class AvionGenerator {
     private static String peticionHttpGet(String urlStr) {
         HttpURLConnection conn = null;
         try {
+            // Abre la conexión HTTP con timeouts de 5 segundos y cabecera User-Agent identificativa
             URL url = new URL(urlStr);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -1600,12 +1743,14 @@ public class AvionGenerator {
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
 
+            // Comprueba que el servidor responda con código HTTP 200 OK
             int code = conn.getResponseCode();
             if (code != 200) {
                 Log.d(TAG, "HTTP " + code + " en " + urlStr);
                 return null;
             }
 
+            // Lee el cuerpo completo de la respuesta en UTF-8
             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             String line;
@@ -1618,6 +1763,7 @@ public class AvionGenerator {
             Log.w(TAG, "Error HTTP en " + urlStr + ": " + e.getMessage());
             return null;
         } finally {
+            // Libera siempre los recursos de red de la conexión
             if (conn != null) {
                 conn.disconnect();
             }
@@ -1628,6 +1774,7 @@ public class AvionGenerator {
      * Devuelve una instancia de Avion del catálogo maestro a partir de su código de tipo ICAO.
      */
     public static Avion getAvionPorTipoIcao(String tipoIcao) {
+        // Busca el código ICAO en el índice estático y construye el objeto Avion correspondiente
         if (tipoIcao == null) return null;
         AvionData data = MAPA_POR_ICAO.get(tipoIcao.trim().toUpperCase(Locale.ROOT));
         return (data != null) ? crearAvionDesdeData(data) : null;
@@ -1637,6 +1784,7 @@ public class AvionGenerator {
      * Devuelve una lista completa con todas las aeronaves registradas en el catálogo maestro local.
      */
     public static List<Avion> getTodosLosAviones() {
+        // Convierte cada ficha interna AvionData en una instancia pública Avion
         List<Avion> lista = new ArrayList<>();
         for (AvionData d : DATOS_AVIONES) {
             lista.add(crearAvionDesdeData(d));
@@ -1648,6 +1796,7 @@ public class AvionGenerator {
      * Traduce el identificador interno de rareza al texto localizado correspondiente.
      */
     public static String traducirRareza(Context context, String rareza) {
+        // Mapea la clave interna en inglés a su cadena localizada en strings.xml
         if (rareza == null) return context.getString(R.string.rareza_common);
         switch (rareza.toUpperCase(Locale.ROOT)) {
             case "RARE": return context.getString(R.string.rareza_rare);
@@ -1663,6 +1812,7 @@ public class AvionGenerator {
      * Deduce la región o país de registro a partir del bloque hexadecimal ICAO24 estándar.
      */
     private static String deducirPaisPorHexIcao(String icao24) {
+        // Convierte los 6 dígitos hexadecimales a entero y comprueba los rangos asignados por la OACI
         if (icao24 == null || icao24.trim().length() != 6) return "";
         try {
             int hexVal = Integer.parseInt(icao24.trim(), 16);
