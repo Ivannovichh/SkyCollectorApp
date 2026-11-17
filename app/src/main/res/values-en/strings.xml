@@ -244,6 +244,10 @@
     <string name="easter_egg_torre_fabricante">Air Traffic Control</string>
     <string name="easter_egg_torre_desc">Fixed ADS-B calibration transponder located at the airport control tower to verify radar accuracy.</string>
 
+    <string name="ranking_tu_usuario_formato">%1$s (You)</string>
+    <string name="ranking_sin_puntos_aviso">Spot your first aircraft to enter the ranking</string>
+    <string name="cd_avatar_piloto">Pilot avatar</string>
+
     <string name="descripcion_transpondedor_anonimo">Aircraft operating with ADS-B transponder (ICAO: %1$s) with no public technical record in open databases.</string>
 </resources>
 

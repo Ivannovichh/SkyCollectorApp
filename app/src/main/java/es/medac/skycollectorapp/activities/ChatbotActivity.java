@@ -160,7 +160,6 @@ public class ChatbotActivity extends AppCompatActivity {
                 "busca el", "busca la", "busca", "sobre el", "sobre la", "sobre",
                 "give me information about", "information about", "tell me about",
                 "what is an", "what is a", "what is the", "what is", "search for", "search",
-                "fighter", "bomber", "aircraft", "plane", "caza", "bombardero", "avion", "jet",
                 " el ", " la ", " los ", " las ", " un ", " una ", " unos ", " unas ",
                 " the ", " an ", " a ", " about "
         };

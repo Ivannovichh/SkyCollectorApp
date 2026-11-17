@@ -247,5 +247,9 @@
     <string name="easter_egg_torre_fabricante">Control de Tráfico Aéreo</string>
     <string name="easter_egg_torre_desc">Baliza fija de calibración ADS-B instalada en la torre de control del aeropuerto para verificar la precisión del radar.</string>
 
+    <string name="ranking_tu_usuario_formato">%1$s (Tú)</string>
+    <string name="ranking_sin_puntos_aviso">Avista tu primer avión para entrar en el ranking</string>
+    <string name="cd_avatar_piloto">Avatar del piloto</string>
+
     <string name="descripcion_transpondedor_anonimo">Aeronave operando con transpondedor ADS-B (ICAO: %1$s) sin ficha técnica pública registrada en bases de datos abiertas.</string>
 </resources>
