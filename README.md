@@ -184,30 +184,38 @@ service cloud.firestore {
 ---
 ## 🖼️ Capturas de pantalla
 
+### 👤 Usuario
 | Inicio de sesión | Configuración de usuario | Perfil de usuario |
 | :---: | :---: | :---: |
 | ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Perfil](capturas/Perifl.png) |
 
+### 🛩️ Colección
 | Colección (Hangar) | Colección con foto añadida | Colección de repetidos |
 | :---: | :---: | :---: |
 | ![Colección](capturas/Coleccion.png) | ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
 
-| Avistamiento básico | Avistamiento con foto | Radar con alerta |
+| Avistamiento básico | Avistamiento con foto | Proceso de avistamiento |
 | :---: | :---: | :---: |
-| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Mapa con aviso](capturas/MapaAvisto.png) |
+| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) |
 
-| Proceso de avistamiento | Lista de avistados | Gestión de duplicados |
+| Eliminación de aviones | Eliminación de duplicados |
+| :---: | :---: |
+| ![Eliminación simple](capturas/Eliminacion-hangar.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+
+### 🗺️ Mapa
+| Radar en directo | Mapa de avistados | Radar con alerta | Ficha técnica de alerta |
+| :---: | :---: | :---: | :---: |
+| ![Mapa](capturas/Mapa.png) | ![Mapa de avistados](capturas/Avistados.png) | ![Mapa con aviso](capturas/MapaAvisto.png) | ![Info detallada alerta](capturas/InfoDetallada.png) |
+
+### 🏆 Ranking
+| Tabla de clasificación (Ranking) | Hangar de piloto en ranking | Ficha técnica ranking |
 | :---: | :---: | :---: |
-| ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistados](capturas/Avistados.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+| ![Ranking](capturas/ranking.png) | ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) |
 
-| Ficha técnica (Detalle 1) | Ficha técnica (Detalle 2) | Radar en directo |
-| :---: | :---: | :---: |
-| ![Info detallada](capturas/InfoDetallada.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) | ![Mapa](capturas/Mapa.png) |
-
-| Hangar de piloto | Tabla de clasificación (Ranking) | Chatbot asistente |
-| :---: | :---: | :---: |
-| ![Vista ranking / Hangar](capturas/Vista-ranking.png) | ![Ranking](capturas/ranking.png) | ![Chatbot](capturas/Chatbot.png) |
-
+### 🤖 Chatbot
+| Chatbot asistente | Chatbot sin conexión |
+| :---: | :---: |
+| ![Chatbot](capturas/Chatbot.png) | ![Chatbot sin conexión](capturas/chatbot-sin-conexion.png) |
 ---
 
 ## ▶️ Instalación y configuración
