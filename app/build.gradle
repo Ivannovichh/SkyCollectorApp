@@ -19,6 +19,23 @@ android {
         versionName "1.0.0-beta" // Nombre visible de la versión mostrada a los usuarios y testers
     }
 
+    // Configuración de variantes de compilación y renombrado automático de APKs
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Renombrado automático compatible con Groovy (build.gradle)
+            applicationVariants.all { variant ->
+                if (variant.name == "release") {
+                    variant.outputs.all { output ->
+                        outputFileName = "skycollector_v1.0-beta.apk"
+                    }
+                }
+            }
+        }
+    }
+
     // Configuración de características avanzadas de compilación activadas en el proyecto
     buildFeatures {
         viewBinding true // Activa la generación automática de clases de enlace para interactuar de forma segura con los layouts XML

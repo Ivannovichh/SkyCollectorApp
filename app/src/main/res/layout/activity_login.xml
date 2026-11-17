@@ -76,7 +76,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="10dp"/>
 
-    <!-- Botón con borde cian para iniciar sesión mediante verificación por SMS -->
+    <!-- Botón con borde cian para iniciar sesión mediante verificación por SMS
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSmsLogin"
         android:layout_width="match_parent"
@@ -88,7 +88,7 @@
         android:textStyle="bold"
         app:strokeColor="#00E5FF"
         app:strokeWidth="1dp"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="20dp"/> -->
 
     <!-- Etiqueta informativa que pregunta si el usuario aún no tiene cuenta -->
     <TextView
