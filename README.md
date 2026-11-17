@@ -184,25 +184,25 @@ service cloud.firestore {
 ---
 ## 🖼️ Capturas de pantalla
 
-| Inicio de sesión | Configuración de usuario | Radar en directo |
+| Inicio de sesión | Configuración de usuario | Perfil de usuario |
 | :---: | :---: | :---: |
-| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Mapa](capturas/Mapa.png) |
+| ![Inicio de sesión](capturas/inicio-sesion.png) | ![Nombre de usuario](capturas/nombre-usuario.png) | ![Perfil](capturas/Perifl.png) |
 
-| Radar con alerta | Proceso de avistamiento | Avistamiento básico |
+| Colección (Hangar) | Colección con foto añadida | Colección de repetidos |
 | :---: | :---: | :---: |
-| ![Mapa con aviso](capturas/MapaAvisto.png) | ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistamiento](capturas/Avistamiento.png) |
+| ![Colección](capturas/Coleccion.png) | ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) |
 
-| Avistamiento con foto | Lista de avistados | Colección (Hangar) |
+| Avistamiento básico | Avistamiento con foto | Radar con alerta |
 | :---: | :---: | :---: |
-| ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Avistados](capturas/Avistados.png) | ![Colección](capturas/Coleccion.png) |
+| ![Avistamiento](capturas/Avistamiento.png) | ![Avistamiento foto](capturas/Avistamiento-foto.png) | ![Mapa con aviso](capturas/MapaAvisto.png) |
 
-| Colección con fotos | Colección de repetidos | Gestión de duplicados |
+| Proceso de avistamiento | Lista de avistados | Gestión de duplicados |
 | :---: | :---: | :---: |
-| ![Colección foto](capturas/Coleccion-foto.png) | ![Colección repetidos](capturas/Coleccion-repetidos.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
+| ![Proceso de avistamiento](capturas/ProcesoAvistamiento.png) | ![Avistados](capturas/Avistados.png) | ![Eliminación repetidos](capturas/Eliminacion-repetidos.png) |
 
-| Ficha técnica (Detalle 1) | Ficha técnica (Detalle 2) | Perfil de usuario |
+| Ficha técnica (Detalle 1) | Ficha técnica (Detalle 2) | Radar en directo |
 | :---: | :---: | :---: |
-| ![Info detallada](capturas/InfoDetallada.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) | ![Perfil](capturas/Perifl.png) |
+| ![Info detallada](capturas/InfoDetallada.png) | ![Info detallada ranking](capturas/info-detallada-ranking.png) | ![Mapa](capturas/Mapa.png) |
 
 | Hangar de piloto | Tabla de clasificación (Ranking) | Chatbot asistente |
 | :---: | :---: | :---: |
