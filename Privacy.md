@@ -31,7 +31,7 @@ La aplicación se conecta a los siguientes servicios externos para ofrecer sus f
 ## 3. Conservación y eliminación de datos
 
 * Puedes eliminar tus avistamientos registrados directamente desde las opciones de la aplicación.
-* Si deseas **eliminar por completo tu cuenta y todos tus datos asociados** (perfil, correo, teléfono y registros en Firestore), puedes solicitarlo en cualquier momento escribiendo a **[jotamyndsesp@gmail.com]** o abriendo una solicitud en el repositorio oficial: [GitHub Issues](https://github.com/Ivannovichh/SkyCollectorApp/issues). Procesaremos el borrado completo en un plazo máximo de 72 horas.
+* Si deseas **eliminar por completo tu cuenta y todos tus datos asociados** (perfil, correo, teléfono y registros en Firestore), puedes solicitarlo en cualquier momento escribiendo a **jotamyndsesp@gmail.com** o abriendo una solicitud en el repositorio oficial: [GitHub Issues](https://github.com/Ivannovichh/SkyCollectorApp/issues). Procesaremos el borrado completo en un plazo máximo de 72 horas.
 
 ---
 
@@ -45,4 +45,4 @@ La aplicación se conecta a los siguientes servicios externos para ofrecer sus f
 
 ## 5. Contacto
 
-Para cualquier duda sobre privacidad o gestión de tus datos durante la fase de pruebas, contacta con el desarrollador en **[jotamyndsesp@gmail.com]**.
+Para cualquier duda sobre privacidad o gestión de tus datos durante la fase de pruebas, contacta con el desarrollador en **jotamyndsesp@gmail.com**.
